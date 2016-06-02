@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.KNBase">
+<Description>
+This is a special container that renders the Technical Articles index page for the Documentation system.</Description>
+<ClassType>persistent</ClassType>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.container</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Method name="GetBannerInfo">
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+	Set info.title = $$$T("Technical Articles")
+	Set info.booktitle = $$$T("InterSystems Online Documentation")
+	Set info.chap = ""
+	Set info.prev = ""
+	Set info.next = ""
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRender">
+<Internal>1</Internal>
+<Implementation><![CDATA[	Do ..ShowArticles()
+]]></Implementation>
+</Method>
+
+<Method name="ShowArticles">
+<Description>
+Show list of articles</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+	Set sort = "SUBJECT"
+	Set sort = $G(%request.Data("Sort",1),sort)
+	
+	// preface
+	&html<<DIV CLASS="para1">>
+	Write $$$T("Welcome to the InterSystems technical articles for version ") _ $system.Version.GetNumber(), !
+	Write $$$T("These are a compendium of material on specific technical topics."), !
+	Write $$$T("The available articles are listed below."), !
+	&html<</DIV>>
+		
+	// sort form
+	&html<<DIV CLASS="para">>
+	&html<<FORM NAME="SORT">>
+	&html<<TABLE CLASS="SearchForm" CELLPADDING="2" BGCOLOR="silver" CELLSPACING="0" BORDER="0">>
+	&html<<TR><TD><B>#($$$T("Sort articles by:"))#</B>&nbsp;>
+	&html<<INPUT TYPE="HIDDEN" NAME="KEY" VALUE="KNBASE">>
+	&html<<INPUT TYPE="RADIO" NAME="Sort" VALUE="SUBJECT" #($S(sort="SUBJECT":"CHECKED",1:""))# onclick="self.document.SORT.submit();">#($$$T("Subject"))#&nbsp;>
+	&html<<INPUT TYPE="RADIO" NAME="Sort" VALUE="TITLE" #($S(sort="TITLE":"CHECKED",1:""))# onclick="self.document.SORT.submit();">#($$$T("Title"))#&nbsp;>
+	&html<<INPUT TYPE="RADIO" NAME="Sort" VALUE="DATE" #($S(sort="DATE":"CHECKED",1:""))# onclick="self.document.SORT.submit();">#($$$T("Date"))#&nbsp;>
+	&html<</TD></TR></TABLE>>
+	&html<</FORM></DIV>>
+
+	Do:sort="TITLE" ..ShowByTitle()
+	Do:sort="SUBJECT" ..ShowBySubject()
+	Do:sort="DATE" ..ShowByDate()
+]]></Implementation>
+</Method>
+
+<Method name="ShowByTitle">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+	// loop over articles
+	&sql(DECLARE TCursor CURSOR FOR
+		SELECT ID,blockid,title,subtitle,sourcetime,dbrole
+		INTO :setid,:key,:title,:desc,:time,:subj
+		FROM DocBook.article
+		ORDER BY title
+	)
+	
+	&sql(OPEN TCursor)
+	&sql(FETCH TCursor)
+
+	While (SQLCODE = 0) {
+		
+		Set link = "HREF=""DocBook.UI.FramePage.cls?KEY=" _ $ZCVT(key,"O","URL") _ """"
+
+		&html<<DIV CLASS="para"><UL><LI>
+		<A CLASS="TOC" #(link)# TITLE='#($ZCVT(desc,"O","HTML"))#'>#(title)#</A>&#151;#(subj)#&#151;<SPAN CLASS="sourcetime">#(time)#</SPAN>
+		</UL></DIV>>
+
+		&sql(FETCH TCursor)
+	}
+	&sql(CLOSE TCursor)
+]]></Implementation>
+</Method>
+
+<Method name="ShowBySubject">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+	// loop over articles
+	&sql(DECLARE SCursor CURSOR FOR
+		SELECT ID,blockid,title,subtitle,sourcetime,dbrole,remap
+		INTO :setid,:key,:title,:desc,:time,:subj,:remap
+		FROM DocBook.article
+		ORDER BY remap,dbrole,title
+	)
+	
+	&sql(OPEN SCursor)
+	&sql(FETCH SCursor)
+	
+	Set lastsubj = ""
+
+	While (SQLCODE = 0) {
+		
+		Set link = "HREF=""DocBook.UI.FramePage.cls?KEY=" _ $ZCVT(key,"O","URL") _ """"
+		
+		If (lastsubj '= subj) {
+			&html<<DIV CLASS="set">#(subj)#</DIV>>
+			Set lastsubj = subj
+		}
+
+		&html<<DIV CLASS="para"><UL><LI>
+		<A CLASS="TOC" #(link)# TITLE='#($ZCVT(desc,"O","HTML"))#'>#(title)#</A>&#151;<SPAN CLASS="sourcetime">#(time)#</SPAN>
+		</UL></DIV>>
+
+		&sql(FETCH SCursor)
+	}
+	&sql(CLOSE SCursor)
+]]></Implementation>
+</Method>
+
+<Method name="ShowByDate">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+	// loop over articles
+	&sql(DECLARE DCursor CURSOR FOR
+		SELECT ID,blockid,title,subtitle,sourcetime,dbrole
+		INTO :setid,:key,:title,:desc,:time,:subj
+		FROM DocBook.article
+		ORDER BY sourcetime DESC
+	)
+	
+	&sql(OPEN DCursor)
+	&sql(FETCH DCursor)
+
+	While (SQLCODE = 0) {
+		
+		Set link = "HREF=""DocBook.UI.FramePage.cls?KEY=" _ $ZCVT(key,"O","URL") _ """"
+
+		&html<<DIV CLASS="para"><UL><LI>
+		<A CLASS="TOC" #(link)# TITLE='#($ZCVT(desc,"O","HTML"))#'>#(title)#</A>&#151;#(subj)#&#151;<SPAN CLASS="sourcetime">#(time)#</SPAN>
+		</UL></DIV>>
+
+		&sql(FETCH DCursor)
+	}
+	&sql(CLOSE DCursor)
+]]></Implementation>
+</Method>
+
+<Method name="GetGotoList">
+<Description>
+ Provide info for the goto list </Description>
+<Internal>1</Internal>
+<FormalSpec><![CDATA[&gtl:cdata]]></FormalSpec>
+<Implementation><![CDATA[
+
+	Set id = ..%Id()
+
+	// list all of the articles
+	&sql(DECLARE G1Cursor CURSOR FOR
+		SELECT ID,blockid,title
+		INTO :id,:key,:title
+		FROM DocBook.article
+		ORDER BY title
+	)
+
+	&sql(OPEN G1Cursor)
+	&sql(FETCH G1Cursor)
+
+	Set num = 1
+	While (SQLCODE = 0) {
+		Set gtl(num) = $LB(key,title)
+		&sql(FETCH G1Cursor)
+		Set num = num + 1
+	}
+	&sql(CLOSE G1Cursor)
+	
+	Quit
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

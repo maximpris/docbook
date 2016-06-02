@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/sample-year-schema.xsd" application="/csp/docbook/" default="1"><![CDATA[
+<?xml version = "1.0" encoding = "UTF-8"?>
+
+<!--
+
+This sample Schema file is designed for demo purposes only.  It can
+be used with the "Tools->Validate Schema..." feature with the sample
+ATI XML Docbook V4.0 instance.
+
+Note: "Options->Full Menus" must be enabled to access this feature.
+
+This uses the "xsd:pattern" construct to validate the contents of the
+<year> element.  Because this is only for demo purposes, the <year>
+element is required to be nested in a <book><bookinfo><copyright>
+context (as is true for the sample ATI XML Docbook V4.0 instance).
+
+Examples of legal <year> contents are:
+
+1. 2002    
+2. 1999-2002
+3. 1999,2000,2001
+4. 1999, 2000, 2001
+
+Examples of illegal <year> contents are:
+
+1. 20025 (not exactly 4 digits)
+2. 1999-2002-2005 (more than one "-")
+3. 1999,   2002 (more than one space between "," and 2002)
+
+-->
+
+<xsd:schema xmlns:xsd = "http://www.w3.org/2001/XMLSchema">
+       <xsd:element name="book">
+           <xsd:complexType>
+		<xsd:sequence>
+			<xsd:element name="title"/>
+			<xsd:element ref = "bookinfo"/>
+			<xsd:group ref = "any"/>
+                </xsd:sequence>
+           </xsd:complexType>
+       </xsd:element> 
+	<xsd:element name = "bookinfo">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:choice maxOccurs = "unbounded">
+					<xsd:element ref = "authorgroup"/>
+					<xsd:element ref = "productname"/>
+					<xsd:element ref = "copyright"/>
+					<xsd:element ref = "abstract"/>
+				</xsd:choice>
+			</xsd:sequence>
+			<xsd:attributeGroup ref = "any"/>
+		</xsd:complexType>
+	</xsd:element>
+       <xsd:element name="authorgroup">
+           <xsd:complexType>
+		<xsd:group ref = "any"/>
+		<xsd:attributeGroup ref = "any"/>
+           </xsd:complexType>
+       </xsd:element> 
+	
+       <xsd:element name="productname">
+           <xsd:complexType mixed = "true">
+		<xsd:group ref = "any"/>
+		<xsd:attributeGroup ref = "any"/>
+           </xsd:complexType>
+       </xsd:element> 
+
+       <xsd:element name="copyright">
+           <xsd:complexType>
+		<xsd:sequence>
+			<xsd:choice maxOccurs = "unbounded">
+				<xsd:element ref = "year"/>
+				<xsd:element ref = "holder"/>
+			</xsd:choice>
+		</xsd:sequence>
+           </xsd:complexType>
+       </xsd:element> 
+
+       <xsd:element name="abstract">
+           <xsd:complexType>
+		<xsd:group ref = "any"/>
+		<xsd:attributeGroup ref = "any"/>
+           </xsd:complexType>
+       </xsd:element> 
+
+	<xsd:element name="year">
+		<xsd:simpleType>
+		   <xsd:restriction base="xsd:string">
+			<xsd:pattern value="[0-9]{4}((,( )?[0-9]{4})*|((-|&#8211;)[0-9]{4}))"/>
+		   </xsd:restriction>			
+		</xsd:simpleType>
+	</xsd:element>
+
+	<xsd:element name="holder"/>	
+
+	<xsd:group name = "any">
+		<xsd:sequence>
+			<xsd:any namespace = "##any" minOccurs = "0" maxOccurs="unbounded" processContents = "skip"/>
+		</xsd:sequence>
+	</xsd:group>
+
+	<xsd:attributeGroup name = "any">
+		<xsd:anyAttribute namespace="##any" processContents="skip"/>
+	</xsd:attributeGroup>
+</xsd:schema>]]></CSP>
+</Export>

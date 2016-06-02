@@ -1,0 +1,3 @@
+<cspapp>
+csp.docbook.doctypes.axdocbook.catalog.mac
+docbook_git.prj

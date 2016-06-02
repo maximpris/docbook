@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="docbook_nav.js" application="/csp/docbook/" default="1"><![CDATA[
+function DockBookNavigation() {
+    var	state = {
+        sects : [],
+        currentSect: null,
+        currentSubSect: null,
+        currentNavigateSects: null,
+        setCurrentSectForce: false,
+        forceScrollToPosition: null,
+        categoryLabelDefault: ''        
+    },
+    uiElements = {	   
+	    bookContainer : null,//$('#book')
+	    categoryLabel: null,
+	    categoryNameContainer: null,
+	    mobileHeader: null
+    },
+    self = this,
+    $window = $(window);   
+    
+	this.init = function (container, ignoreUrl, categoryText) {
+		resetState();
+		initUi(container);
+		scrollTo(0, 0);
+		state.categoryLabelDefault = uiElements.categoryLabel.text();	
+		if(!state.categoryLabelDefault) {
+			state.categoryLabelDefault = categoryText;
+			uiElements.categoryLabel.text(categoryText);
+		}
+		
+		
+			
+	    initSections();
+	    setCategory();
+	    unSubscribeToEvents();
+        subscribeToEvents();   
+        if(!ignoreUrl) {
+       		onHashChange();
+        }       
+        $window.on('resize', setCategory);        
+        $('a[href="#top"]').on('click', function () {
+	        scrollTo(0);
+	    });
+	};
+	
+	this.scrollToHeader = function (headerName) {
+		setCurrentSectByTag(headerName);
+	};
+	
+	function resetState() {
+		renderSubSection(null);
+		state = {
+        	sects : [],
+        	currentSect: null,
+        	currentSubSect: null,
+        	currentNavigateSects: null,
+        	setCurrentSectForce: false,
+        	forceScrollToPosition: null,
+        	categoryLabelDefault: ''
+		}
+	}	
+	
+	function scrollTo (position, duration, onComplete) {
+		state.forceScrollToPosition = position;
+		if(duration === 0) {
+			uiElements.bookContainer.scrollTop(position);
+			if(onComplete) {
+				onComplete();
+			}
+		}
+		else {
+			uiElements.bookContainer.stop(true,true).animate({
+	        	scrollTop:  position 
+    		}, duration || 1000, onComplete);	
+		}	
+	}	
+
+    function initUi(container) {	    
+	    uiElements.bookContainer = $(container);
+	    uiElements.categoryLabel = uiElements.bookContainer.find('#categoryName');
+	    uiElements.categoryNameContainer = uiElements.bookContainer.find('.category-name-container');
+	    uiElements.mobileHeader = $('#mobileHeader');
+    }
+
+    function subscribeToEvents() {
+        $window.on('hashchange', onHashChange);
+        subscribeToScroll();
+    }
+    
+    function unSubscribeToEvents() {
+	    $window.off('hashchange', onHashChange);
+	    unsubscribeToScroll();
+	}
+	
+	function subscribeToScroll(){		
+		uiElements.bookContainer.on('scroll', onScroll);
+	}
+	
+	function unsubscribeToScroll(){
+	 	uiElements.bookContainer.off('scroll', onScroll);
+	}
+
+    function onHashChange() {
+       //state.setCurrentSectForce = true;
+       var tag = window.location.hash.substr(1);
+       setCurrentSectByTag(tag, true);
+    }
+    
+    function setCurrentSectByTag(tag, withoutAnimation) {
+		var currentSect = findSectByTag(state.sects, tag);   		     
+		
+		if(!currentSect) {
+			
+		}
+        if(state.currentSect == currentSect)
+	        return
+	        
+        state.currentSect = currentSect;
+        setMenuHighlightItem();
+        setCategory();
+        var subSects = null;
+        if(currentSect && currentSect.sects) {
+           subSects = currentSect.sects;
+        }
+        renderSubSection(subSects, function () {
+	      	var docViewTop = uiElements.bookContainer.scrollTop();
+           	var subSect = getViewSect(subSects, docViewTop);
+           	if(state.currentSubSect !== subSect) {
+               	state.currentSubSect = subSect;
+               	setActionSubSection();
+           	}  
+	    });			
+        
+        scrollToElement(currentSect ? currentSect.el : null);        
+	}
+	
+	function scrollToElement(el, duration, onComlete) { 	
+		var position = 0;
+		if(el && el.length) {
+			position = uiElements.bookContainer.scrollTop() + el.position().top;
+			//position = $(uiElements.bookContainer).scrollTop() - $(uiElements.bookContainer).offset().top + $(currentSect.el).offset().top;
+		}
+	
+		state.setCurrentSectForce = true;	
+       	scrollTo(position, null , function () {
+        	if(onComlete) {
+	        	onComlete();
+	        }
+           	setTimeout(function () {	            	            	
+               	state.setCurrentSectForce = false;                	
+           	}, 0);
+        });    
+	}
+
+    function onScroll(){
+        if(state.setCurrentSectForce) {
+            return;
+        }
+
+        var docViewTop = uiElements.bookContainer.scrollTop();        
+        if(state.forceScrollToPosition == docViewTop)
+        	return;
+        
+        var currentSect = getViewSect(state.sects, docViewTop);
+        if(state.currentSect !== currentSect) {
+            state.currentSect = currentSect;
+            setCategory();            
+            var subSects = null;
+            if(currentSect && currentSect.sects) {
+                subSects = currentSect.sects;
+            }
+            renderSubSection(subSects);
+        }
+
+        var subSect = null;
+        if(currentSect && currentSect.sects && currentSect.sects.length) {
+            subSect = getViewSect(currentSect.sects, docViewTop);
+        }
+        if(state.currentSubSect !== subSect) {
+            state.currentSubSect = subSect;
+            setActionSubSection();
+        }
+        setMenuHighlightItem();
+    }
+    
+    function setCategory() {
+	      uiElements.categoryLabel.text(state.currentSect ? state.currentSect.name : state.categoryLabelDefault);	  
+	      
+	      if(uiElements.mobileHeader.is(":visible")) {
+		    uiElements.bookContainer.css('top', uiElements.mobileHeader.outerHeight() + 'px');
+		  }
+		  else {	      
+	      	uiElements.bookContainer.css('top', uiElements.categoryNameContainer.outerHeight() + 'px');
+		  }
+    }
+
+    function setMenuHighlightItem() {	    
+        if (state.currentSect) {
+            var key = '';
+            if(state.currentSect) {
+                key = state.currentSect.tag;
+            }
+            highlightItem(key, true);
+        }
+    }
+
+    function findSectByTag(sects, tag) {
+        if(!sects)
+            return null;
+
+        for(var i = 0, len = sects.length; i < len; i++) {
+	        var sect = sects[i];
+            if(sect.tag == tag) {                 
+                 return sect;
+            }
+            if(sect.sects && sect.sects.length) {
+	            var subSect = findSectByTag(sect.sects, tag);
+	            if(subSect)
+	            	return subSect;
+	        }
+        }
+        return null;
+    }
+
+    function getViewSect(sects, currentTopOffset) {
+        var currentSect = null;
+        if(!sects)
+        	return currentSect;
+        	
+        for(var i = 0, len = sects.length; i < len; i++) {
+            var sect = sects[i];            
+            //if(sect.el.position().top <= currentTopOffset) {
+	         if(sect.el.position().top <= 0) {
+                currentSect = sect;                
+            }
+            else {	            
+                break;
+            }
+        }        
+        return currentSect;
+    }
+
+    function renderSubSection(sects) {
+        if(state.currentNavigateSects) {
+            $('.in-this-topic-item').off( "click");
+            state.currentNavigateSects.remove();
+        }
+
+        if(!sects || !sects.length) {
+            return;
+        }
+
+        var container = '<div class="in-this-topic"><div class="in-this-topic-header">In this topic:</div><div class="in-this-topic-item-list">';
+
+        for(var i = 0, len = sects.length; i < len; i++) {
+            var sect = sects[i];
+            container += '<div class="in-this-topic-item" data-tag="'+ sect.tag +'">' + sect.name + '</div>';
+        }
+        container += '</div></div>';
+        state.currentNavigateSects = $(container);        
+	    state.currentNavigateSects.css('top', uiElements.categoryNameContainer.outerHeight() + 'px');
+	      
+        $('body').append(state.currentNavigateSects);
+        $('.in-this-topic-item').click(onSubtopicSelected);
+    }
+
+    function onSubtopicSelected() {
+        var $this = $(this);
+        if($this.hasClass('selected') || !state.currentSect) {
+            return;
+        }
+
+        var tag = $this.attr('data-tag');
+        var findSubSect = findSectByTag(state.currentSect.sects, tag);
+        if(findSubSect) {            
+            scrollToElement(findSubSect.el);  
+	        state.currentSubSect = findSubSect;
+            setActionSubSection();          
+        }
+    }
+
+    function setActionSubSection() {
+        if(state.currentNavigateSects) {
+            state.currentNavigateSects.find('.in-this-topic-item').removeClass('selected');
+            if(state.currentSubSect) {
+                var current = state.currentNavigateSects.find('[data-tag="' + state.currentSubSect.tag + '"]');
+                if(current) {
+                    current.addClass('selected');
+                }
+            }
+        }
+    }
+
+    function initSections() {
+        initFirstLevelSections();
+        initSecondLevelSections();
+        initBorderForSections();
+    }
+
+    function initFirstLevelSections() {
+        var sectFirsts = uiElements.bookContainer.find('.sect1');
+        sectFirsts.each(function( index, element   ) {
+            var el = $(element);
+            var sect = {
+                el: el,
+                name: element.innerText,
+                tag: $(element).find('a').prop('name'),
+                sects: []
+            };
+            state.sects.push(sect);
+        });
+    }
+
+    function initSecondLevelSections() {
+        var sects = uiElements.bookContainer.find('.sect2');
+        sects.each(function( index, element) {
+            var el = $(element);
+            var subSect = {
+                el: el,
+                name: element.innerText,
+                tag: $(element).find('a').prop('name')
+            };
+
+            var tag = el.prevAll('.sect1:first').find('a').prop('name');
+            var sect = findSectByTag(state.sects, tag);
+            sect.sects.push(subSect);
+        });
+    }
+
+    function initBorderForSections() {
+        initTopBorderForSections(state.sects);
+    }
+
+    function initTopBorderForSections(sects) {
+        for(var i = 0, len = sects.length; i < len; i++) {
+            var sect = sects[i];
+            sect.top = sect.el.position().top;
+            if(sect.sects && sect.sects.length) {
+                initTopBorderForSections(sect.sects);
+            }
+        }
+    }   
+   
+}]]></CSP>
+</Export>

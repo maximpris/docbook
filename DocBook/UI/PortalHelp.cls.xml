@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.PortalHelp">
+<Description>
+The default when no target for the Portal page help can be found.</Description>
+<ClassType/>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.UI.StdPage</Super>
+<TimeCreated>58696,41768</TimeCreated>
+
+<Method name="OnPage">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    Set info = ##class(BannerInfo).%New()
+    Set info.title = $$$T("Default Portal Help Page")
+    Set info.booktitle = $$$T("InterSystems Online Documentation")
+    
+    Do ..Header($$$T("Portal Help Missing"))
+    
+    &html<<BODY>>
+    
+    Do ..RenderBanner(info)
+    &html<<BR>>
+    
+    &html<<DIV CLASS="warning">>
+    &html<<P>>
+    Write $$$T("The help associated with the Management Portal page cannot be found.")
+    &html<<P>>
+    &html<</DIV>>
+
+    &html<<DIV CLASS="para">>
+    &html<<P>>
+    Write $$$T("The following information is available:")
+    &html<<UL>>
+
+    &html<<P>>
+    &html<<LI><A HREF="DocBook.UI.Page.cls">#($$$T("Online documentation Home page"))#</A></LI>>
+
+    &html<<P>>
+    &html<<LI><A HREF="DocBook.UI.Page.cls?KEY=GSA_using_portal">#($$$T("Using the Management Portal"))#</A></LI>>
+
+    &html<<P>>
+    &html<<LI><A HREF="DocBook.UI.Page.cls?KEY=SETSysAdmin">#($$$T("System administration documents"))#</A></LI>>
+
+    &html<<P>>
+    &html<<LI><A HREF="DocBook.UI.Page.cls?KEY=SETRelease">#($$$T("Information related to this release"))#</A></LI>>
+
+    &html<<P>>
+    &html<<LI><A HREF="DocBook.UI.Page.cls?KEY=KNBASE">#($$$T("Technical articles"))#</A></LI>>
+
+    &html<<P>>
+    &html<</UL>>
+    &html<</DIV>>
+
+Done    
+    Do ..Footer()
+
+    Quit $$$OK
+
+]]></Implementation>
+</Method>
+</Class>
+</Export>

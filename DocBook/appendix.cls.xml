@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.appendix">
+<Description>
+This class represents a DocBook appendix.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.component</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Method name="GetBannerInfo">
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+	Set info.title = ..title
+	If (..book '= "") {
+		Set info.booktitle = ..book.title
+	}
+	Else {
+		Set info.booktitle = ""
+	}		
+	Set info.chap = $$$T("Appendix")
+	
+	// find prev/next chapter
+	If ($G(%tutorial) = 1) {
+		Set info.prev = ":self.history.back();" // !!!
+	}
+	Else {
+		Do ..GetNextPrevInfo(info)
+	}
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

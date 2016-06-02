@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="docbook.csp" application="/csp/docbook/" default="1"><![CDATA[
+<!--Use <b>%response.Redirect</b> property to redirect the HTTP request-->
+<!-- Copyright (c) 2002 InterSystems Inc. ALL RIGHTS RESERVED. -->
+
+<html>
+<head></head>
+<body>
+<script language=Cache method=OnPreHTTP arguments="" returntype=%Boolean>
+    //Set %response.Redirect=%request.Get("redirect",$G(^%SYS("DOCBOOK","URL"),"DocBook.UI.Page.cls"))
+
+    Set %response.Redirect=%request.Get("redirect","")
+    Quit:(%response.Redirect '= "") 1
+    Set %response.Redirect=##class(DocBook.ConfigUtils).GetURL()
+    Quit:(%response.Redirect '= "") 1
+	Set %response.Redirect="DocBook.UI.Page.cls"
+	Quit 1
+</script>
+</body>
+</html>
+]]></CSP>
+</Export>

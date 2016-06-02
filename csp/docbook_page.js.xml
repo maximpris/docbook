@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="docbook_page.js" application="/csp/docbook/" default="1"><![CDATA[
+function DockBookPage() {
+    var	state = {     
+    	currentUrl: null,
+    	currentSet: null
+    },
+    uiElements = {
+	    menuContainer: $('#bookMenu'),
+	    bookContainer: $('#book'),
+	    bookContainerInner: $('#bookInner'),
+		bookLoadingContainer: $('.loading'),
+		bookMenuBtn: $('#bookMenuBtn'),
+		treeTop: $('#TreeTop'),
+		bookHeader: $('.BookHeader'),
+		hideShowLeftMenu: $('#hideShowLeftMenu'),
+		resetHomePageBtn: $('#resetHomePageBtn')
+    },
+    cookiesName = 'DockBookPage',
+    bookNavigation = null,
+    expandedClass = 'expanded',
+	collapsedClass = 'collapsed',
+	$window = $(window); 
+	
+	this.onExpand = function (id, isCollapse) {
+		onResize();
+		var key = getUrlParameterByName('KEY');
+		if(key)
+			return;
+			
+		var data = getCookie();
+		var setIndex = data.openSets.indexOf(id);
+		if(isCollapse) {
+			if(setIndex == -1) {
+				data.openSets.push(id);
+			}
+		}
+		else {
+			if(setIndex > -1) {
+				data.openSets.splice(setIndex, 1);
+			}
+		}
+		setCookie(data);	
+	};
+    
+
+    function init() {	   
+	    state.currentUrl = location.pathname.substring(location.pathname.lastIndexOf("/")+1) + location.search;
+	    var selectedEl = getSelectedElement();	    
+	    bookNavigation = new DockBookNavigation();
+	    bookNavigation.init(uiElements.bookContainer, false, selectedEl.text());
+	    subscribeToUrl();
+	    uiElements.bookMenuBtn.on('click', onMenuBtnClick);
+	    $('[data-tree-top]').on('click', onClickTop);
+	   	uiElements.hideShowLeftMenu.on('click', function () {
+		   	var $this = $(this);
+		   	if(uiElements.menuContainer.hasClass('hide-menu')) {
+			   	uiElements.menuContainer.removeClass('hide-menu').addClass('show-menu');			   	
+			   	uiElements.bookContainer.removeClass('hide-menu').addClass('show-menu');
+			   	$this.removeClass('right').addClass('left');
+			}
+			else {
+				uiElements.menuContainer.removeClass('show-menu').addClass('hide-menu');
+				uiElements.bookContainer.removeClass('show-menu').addClass('hide-menu');
+				$this.removeClass('left').addClass('right');
+			}
+			return false;
+		});
+		uiElements.resetHomePageBtn.on('click', function () {
+		   	resetCookie();
+			return true;
+		});
+	    subscribeToClickInBook();	    	    
+	    $window.on('resize', onResize);
+	    
+	    if(window.location.hash) {		
+			uiElements.menuContainer.addClass(collapsedClass).removeClass(expandedClass);
+		}
+		
+		var set = getUrlParameterByName('SET');
+		if(set) {
+			setCurrentSet(set);					
+		}
+		
+		initFromCookie();
+		onResize();
+    }
+   
+    function initFromCookie() { 
+    	var key = getUrlParameterByName('KEY');
+		if(key)
+			return;			
+		
+    	var data = getCookie();    	    	
+    	openSetsFromCookie();
+    	if(data.currentSet) {	    	
+		    navigateAndLoadBySet(data.currentSet);	    	
+	    }
+    }
+    
+    function getSelectedElement() {	
+    	return uiElements.menuContainer.find('div.active a>nobr');
+	}
+    
+    function openSetsFromCookie() {
+		var data = getCookie();
+		for(var i = 0, len = data.openSets.length; i < len; i++) {
+			var set = data.openSets[i];			
+			expandItem(set);
+		}
+	}
+    
+    function subscribeToUrl() {
+	    uiElements.menuContainer.find('a[href]:not([data-ajax-ignored])').on('click', onClick);
+	}
+	
+	function onMenuBtnClick() {		 
+		if(uiElements.menuContainer.hasClass(expandedClass)) {
+			uiElements.menuContainer.addClass(collapsedClass).removeClass(expandedClass);
+		}
+		else {
+			uiElements.menuContainer.removeClass(collapsedClass).addClass(expandedClass);
+		}
+	}
+	
+	function onClickTop() {		 
+		uiElements.menuContainer.stop(true,true).animate({
+	        	scrollTop:  0 
+    	}, 1000);	
+    	return false;
+	}
+	
+	function navigateAndLoadBySet(set) {
+		var el = uiElements.menuContainer.find('[data-set="'+ set +'"]');
+		loadByElement(el, true);
+		scrollToElement(el.parent(), 0);
+    	return false;
+	}
+	
+	function scrollToElement(el, duration, onComlete) { 	
+		var position = 0;
+		if(el && el.length) {
+			position = uiElements.menuContainer.scrollTop() + el.position().top;
+		}	
+	
+       	scrollTo(position, duration , function () {
+        	if(onComlete) {
+	        	onComlete();
+	        }           
+        });    
+	}
+	
+	function scrollTo (position, duration, onComplete) {		
+		if(duration === 0) {
+			uiElements.menuContainer.scrollTop(position);
+			if(onComplete) {
+				onComplete();
+			}
+		}
+		else {
+			uiElements.menuContainer.stop(true,true).animate({
+	        	scrollTop:  position 
+    		}, duration || 1000, onComplete);	
+		}	
+	}
+	
+	function onResize() {
+		var maxHeight = getBookHeaderHeight();
+    	var lastHeight = maxHeight;    	
+    	var hasScroolBar = isHasScrollBar(uiElements.menuContainer);
+		uiElements.treeTop.height(maxHeight);
+		if(isHasScrollBar(uiElements.menuContainer) !== hasScroolBar)
+			onResize();
+		else {
+			setTimeout(function () {
+				if(lastHeight != getBookHeaderHeight())
+					onResize();
+			}, 0);
+		}
+	}
+	
+	function getBookHeaderHeight() {
+		var heights = uiElements.bookHeader.map(function ()
+    	{
+        	return $(this).outerHeight();
+    	}).get();    	
+    	return Math.max.apply(null, heights);
+	}
+	
+	function isHasScrollBar($container) {
+		return $container.get(0).scrollHeight > $container.height();
+	}
+	
+	function onClick() {
+		loadByElement($(this));
+		return false;
+	}
+	
+	function loadByElement(el, notCallExpand) {
+		var url = el.attr('href');
+		var key = getUrlParameterByName('KEY', url);
+		var set = getUrlParameterByName('SET', url);		
+		var expandId = el.attr('data-expand-id');
+		var startHrefIndex = url.lastIndexOf("#");		
+		var hash = url.substring(startHrefIndex + 1);		
+		if(expandId && !notCallExpand) {
+			expandItem(expandId);
+		}
+		if(startHrefIndex === -1) {
+			startHrefIndex = url.length;
+			hash = '';
+		}	
+		
+		if(!url || url == '#') {
+			highlightElemWithoutKeyAndSet(el);
+			return;			
+		}
+			
+		var baseUrl = url.substring(0, startHrefIndex);			
+		if(state.currentUrl != baseUrl) 
+		{		
+			state.currentUrl = baseUrl;
+			uiElements.bookLoadingContainer.show();			
+			uiElements.bookContainer.load(baseUrl + ' div#bookInner', null, 
+	    		function (responseText, textStatus, XMLHttpRequest) {	
+	    			var response = $(responseText);
+	    			var bookInner = response.find('div#bookInner');
+	    			var title = response.filter('title');
+	    			
+        			if (textStatus == 'success') {
+        				uiElements.bookContainer.html(bookInner.html());
+        				$('title').text(title.text());
+        				var selectedEl = getSelectedElement();
+	        			bookNavigation.init(uiElements.bookContainer, true, selectedEl.text());
+	        			uiElements.bookLoadingContainer.hide();
+	        			subscribeToClickInBook();
+	        			uiElements.hideShowLeftMenu = $('#hideShowLeftMenu');
+	        			 	uiElements.hideShowLeftMenu.on('click', function () {
+		   						var $this = $(this);
+								if(uiElements.menuContainer.hasClass('hide-menu')) {
+									uiElements.menuContainer.removeClass('hide-menu').addClass('show-menu');			   	
+									uiElements.bookContainer.removeClass('hide-menu').addClass('show-menu');
+									$this.removeClass('right').addClass('left');
+								}
+								else {
+									uiElements.menuContainer.removeClass('show-menu').addClass('hide-menu');
+									uiElements.bookContainer.removeClass('show-menu').addClass('hide-menu');
+									$this.removeClass('left').addClass('right');
+								}
+								return false;
+							});
+	        			if(hash) {
+	        				bookNavigation.scrollToHeader(hash);
+	        			}
+	        			else {
+		        			highlightItem(key, true, set);
+		        			if(set) {
+		        				setCurrentSet(set);
+		        			}
+		        		}
+        			}
+        			else {
+		        		alert('page loaded error');
+	        		}
+    			}
+			);		
+		}
+		else {
+			if(hash) {
+	        	bookNavigation.scrollToHeader(hash);
+	        }
+	        else {
+		    	highlightItem(key, true, set);
+		    }
+		}
+		
+		if(uiElements.bookMenuBtn.is(":visible")) {		
+			uiElements.menuContainer.addClass(collapsedClass).removeClass(expandedClass);
+		}
+	}
+	
+	function subscribeToClickInBook() {
+		uiElements.bookContainer.find('a[href]:not([data-ajax-ignored])').on('click', onBookClick);
+	}
+	
+	function onBookClick() {
+		var url = $(this).attr('href');
+		var startHrefIndex = url.lastIndexOf("#");		
+		var hash = url.substring(startHrefIndex + 1);
+		var baseUrl = url.substring(0, startHrefIndex);		
+		if(!hash || state.currentUrl != baseUrl)
+			return true;
+			
+		
+		bookNavigation.scrollToHeader(hash);	
+		return false;	
+	}
+	
+	function getUrlParameterByName(name, url) {
+    	if (!url) url = window.location.href;
+    	name = name.replace(/[\[\]]/g, "\\$&");
+    	var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)", "i"),
+	        results = regex.exec(url);
+	    if (!results) return null;
+	    if (!results[2]) return '';
+	    return decodeURIComponent(results[2].replace(/\+/g, " "));
+	}
+	
+	function setCurrentSet(id) {		
+		var data = getCookie();
+		data.currentSet = id;
+		setCookie(data);
+	}
+	
+	function getCookie() {
+		var data = Cookies.get(cookiesName);
+		if(!data) {
+			data = {};
+		}
+		else {
+			data = JSON.parse(data);
+		}
+		if(!data.openSets) {
+			data.openSets = [];
+		}
+		return data;
+	}
+	
+	function setCookie(data) {		
+		Cookies.set(cookiesName, JSON.stringify(data));
+	}
+	
+	function resetCookie() {
+		Cookies.remove(cookiesName);
+	}
+	
+    init();
+}]]></CSP>
+</Export>

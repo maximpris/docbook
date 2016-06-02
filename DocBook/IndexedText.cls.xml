@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.IndexedText">
+<Description>
+This is a specialized datatype for properties that are word-search indexed.</Description>
+<Super>%Library.Text</Super>
+<TimeCreated>60807,47614.371157</TimeCreated>
+
+<Parameter name="LANGUAGECLASS">
+<Default>^DocBook.Config("INDEXCLASS")</Default>
+</Parameter>
+
+<Parameter name="IGNOREMARKUP">
+<Default>1</Default>
+</Parameter>
+</Class>
+</Export>

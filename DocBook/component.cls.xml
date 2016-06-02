@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.component">
+<Description>
+This class represents the chapter-like elements of a book.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.container</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Method name="GetNextPrevInfo">
+<Description>
+ Find the next and prev component to this one</Description>
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+	If (..book = "") {
+		Quit
+	}
+	
+	// find prev/next component
+
+	Set ctrid = ..container.%Id()
+	Set pos = ..blockpos
+	
+	// too inefficient!
+	//SELECT blockid INTO :prev
+	//	FROM component
+	//	WHERE (book = :bid) AND (blockpos < :pos)
+	//	ORDER BY blockpos DESC
+
+	// assume all components have sequential blockpos
+	Set ppos = pos - 1
+	&sql(SELECT blockid INTO :prev
+		FROM component
+		WHERE (container = :ctrid) AND (blockpos = :ppos)
+	)
+		
+	If (SQLCODE = 0) {
+		Set info.prev = prev
+	}
+
+	&sql(SELECT blockid INTO :next
+		FROM component
+		WHERE (container = :ctrid) AND (blockpos > :pos)
+		ORDER BY blockpos)
+		
+	If (SQLCODE = 0) {
+		Set info.next = next
+	}
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="DocBook_Menu - Copy.css" application="/csp/docbook/" default="1"><![CDATA[
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,300);
+
+@font-face {
+    font-family: "DINProLight";
+    
+    src:  url('fonts/DINPro-Light.woff') format('woff'), url('fonts/DINPro-Light.otf') format("opentype");
+    font-style: normal;
+        font-weight: normal;
+}
+body{
+    font-family: "DINProLight", 'Open Sans' !important;
+    margin:0!important;
+min-width:250px;
+background:#3a3633;
+}
+
+DIV.Title {
+    padding:12px;
+    background:#3a3633;
+    font-weight: bold;
+    font-family:'Open Sans';
+    font-weight: normal;
+    display: block;
+    font-size: 16px;
+    color: #fff;
+    border: solid transparent;
+    border-width: 1px 0;
+    box-shadow: inset 1px 1px 0 rgba(0,0,0,.1),inset 0 -1px 0 rgba(0,0,0,.07);
+    width: 100%;
+    margin: 0!important;
+    border-bottom: 1px solid #525151;
+}
+
+DIV.Title a{
+    color: #fff;
+}
+
+
+div.Title {
+	width: auto!important;
+}
+
+.Title a,.Title a:visited  {
+color: #fff!important;
+}
+
+hr{
+    display:none;
+}
+
+body > div[nowrap]:not([id]) {
+     position:relative;
+     background:#3a3633;
+     padding-left: 30px;
+}
+
+body > div[nowrap][id]{
+    position:relative
+}
+
+body > div[nowrap]:not([id]) img{
+	display:none;
+}
+body > div[nowrap]:not([id]) a {
+     padding: 18px 0;
+     margin-left: 5px;
+     color:#fff;
+     font-family:"DINProLight", 'Open Sans';
+font-size:14px;
+     font-weight: normal;
+     /* background: none!important; */
+display:block;
+
+}
+body > div[nowrap]:not([id]) a nobr{
+   
+white-space:pre-wrap!important;
+}
+body > div[nowrap]:not([id]) a.CSPExpandor {
+     position:absolute;
+     top: 0px;
+     left: 6px;
+     height:15px;
+     width:15px;
+    background: url('nav-expand.svg') center center no-repeat;
+     width: 19px;
+     
+     fill: #fff;
+     -webkit-filter: brightness(5);
+}
+
+body > div[nowrap]:not([id]) a.CSPExpandor.expand {
+    background: url('nav-collapse.svg') center center no-repeat;
+}
+body > div[nowrap]:not([id]) a.CSPExpandor.collapse{
+    background: url('nav-expand.svg') center center no-repeat;
+
+}
+body > div[nowrap]:not([id]) a.CSPExpandor > img{
+    -webkit-filter: sepia(100%);
+    filter: sepia(100%);
+    width:18px;
+    display: none;
+}
+
+body > div[nowrap][id] div[nowrap] {
+    background: #403f3d;
+    position:relative;
+}
+
+body > div[nowrap][id] div[nowrap] a{
+     color:#fff;
+    font-weight: normal;
+     font-family:"DINProLight", 'Open Sans';
+     position:relative;
+     line-height:30px;
+
+}
+
+body > div[nowrap][id] div[nowrap]:not([id]) img{
+	display:none;
+}
+
+body > div[nowrap][id] div[nowrap]:not([id]) a {
+    display: block;
+    margin-left: 45px;
+    line-height:22px;
+    padding-bottom:13px;
+    padding-top:13px;
+font-size:13px;
+}
+
+body > div[nowrap][id] div[nowrap]:not([id]) nobr{
+    white-space:normal;
+white-space: pre-wrap;
+}
+
+body > div[nowrap]:not([id]) a:hover,
+body > div[nowrap][id] div[nowrap] a:hover{
+    /* color:#92d9fa!important;*/
+     color:#fff!important;
+}
+
+body > div[nowrap]:not([id]):hover::before {
+	 content: ""; 
+	background:#fff;
+	position:absolute;
+	left:0;
+	top:0;
+	bottom:0;
+	width:5px;
+}
+
+body > div[nowrap]:not([id])::before {
+	/* content: ""; */
+	background:#fff;
+	position:absolute;
+	left:0;
+	top:0;
+	bottom:0;
+	width:5px;
+}
+body > div[nowrap][id] div[nowrap]:hover::before,
+.active::before{
+	content: "";
+    background: #fff;
+top:0;
+    position: absolute;
+    left: 0px;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}
+
+.active:focus,.active a:focus{
+outline:0;
+}
+
+.CSPMenuItem1{
+outline:0;
+}
+
+.searchButton{
+	background: url("searchIcon.png") #70bd34 no-repeat 11px 16px;
+	color: #fff;
+	padding: 15px 10px;
+	position: relative;
+	
+}
+
+.searchButton input{
+	color: #fff;
+	border:none;
+	background:none;
+	margin-left:30px;
+	font-family: "DINProLight", 'Open Sans';
+	outline:0;
+	width: calc(100% - 80px);
+	width: -webkit-calc(100% - 80px);
+	width: -moz-calc(100% - 80px);
+	width: -ms-calc(100% - 80px);
+}
+
+.searchButton a{
+	color: #fff;
+	font-size:14px;
+	border-radius:5px;
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	background:rgba(255,255,255,0.3);
+	padding:4px 14px;
+	cursor:pointer;
+	position:absolute;
+	right:5px;
+	top:12px;
+}
+
+.backButton{
+    font-size: 12px;
+
+    vertical-align: top;
+display: inline-block;
+    background: rgba(255,255,255,0.3);
+    border-radius: 5px;
+    padding-right: 3px;
+    margin-right: 8px;
+    padding: 4px 9px;
+margin-bottom:10px;
+}
+
+DIV.Title {
+    padding: 0 12px 12px 12px;
+
+}/*
+DIV.Title.BookHeader{
+position:fixed;
+   top:0;
+left:0;
+right:0;
+z-index:100;
+}
+a[name='TreeTop']{
+display:block;
+height:0;
+}
+.BookHeader + hr + a[name='TreeTop']{
+display:block;
+height:51px;
+}*/
+
+DIV.Title.TopOfList{
+	font-size:14px;
+	padding-bottom: 30px!important;
+	display: block;
+	border-bottom:none;
+border-top: 1px solid #444;
+	box-shadow:none;
+font-family: "DINProLight", 'Open Sans';
+}
+
+.Title span{
+    display: inline-block;
+    margin-top: 13px;
+    line-height:24px!important;
+
+}
+
+.Title a, .Title a:visited {
+margin: 0;
+    margin-top: 12px;
+    margin-right: 8px;
+    display: inline-block;
+}
+
+::-webkit-input-placeholder {color:#e5e5e5;}
+::-moz-placeholder          {color:#e5e5e5;}/* Firefox 19+ */
+:-moz-placeholder           {color:#e5e5e5;}/* Firefox 18- */
+:-ms-input-placeholder      {color:#e5e5e5;}]]></CSP>
+</Export>

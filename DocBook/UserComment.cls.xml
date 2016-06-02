@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UserComment">
+<Description>
+This is a user comment.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%Library.Persistent</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Index name="BlockIdx">
+<Type>index</Type>
+<Properties>BlockId</Properties>
+</Index>
+
+<Index name="UserIdx">
+<Type>index</Type>
+<Properties>UserName</Properties>
+</Index>
+
+<Property name="UserName">
+<Description>
+The user who submitted this comment</Description>
+<Type>cdata</Type>
+</Property>
+
+<Property name="CreateTime">
+<Description>
+When this comment was created</Description>
+<Type>%TimeStamp</Type>
+</Property>
+
+<Property name="Comment">
+<Description>
+The user's comment</Description>
+<Type>cdata</Type>
+<Parameter name="MAXLEN" value="2000"/>
+</Property>
+
+<Property name="Reason">
+<Description>
+The reason associated with the comment</Description>
+<Type>cdata</Type>
+</Property>
+
+<Property name="BlockId">
+<Description>
+The id of the text block this comment refers to</Description>
+<Type>id</Type>
+</Property>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.UserCommentD</DataLocation>
+<DefaultData>UserCommentDefaultData</DefaultData>
+<IdLocation>^DocBook.UserCommentD</IdLocation>
+<IndexLocation>^DocBook.UserCommentI</IndexLocation>
+<StreamLocation>^DocBook.UserCommentS</StreamLocation>
+<Data name="DocBook.UserCommentClassName">
+<Attribute>%%CLASSNAME</Attribute>
+<Structure>node</Structure>
+<Subscript>0</Subscript>
+</Data>
+<Data name="UserCommentDefaultData">
+<Value name="1">
+<Value>CreateTime</Value>
+</Value>
+<Value name="2">
+<Value>UserName</Value>
+</Value>
+<Value name="3">
+<Value>BlockId</Value>
+</Value>
+<Value name="4">
+<Value>Comment</Value>
+</Value>
+<Value name="5">
+<Value>Reason</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

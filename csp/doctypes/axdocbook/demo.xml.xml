@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/demo.xml" application="/csp/docbook/" default="1"><![CDATA[
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet href="axdocbook-fo.xsl" type="text/xsl" media="print,pdf" alternate="yes"?>
+<?xml-stylesheet href="axdocbook-html.xsl" type="text/xsl" media="screen"?>
+<!--ArborText, Inc., 1988-2002, v.4002-->
+<!DOCTYPE book PUBLIC "-//Arbortext//DTD DocBook XML V4.0//EN"
+ "axdocbook.dtd">
+<?Pub UDT instructions _comment FontColor="red"?>
+<?Pub UDT template _font?>
+<?Pub UDT _listselect _touchup?>
+<?Pub EntList alpha bull copy rArr sect trade shy?>
+<book>
+<title>W<?Pub Caret1?>elcome to the Wonderful World of Modern Transportation</title>
+<bookinfo>
+<authorgroup><corpauthor>Arbortext, Inc.</corpauthor></authorgroup>
+<productname>XML DocBook doctype</productname>
+<copyright><year>1999-2002</year><holder>Arbortext, Inc.</holder></copyright>
+<abstract>
+<para>This sample document demonstrates the use of some of the XML DocBook
+markup and formatting. The document content is for illustrative purposes only.
+Its accuracy is not guaranteed.</para>
+</abstract>
+</bookinfo>
+<toc></toc>
+<chapter>
+<title>Introduction</title>
+<para>Welcome to the world of modern transportation. In this document, five
+popular modes of transport are discussed. They are:</para>
+<itemizedlist>
+<listitem><para>Cruise Ship</para>
+</listitem>
+<listitem><para>Moon Rover</para>
+</listitem>
+<listitem><para>Satellite</para>
+</listitem>
+<listitem><para>Train</para>
+</listitem>
+<listitem><para>Bulldozer</para>
+</listitem>
+</itemizedlist>
+<para>These modes of transportation represent water, space, virtual transport,
+ground and construction. These are popular modes in today's world, aside from
+the obvious choices such as automobile or airliner. The ever-changing world
+of transportation is constantly providing us with new options for moving from
+place to place. </para>
+</chapter>
+<chapter>
+<title>Water  &mdash; The Cruise Ship</title>
+<para><indexterm><primary>Cruise Ships</primary></indexterm><indexterm><primary>water
+transportation</primary></indexterm>Cruise ships are fast becoming a popular
+way for people to travel the world's waterways. Towering over the Caribbean,
+the Titanic II measures 73,941 tons (75,124 metric tons). Lodging more than
+2,000 passengers requires in excess of a thousand staterooms spanning 14 decks.
+ </para>
+<para><informaltable frame="none" security="Customer">
+<tgroup cols="2">
+<?PubTbl tgroup rth="1.00pt" dispwid="6.04in"?>
+<colspec colname="col1" colwidth="1.00*" colsep="0" align="left" char="" charoff="50"/>
+<colspec colname="col2" colwidth="1.00*" colsep="0" align="left" char="" charoff="50"/>
+<tbody>
+<row>
+<?PubTbl row rht="2.29in"?>
+<entry colname="col1"><inlinegraphic fileref="boatdraw.tif" scale="100"/></entry>
+<entry colname="col2">The Titanic II is set to sail in February, 2002. Its
+builders and designers have virtually guaranteed the ship to be unsinkable.</entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable></para>
+<para><indexterm><primary>Titanic II</primary></indexterm>The Titanic II's
+lavish buffets are fun to look at even if you're too full to eat. A themed
+menu is offered each night, including Italian, Mexican, and Caribbean island
+fare. The dining rooms are also theme-based, featuring rooms such as the Broadway
+lounge and a Roaring 20's nightclub.  </para>
+<para>Some of Titanic II's destinations include:<table frame="none">
+<title>Titanic II's Destinations</title>
+<tgroup cols="2">
+<?PubTbl tgroup dispwid="10.30in"?>
+<colspec colname="col1" colwidth="0.53*"/><colspec colname="col2" colwidth="1.47*"/>
+<tbody>
+<row>
+<entry colname="col1" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><emphasis
+role="bold">Antigua</emphasis></entry>
+<entry colname="col2" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><indexterm>
+<primary>Antigua</primary></indexterm>Quietly sophisticated former British
+colony; long powdery beaches, fashionable resorts, lots of tennis. Yachting
+favorite for its fingered coast, consistent winds. Extraordinary ruins of
+the British Navy from the 18th and 19th centuries. Small to midsize resorts;
+some all-inclusive. </entry>
+</row>
+<row>
+<entry colname="col1" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><emphasis
+role="bold">St. Barts</emphasis></entry>
+<entry colname="col2" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><indexterm>
+<primary>St. Barts</primary></indexterm>Tiny French Eden of sophisticated
+and very expensive restaurants, shops, and outdoor caf&eacute;s. Ringed by
+beautiful beaches and great snorkeling. Islanders of Norman, Breton descent.
+Small hotels. </entry>
+</row>
+<row>
+<entry colname="col1" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><emphasis
+role="bold">Martinique</emphasis></entry>
+<entry colname="col2" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><indexterm>
+<primary>Martinique</primary></indexterm>French and Caribbean. Bold scenery
+and sophisticated living. Exotic flowers, mountains, and rain forest trails
+share the island with marinas, golf, bistros, casino, and discos. Historic
+sugarcane plantations and museums. French and creole cuisine. Tourist centers
+crowded with Europeans. Popular cruise port. Small to midsize resorts. </entry>
+</row>
+<row>
+<entry colname="col1" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><emphasis
+role="bold">Montserrat</emphasis></entry>
+<entry colname="col2" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><indexterm>
+<primary>Montserrat</primary></indexterm>Quiet British colony with Irish influence.
+North American, British expatriate community. Hiking to waterfalls and volcanic
+peak. Gray and gold beaches. Small resorts. </entry>
+</row>
+<row>
+<entry colname="col1" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><emphasis
+role="bold">Saba</emphasis></entry>
+<entry colname="col2" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><indexterm>
+<primary>Saba</primary></indexterm>Tiny Dutch island jutting 3,000 feet (4,827
+meters) above sea. Lilliputian villages of gingerbread houses. Hiking trails,
+diving in new marine park. No beaches. </entry>
+</row>
+<row>
+<entry colname="col1" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><emphasis
+role="bold">Culebra and Vieques</emphasis></entry>
+<entry colname="col2" colsep="0" rowsep="0"><?Pub _cellfont FontStyle="sans-serif"?><indexterm>
+<primary>Culebra and Vieques</primary></indexterm>Low, dry, quiet islands
+off Puerto Rico's east coast. Gorgeous beaches. Vieques has Spanish fort,
+U.S. Navy facilities, bioluminescent bay, and camping. Culebra National Wildlife
+Refuge has 86 bird species; hundreds of terns in spring. </entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+<sect1 security="Employee">
+<title>Employee information &mdash; for internal use only</title>
+<para>This section includes information for employees only and is not intended
+for publication for the general public.</para>
+<note><title>ATTENTION</title>
+<para>If you are among the employees sailing on the test launch of Titanic
+II, here is a list of  tools you should carry in your luggage, as last-minute
+repairs may be necessary before carrying passengers.</para>
+</note>
+<informaltable>
+<tgroup cols="3">
+<?PubTbl tgroup dispwid="5.86in"?>
+<colspec colname="COLSPEC0" colwidth="0.86*"/>
+<?PubTbl tgroup dispwid="5.66in"?>
+<colspec colname="col1" colwidth="0.97*"/><colspec colname="col2" colwidth="1.07*"/>
+<tbody>
+<row>
+<?PubTbl row rht="0.47in"?>
+<entry namest="COLSPEC0" nameend="col2" align="center"><emphasis role="bold">Tools
+Necessary for Minor Repairs Aboard Titanic II</emphasis></entry>
+</row>
+<row>
+<entry colname="COLSPEC0">KB10113</entry>
+<entry colname="col1">Screwdriver</entry>
+<entry colname="col2" align="center"><inlinegraphic fileref="screwdrvr.tif"/></entry>
+</row>
+<row>
+<entry colname="COLSPEC0">KB10119</entry>
+<entry colname="col1">Saw</entry>
+<entry colname="col2" align="center"><inlinegraphic fileref="saw.tif"/></entry>
+</row>
+<row>
+<entry colname="COLSPEC0">KB20334</entry>
+<entry colname="col1">Hammer</entry>
+<entry colname="col2" align="center"><inlinegraphic fileref="hammer.tif"/></entry>
+</row>
+<row>
+<entry colname="COLSPEC0">KB40988</entry>
+<entry colname="col1">Staple Gun</entry>
+<entry colname="col2" align="center"><inlinegraphic fileref="staplegun.tif"/></entry>
+</row>
+<row>
+<entry>KB10001</entry>
+<entry>Duct Tape</entry>
+<entry align="center"><inlinegraphic fileref="dtduck3.gif"/></entry>
+</row>
+<row>
+<entry>KB10002</entry>
+<entry>WD-40</entry>
+<entry align="center"><inlinegraphic fileref="wd40.gif"/></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</sect1>
+</chapter>
+<chapter>
+<title>Space &mdash; The Moon Rover</title>
+<para><indexterm><primary>moon rover</primary></indexterm><indexterm><primary>space</primary>
+</indexterm>The moon rover is a relatively new entry in the transportation
+realm. Since journeys to the historic Apollo 11 site have become popular,
+there is considerably more interest in the moon rover as a means of transport.
+Although some have questioned leaving tire tracks near mankind's first footsteps
+on the Moon, the newest moon rover models do not disturb the area. </para>
+<graphic fileref="moonrove.tif" scale="250"/>
+<para>Moon rovers deliver more than just a celestial travelogue. Interactive
+space exploration is also available. Using robotic sensors to explore the
+Moon, visitors to Mission Control modules enjoy the latest in virtual reality
+rides. Visitors ride on a slow-motion virtual roller-coaster ride over lunar
+hills and craters - seeing, feeling and hearing everything the sensors encounter. </para>
+<para>Currently, Moon Rover America&reg; is negotiating with several established
+theme parks for US theme park rights. The company is also meeting with media
+firms who want to beam video from the rover's moving eye to a mass audience
+via the Internet.</para>
+<important><title>Important Note!</title>
+<para>Riding in a moon rover can be dangerous to small children and those
+with heart conditions. Consult your physician before undertaking any moon
+rover excursion.</para>
+</important>
+</chapter>
+<chapter>
+<title>Virtual &mdash; The Satellite</title>
+<para><indexterm><primary>Virtual transportation</primary></indexterm><indexterm>
+<primary>Satellite</primary></indexterm>As more and more corporations take
+advantage of the satellite revolution, video conferencing is becoming increasingly
+popular. It provides a cost-effective alternative to travel time and cost.
+By broadcasting meetings to worldwide offices each month, companies save considerable
+time and money by using this method of communication.</para>
+<para>What is a satellite? It is a man-made object launched into orbit to
+relay voice, data and video signals as part of a telecommunications network.
+Signals are transmitted to the satellite from earth station antennas, amplified
+and reflected back to earth for reception by other earth station antennas.
+Satellites are capable of linking two or more points on earth together with
+other multiple points on earth. These satellites are located in a geosynchronous
+orbit approximately 22,300 miles in space over the equator.</para>
+<graphic fileref="satellite.tif" scale="170"/>
+<para><emphasis role="bold">Reasons for using this superior technology include:</emphasis></para>
+<orderedlist>
+<listitem><para>Savings in travel time and overall cost.</para>
+</listitem>
+<listitem><para>Ease of scheduling and availability.</para>
+</listitem>
+<listitem><para>Worldwide communication is easily accomplished.</para>
+</listitem>
+</orderedlist>
+</chapter>
+<chapter>
+<title>Ground &mdash; The Train</title>
+<para><indexterm><primary>Ground Transportation</primary></indexterm><indexterm>
+<primary>Train</primary></indexterm>As improvements are made in the railway
+industry, rail travel has gained popularity as a reasonably fast, inexpensive
+means of travel. It is popular among business and vacation travelers alike.
+With summer around the corner, many travel promotions are available for the
+perfect summer getaway. Not only are vacations via rail a great value, but
+families can sit back and enjoy the scenery, walk about the train, watch movies
+and enjoy other on-board entertainment on long-distance trains, while effortlessly
+bypassing the inconveniences of crowded airports and congested highways.</para>
+<graphic fileref="train.tif" scale="200"/>
+<para>Train types include:<indexterm><primary>types of trains</primary></indexterm></para>
+<itemizedlist>
+<listitem security="Customer" userlevel="Online"><para><emphasis role="bold">Superliners: </emphasis> These
+are bi-level cars having four types of first-class sleeping accommodations.
+They include: the Deluxe Bedroom for two passengers; the Standard Bedroom
+for two; the Family Bedroom for two adults and two small children; and the
+Accessible Bedroom for special mobility requirements.</para>
+</listitem>
+<listitem><para><emphasis role="bold">Business Class:</emphasis> Business
+Class seating is reserved. The coaches have two comfortable reclining seats
+on each side of the aisle and fold-out tray tables. All seats feature increased
+distance between seats, individual reading lights and overhead luggage racks.
+Relax while enjoying complimentary coffee, tea, juice or soda and a newspaper.
+Changing rooms and restrooms are available at one end of the car. Seating
+for passengers in a wheelchair is available. </para>
+</listitem>
+<listitem><para><emphasis role="bold">Metropolitan: </emphasis>Metropolitan
+First Class offers an extra-wide, reclining reserved seat in a separate section
+of the train; at-seat service, complimentary beverages, meals and newspaper. </para>
+</listitem>
+</itemizedlist>
+</chapter>
+<chapter>
+<title>Construction &mdash; The Bulldozer</title>
+<para><indexterm><primary>Construction</primary></indexterm><indexterm><primary>Bulldozer</primary>
+</indexterm>During prosperous economic times, the bulldozer is a popular method
+of construction transportation in the building industry. Useful and utilitarian,
+the bulldozer can accomplish any number of goals in a construction project,
+from simple movement of earth to destruction of existing structures. Bulldozers
+are typically used for the following types of construction activities:<itemizedlist>
+<listitem><para>Excavation</para>
+</listitem>
+<listitem><para>Grading</para>
+</listitem>
+<listitem><para>Landscaping</para>
+</listitem>
+<listitem><para>Wrecking and demolition</para>
+</listitem>
+</itemizedlist><graphic fileref="bulldoze.tif" scale="300"/></para>
+<para>Bulldozers vary in size from the light-duty variety to the heavy-duty
+type. When a building &ldquo;boom&rdquo; is in progress, it is unusual to
+see a bulldozer inactive.</para>
+</chapter>
+<index>
+</index>
+</book>
+<?Pub *0000014731 0?>
+]]></CSP>
+</Export>

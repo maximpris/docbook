@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.LoadFileOutput">
+<Description><![CDATA[
+This page is launched by <class>DocBook.Manager.Home</class> when you choose the 
+Load option for a file (that is, an article or a component file of a book).]]></Description>
+<Super>%CSP.Page</Super>
+<TimeCreated>63103,41170.093265</TimeCreated>
+
+<Method name="OnPage">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<ServerOnly>1</ServerOnly>
+<Implementation><![CDATA[
+    set tSC = $$$OK
+    Try {
+        &html<<DIV class="programlisting"><PRE>>
+        write !, "Reloading file..."
+        set filename = $G(%request.Data("FILE",1))
+        if (filename="") {
+            write !!, "No file specified!"
+        } else {
+            write !, "Filename is: "_filename
+    
+            write !, "This page executes the following command in the DOCBOOK namespace: "
+            write !, "   do ##class(DocBook.Manager.LoadUtils).LoadItem("""_filename_""")"
+
+            write !
+            write !, "****************************************************************************************"
+            write !,"OUTPUT FROM THE COMMAND:",!
+            do ##class(DocBook.Manager.LoadUtils).LoadItem(filename)
+            write !, "****************************************************************************************"
+        }
+        &html<</PRE></DIV>>
+        &html<<a href="javascript:location.reload(true)">Reload</a>>
+        set docbookid=##class(DocBook.Manager.Utils).GetIdFromFilename(filename)
+        &html<<br><A HREF="DocBook.UI.Page.cls?KEY=#(docbookid)#">View this item</A>>
+        &html<<br><A HREF="DocBook.Manager.Home.cls">Back to DocBook Manager</A>>
+    }
+    Catch(ex) {
+        set tSC = ex.AsStatus()
+        write $System.Status.GetErrorText(tSC)    
+    }
+
+    Quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+</Export>

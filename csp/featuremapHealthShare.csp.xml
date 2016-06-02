@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="featuremapHealthShare.csp" application="/csp/docbook/" default="1"><![CDATA[
+<HTML>
+<HEAD>
+<TITLE>HealthShare Feature Map</TITLE>
+
+<LINK REL="stylesheet" TYPE="text/css" HREF="docbookhtml.css" TITLE="Standard Style" >
+
+<STYLE>
+BODY {  font-family: Lucida sans unicode, Verdana,sans-serif;
+            font-size: 14pt; background: #FFFAE7;
+            }
+
+.para {
+	font-family: Lucida sans unicode, Verdana,sans-serif;
+	font-size: 0.8em;
+}
+
+A { text-decoration: none; color: yellow; }
+
+TD.MapOuter {}
+
+TD.MapItem {
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 8pt;
+            padding-right: 8pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+			background: #000040;
+			background-image: url(/csp/broker/images/grad-blue-10x100.png);
+			background-repeat: repeat-x;
+            }
+
+
+TD.MapItemHi {
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 8pt;
+            padding-right: 8pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+            background: #62A0FC;
+            }
+
+
+TD.MapItemSmall { 
+            padding: 2pt;
+            padding-right: 6px;
+            padding-left: 6px;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+			background: #000040;
+			background-image: url(/csp/broker/images/grad-blue-10x30.png);
+			background-repeat: repeat-x;
+            }
+
+TD.MapItemSmallHi { 
+            padding: 2pt;
+            padding-right: 6px;
+            padding-left: 6px;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+            background: #62A0FC;
+            }
+
+TD.MapGap { padding: 0pt; background: #FFFF80; }
+
+H1 { 
+    padding: 0pt; background: #FFFF80; 
+    font-weight: normal;
+    text-align: center; }
+
+CAPTION {
+    padding: 2pt;
+    font-weight: bold;
+    padding-right: 6px;
+    padding-left: 6px;
+	font-family: Lucida sans unicode, Verdana,sans-serif;
+    font-size: 12pt;
+    color: yellow;
+    text-align: center;
+    }
+
+TABLE.Container {
+			font-family: Lucida sans unicode, Verdana,sans-serif;
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 2pt;
+            padding-right: 2pt;
+            text-align: center;
+            border: darkblue solid 1px;
+			background: #C0C0C0;
+			background-image: url(/csp/broker/images/grad-halfgray-10x100.png);
+			background-repeat: repeat-x;
+            }
+
+    
+
+</STYLE>
+</HEAD>
+
+<SCRIPT LANGUAGE="CACHE" RUNAT="SERVER">
+
+	// LABELS 
+
+	// labels for Health Connect
+	Set %label("CONNECT") = "&nbsp;&nbsp;Health Connect"
+	Set %label("CONNECTARCH") = "Architecture"
+	Set %label("CONNECTSDA") = "SDA"
+	Set %label("CONNECTCDA") = "CDA"
+	Set %label("CONNECTIHE") = "IHE"
+	Set %label("CONNECTAUDIT") = "Auditing"
+
+
+	// labels for Information Exchange 
+	Set %label("INFOEX") = "Information Exchange"
+	Set %label("INFOEXIMPLEMENT") = "Implementing Information Exchange"
+	
+	// labels for administering 
+	Set %label("INFOEXADMIN") = "Administering Information Exchange"
+	Set %label("SECURITY") = "Security"
+	Set %label("FEDERATED") = "Federated<br>Authentication"
+	Set %label("ROLES") = "Roles and<br>Resources"
+	Set %label("REGISTRIES") = "Configuring Registries"
+	Set %label("PROGRAMS") = "Patient<br>Programs"
+	Set %label("GROUPS") = "Clinician<br>Groups"
+	Set %label("SERVICES") = "Services"
+	Set %label("CONFIGURATION") = "Configuration"
+	Set %label("NOTIFY") = "Notifying Clinicians"
+	Set %label("PREPORT") = "Patient Reports"
+	Set %label("USERS") = "Users and Clinicians"
+	Set %label("CONSENT") = "Consent"
+	Set %label("AUDIT") = "Auditing"
+	Set %label("MREPORT") = "Management Reports"
+
+	// labels for data flow 
+	Set %label("PROCESS") = "&nbsp;Data Processing"
+	Set %label("DATAFLOW") = "Data Flow"
+	Set %label("ORDERS") = "Orders"
+	Set %label("MESSAGEFLOW") = "Message Flow"
+	Set %label("RESULTS") = "Results"
+
+	// labels for setting up productions
+	Set %label("SETUP") = "Production Setup"
+	Set %label("REGISTRY") = "Registry"
+	Set %label("EDGE") = "Edge"
+	Set %label("ACCESS") = "Access"
+	Set %label("IHE") = "IHE"
+	Set %label("DEMO") = "Demo"
+	Set %label("MU2") = "MU2"
+
+	// labels for terminology
+	Set %label("TERM") = "Terminology "
+	Set %label("CODEMAP") = "Code<br>Mapping"
+	Set %label("CODETRANS") = "Code<br>Translation"
+
+	// labels for configuring data sources
+	Set %label("DATA") = "&nbsp;Data Sources"
+	Set %label("X12") = "X12"
+	Set %label("PIPE") = "Pipelines"
+	Set %label("CUSTOM") = "Custom Processes"
+	Set %label("EPR") = "EPR Output"
+
+	// labels for UI customizations
+	Set %label("UI") = "Clinical Viewer Configuration"
+
+	// labels for parameters
+	Set %label("PARAMETERS") = "Parameter Settings"
+
+	// labels for Patient Index
+	Set %label("HSPI") = "Patient Index"
+	Set %label("HSPICONFIG") = "Configuring"
+	Set %label("HSPIUSE") = "Using"
+
+	// labels for Provider Directory
+	Set %label("HSPD") = "Provider Directory"
+	Set %label("HSPDCONFIG") = "Configuring"
+	Set %label("HSPDUSE") = "Using"
+
+	// labels for Active Analytics
+	Set %label("HSAA") = "Active Analytics"
+	Set %label("HSAACONFIG") = "Configuring"
+	Set %label("HSAAUSE") = "Using"
+	Set %label("HSAAADMIN") = "Administering"
+
+	// DESCRIPTIONS
+
+	// descriptions for Health Connect
+	Set %text("CONNECT") = "Health Connect is a health service bus that provides integration and interoperability to healthcare enterprises and information networks."
+	Set %text("CONNECTARCH") = "Introduces the Health Connect product, its architecture, and use cases."
+	Set %text("CONNECTSDA") = "SDA is the internal representation that HealthShare uses to represent a patient clinical record."
+	Set %text("CONNECTCDA") = "HealthShare products can import and export a wide range of CDA documents."
+	Set %text("CONNECTIHE") = "Health Connect supports many IHE profiles including PIX/PDQ, and XDS.b."
+	Set %text("CONNECTAUDIT") = "HealthShare products provide both transactional and ATNA auditing."
+
+	// descriptions for implementation 
+	Set %text("INFOEX") = "A complete health information exchange solution for healthcare enterprises and information networks."
+	Set %text("INFOEXIMPLEMENT") = "The Roadmap describes the steps required to implement an Information Exchange and the tools available to do so."
+
+	// descriptions for administering 
+	Set %text("INFOEXADMIN") = "Simple user interfaces are provided to manage all aspects of the Information Exchange."
+	Set %text("SECURITY") = "Security in Information Exchange includes setting up users, federated authentication, using LDAP, Web services security, and auditing."
+	Set %text("FEDERATED") = "Information Exchange employs a federated authentication model that supports single sign-on for HealthShare users. By creating various authentication domains, you can tie several different domain-specific login IDs to a single HealthShare user ID."
+	Set %text("ROLES") = "HealthShare uses roles and resources to control user access to different functions and data."
+	Set %text("REGISTRIES") = "Information Exchange includes a set of registries where you can centrally manage various aspects of the system."
+	Set %text("PROGRAMS") = "You can group a set of patients together based on a common attribute, such as diabetes status, with a patient program. Program membership may be used as a criterion when searching for patients, and as a criterion in clinical message subscriptions."
+	Set %text("GROUPS") = "Clinicians may be grouped together for the purpose of message delivery, institutional identifiers, and access to patient programs."
+	Set %text("SERVICES") = "The service registry maintains a list of destinations for services, such as SOAP services."
+	Set %text("CONFIGURATION") = "The configuration registry allows you to select various configuration options and store certain values required for IHE."
+	Set %text("NOTIFY") = "Information Exchange supports a push model of clinical data delivery called clinical message delivery, where data is sent to clinicians based on subscriptions and the clinicians relationships with particular patients."
+	Set %text("PREPORT") = "Patient reports are based on clinical and demographic data stored in the ECR."
+	Set %text("USERS") = "You can register Information Exchange users and clinicians."
+	Set %text("CONSENT") = "Consent policies in HealthShare control whether a given user can access the records of a given patient."
+	Set %text("AUDIT") = "Each Information Exchange production maintains a log of audit events and periodically sends these logs to the Hub via the audit consolidation service."
+	Set %text("AUDITEVENTS") = "Information Exchange maintains logs of HealthShare, ATNA, and Cach&eacute; events."
+	Set %text("AUDITREPORT") = "You can either use DeepSee to view audit events or print out management reports."
+	Set %text("MREPORT") = "Information Exchange includes pre-built management reports or you can create your own."
+		
+	// descriptions for data flow 
+	Set %text("PROCESS") = "Describes the data and message flows, and how key fields are processed."
+	Set %text("DATAFLOW") = "Maps out how data flows through Information Exchange."
+	Set %text("ORDERS") = "Describes order processing in Information Exchange."
+	Set %text("MESSAGEFLOW") = "Illustrates several key message flows in Information Exchange."
+	Set %text("RESULTS") = "Describes result processing in Information Exchange."
+
+	// descriptions for terminology
+	Set %text("TERM") = "Information Exchange can fill in missing codes or descriptions and translate codes from one coding system to another"
+	Set %text("CODEMAP") = "Information Exchange provides a code registry to help standardize your codes."
+	Set %text("CODETRANS") = "Information Exchange can translate codes from one coding system to another."
+
+	// descriptions for setting up productions
+	Set %text("SETUP") = "The Installer Wizard helps you set up the Ensemble productions that make up a HealthShare Information Exchange."
+	Set %text("REGISTRY") = "The Registry tracks all non-clinical patient information and interfaces with the MPI."
+	Set %text("EDGE") = "The Edge Gateway receives, transforms, and stores clinical data."
+	Set %text("ACCESS") = "The Access Gateway retrieves and displays clinical data."
+	Set %text("IHE") = "Information Exchange supports many IHE profiles including PIX/PDQ, and XDS.b."
+	Set %text("DEMO") = "You can set up an entire demo Information Exchange with a single command."
+	Set %text("MU2") = "HealthShare supports Meaningful Use Stage 2."
+
+	// descriptions for configuring data sources
+	Set %text("DATA") = "A major implementation task involves configuring Information Exchange to import and interpret the data from various data providers."
+	Set %text("X12") = "Information Exchange can process X12 834 and 837 messages."
+	Set %text("PIPE") = "Pipelines transform and standardize incoming data."
+	Set %text("CUSTOM") = "Custom processes may be inserted at certain locations in the Information Exchange."
+	Set %text("EPR") = "The Electronic Patient Record may be output in various formats."
+
+	// descriptions for UI customizations
+	Set %text("UI") = "You can customize how patient clinical data is displayed."
+
+	// descriptions for parameters
+	Set %text("PARAMETERS") = "The Information Exchange Reference describes the runtime settings available for your productions."
+
+	// descriptions for Patient Index
+	Set %text("HSPI") = "HealthShare Patient Index is an enterprise master patient index solution that provides patient identity and matching."
+	Set %text("HSPICONFIG") = "How to install and configure the Patient Index product."
+	Set %text("HSPIUSE") = "How to use and administer Patient Index as an MPI."
+
+	// descriptions for Provider Directory
+	Set %text("HSPD") = "HealthShare Provider Directory provides provider identity and matching services."
+	Set %text("HSPDCONFIG") = "How to install and configure the Provider Directory product."
+	Set %text("HSPDUSE") = "How to use and administer Provider Directory."
+
+	// descriptions for Active Analytics
+	Set %text("HSAA") = "HealthShare Active Analytics is a platform for developing analytics solutions based on data collected in HealthShare Information Exchange. Active Analytics provides a pre-built, extensible data model for representing patient clinical and demographic data."
+	Set %text("HSAACONFIG") = "How to install and configure the Active Analytics product."
+	Set %text("HSAAUSE") = "How to use Active Analytics."
+	Set %text("HSAAADMIN") = "How administer Active Analytics."
+
+	// The start of each link to a documentation page
+	
+    	Set dbook = ..Link("/csp/docbook/" _ "DocBook.UI.Page.cls") // !!!
+    	//Set dbook = "/csp/docbook/" _ "DocBook.UI.Page.cls" // !!!
+    	Set dbook = dbook  _ "?KEY="
+
+	// LINKS
+
+	// links for Health Connect
+	Set %link("CONNECT") = dbook _ "FOVW_preface"
+	Set %link("CONNECTARCH") = dbook _ "FOVW_ch_components"
+	Set %link("CONNECTSDA") = dbook _ "FOVW_ch_sda"
+	Set %link("CONNECTCDA") = dbook _ "FOVw_ch_cda"
+	Set %link("CONNECTIHE") = dbook _ "FIHE_preface"
+	Set %link("CONNECTAUDIT") = dbook _ "FOVW_ch_auditing"
+
+	// links for implementation 
+	Set %link("INFOEX") = dbook _ "HEOV_preface"
+	Set %link("INFOEXIMPLEMENT") = dbook _ "HEMAP_ch_imp_strategy"
+
+	// links for administering
+	Set %link("INFOEXADMIN") = dbook _ "HEOV_intro"
+	Set %link("SECURITY") = dbook _ "HESEC_preface"
+	Set %link("FEDERATED") = dbook _ "HESEC_ch_authentication"
+	Set %link("ROLES") = dbook _ "HESEC_ch_authorization"
+	Set %link("REGISTRIES") = dbook _ "HEADM_preface"
+	Set %link("PROGRAMS") = dbook _ "HEADM_ch_program_registry"
+	Set %link("GROUPS") = dbook _ "HEADM_ch_clinician_group_registry"
+	Set %link("SERVICES") = dbook _ "HEADM_ch_service_registry"
+	Set %link("CONFIGURATION") = dbook _ "HEADM_ch_configuration_registry"
+	Set %link("NOTIFY") = dbook _ "HEPUSH_ch_intro"
+	Set %link("PREPORT") = dbook _ "HERPT_ch_patient_reports"
+	Set %link("USERS") = dbook _ "HESEC_ch_users"
+	Set %link("CONSENT") = dbook _ "HECON_preface"
+	Set %link("AUDIT") = dbook _ "HESEC_ch_audit"
+	Set %link("AUDITEVENTS") = dbook _ "HESEC_audit_events"
+	Set %link("AUDITREPORT") = dbook _ "HESEC_audit_reports"
+	Set %link("MREPORT") = dbook _ "HERPT_ch_management_viewing"
+
+	// links for data flow 
+	Set %link("PROCESS") = dbook _ "HEFLW_preface"
+	Set %link("DATAFLOW") = dbook _ "HEFLW_ch_data"
+	Set %link("ORDERS") = dbook _ "HEFLW_ch_order_proc"
+	Set %link("MESSAGEFLOW") = dbook _ "HEFLW_ch_msg_flows"
+	Set %link("RESULTS") = dbook _ "HEFLW_ch_result_proc"
+
+	// links for terminology
+	Set %link("TERM") = dbook _ "HETRM_ch_coded_fields"
+	Set %link("CODEMAP") = dbook _ "HETRM_ch_managing_codes"
+	Set %link("CODETRANS") = dbook _ "HETRM_ch_terminology_normalization"
+
+	// links for setting up productions
+	Set %link("SETUP") = dbook _ "HESUP_preface"
+	Set %link("REGISTRY") = dbook _ "HESUP_ch_hub"
+	Set %link("EDGE") = dbook _ "HESUP_ch_edge"
+	Set %link("ACCESS") = dbook _ "HESUP_ch_access"
+	Set %link("IHE") = dbook _ "HESUP_ch_ihe"
+	Set %link("DEMO") = dbook _ "HESUP_app_demo"
+	Set %link("MU2") = dbook _ "HESUP_ch_mu2"
+
+	// links for configuring data sources
+	Set %link("DATA") = dbook _ "HEDAT_preface"
+	Set %link("X12") = dbook _ "HEDAT_intro_x12_834"
+	Set %link("PIPE") = dbook _ "HEDAT_ch_processes"
+	Set %link("CUSTOM") = dbook _ "HEDAT_ch_custsteps"
+	Set %link("EPR") = dbook _ "HEDAT_ch_epr"
+
+	// links for UI customizations
+	Set %link("UI") = dbook _ "HECUI_preface"
+
+	// links for parameters
+	Set %link("PARAMETERS") = dbook _ "HEREF_settings"
+
+	// links for Patient Index
+	Set %link("HSPI") = dbook _ "HSPI_preface"
+	Set %link("HSPICONFIG") = dbook _ "HSPIC_preface"
+	Set %link("HSPIUSE") = dbook _ "HSPI_preface"
+
+	// links for Provider Directory
+	Set %link("HSPD") = dbook _ "HSPD_preface"
+	Set %link("HSPDCONFIG") = dbook _ "HSPDC_preface"
+	Set %link("HSPDUSE") = dbook _ "HSPD_preface"
+
+	// links for Active Analytics
+	Set %link("HSAA") = dbook _ "HSAA_preface"
+	Set %link("HSAACONFIG") = dbook _ "HSAAIC_preface"
+	Set %link("HSAAUSE") = dbook _ "HSAA_preface"
+	Set %link("HSAAADMIN") = dbook _ "HSAAADM_preface"
+
+    Set border = 1
+    Set:(%request.UserAgent["MSIE") border=0
+    
+</SCRIPT>
+
+<BODY>
+
+<a name="top">
+</a>
+<table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 10pt;">
+<tr>
+<td nowrap bgcolor="#FFFAE7" valign="bottom" align="left" >
+<a href="http://www.intersystems.com">
+<img src="/csp/sys/images/logo-topl-intersystems.gif" alt="InterSystems" align="left" width="205" height="78" border="none">
+</a>
+<br clear="left">
+<nobr>&nbsp;
+</nobr>
+</td>
+<td nowrap bgcolor="#FFFAE7" valign="top" align="left">
+<div class="wizardltlabel" style="margin-top:8px;">
+<span style="font-size:11pt; padding-right:5px;">InterSystems Online Documentation</span>
+</div>
+<div style="color: darkblue; margin-top:4px; font-weight: bold; font-size:15pt;">
+HealthShare Feature Map
+</div>
+</td>
+<td nowrap width="308" height="78" bgcolor="#FFFAE7" valign="bottom" align="left" style='background-repeat: repeat-y; background-image: url("../../csp/sys/images/opposite-pic-intersys.jpg");'>&nbsp;</td>
+<td width="2%" bgcolor="#388CCC">&nbsp;</td>
+<td bgcolor="#388CCC" valign="bottom">
+</td>
+<td bgcolor="#388CCC">&nbsp;</td>
+</tr>
+<tr>
+<td colspan="5" bgcolor="#D36D00">
+<img src="/csp/sys/images/spacer.gif" width="100%" height="2" alt="-" border="0">
+</td>
+</tr>
+<tr>
+<td class="LocatorBar" colspan="10">&nbsp;</td>
+</tr>
+</table>
+    
+<BR>
+
+<!-- Here is the feature map -->
+
+<DIV CLASS="para">The Feature Map displays a schematic overview of the HealthShare family of products. 
+You can click on the various products and features to find more information.
+</DIV>
+
+<HR>
+<BR>
+
+<TABLE BORDER=0><TR><TD>&nbsp;</TD>
+<TD>
+<TABLE CLASS="CONTAINER" BORDER="#(border)#" CELLSPACING="0" CELLPADDING="2" >
+
+<!-- Row 1 -->
+
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("CONNECT"))# COLSPAN=1 ROWSPAN=6>#(..DrawCell("CONNECT"))#
+<TABLE BORDER=0 ALIGN="CENTER">
+<TR>
+<TR>&nbsp;</TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CONNECTARCH"))#>#(..DrawCell("CONNECTARCH"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CONNECTSDA"))# >#(..DrawCell("CONNECTSDA"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CONNECTCDA"))# >#(..DrawCell("CONNECTCDA"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CONNECTIHE"))# >#(..DrawCell("CONNECTIHE"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CONNECTAUDIT"))#>#(..DrawCell("CONNECTAUDIT"))#</TD>
+</TR>
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("INFOEX"))# COLSPAN=4 ROWSPAN=1>#(..DrawCell("INFOEX"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("HSPI"))# COLSPAN=1 ROWSPAN=2>#(..DrawCell("HSPI"))#
+<TABLE BORDER=0 ALIGN="CENTER">
+<TR>
+<TR>&nbsp;</TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("HSPICONFIG"))#>#(..DrawCell("HSPICONFIG"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("HSPIUSE"))# >#(..DrawCell("HSPIUSE"))#</TD>
+</TR>
+</TABLE>
+</TD>
+</TR>
+
+<!-- Row 2 -->
+
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("INFOEXIMPLEMENT"))# COLSPAN=2 ROWSPAN=1>#(..DrawCell("INFOEXIMPLEMENT"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("INFOEXADMIN"))# COLSPAN=2 ROWSPAN=1>#(..DrawCell("INFOEXADMIN"))#</TD>
+</TR>
+
+<!-- Row 3 -->
+
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("SETUP"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("SETUP"))#
+<TABLE BORDER=0 ALIGN="CENTER">
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("REGISTRY"))# >#(..DrawCell("REGISTRY"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("EDGE"))#>#(..DrawCell("EDGE"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ACCESS"))#>#(..DrawCell("ACCESS"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("IHE"))#>#(..DrawCell("IHE"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("DEMO"))# >#(..DrawCell("DEMO"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("MU2"))#>#(..DrawCell("MU2"))#</TD>
+</TR>
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("TERM"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("TERM"))#
+<TABLE BORDER=0 ALIGN="CENTER">
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CODEMAP"))# >#(..DrawCell("CODEMAP"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CODETRANS"))#>#(..DrawCell("CODETRANS"))#</TD>
+</TR>
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("SECURITY"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("SECURITY"))#
+<TABLE BORDER=0 ALIGN="CENTER">
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("FEDERATED"))# >#(..DrawCell("FEDERATED"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ROLES"))#>#(..DrawCell("ROLES"))#</TD>
+</TR>
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("REGISTRIES"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("REGISTRIES"))#
+<TABLE BORDER=0 ALIGN="CENTER">
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("PROGRAMS"))# >#(..DrawCell("PROGRAMS"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("GROUPS"))#>#(..DrawCell("GROUPS"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("SERVICES"))# >#(..DrawCell("SERVICES"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CONFIGURATION"))#>#(..DrawCell("CONFIGURATION"))#</TD>
+</TR>
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("HSPD"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("HSPD"))#
+<TABLE BORDER=0 ALIGN="CENTER">
+<TR>
+<TR>&nbsp;</TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("HSPDCONFIG"))#>#(..DrawCell("HSPDCONFIG"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("HSPDUSE"))# >#(..DrawCell("HSPDUSE"))#</TD>
+</TR>
+</TABLE>
+</TD>
+</TR>
+
+<!-- Row 4 -->
+
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("DATA"))# COLSPAN=1 ROWSPAN=2>#(..DrawCell("DATA"))#
+<TABLE BORDER=0 ALIGN="CENTER">
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("PIPE"))# >#(..DrawCell("PIPE"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("X12"))#>#(..DrawCell("X12"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CUSTOM"))#>#(..DrawCell("CUSTOM"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("EPR"))#>#(..DrawCell("EPR"))#</TD>
+</TR>
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("PROCESS"))# COLSPAN=1 ROWSPAN=2>#(..DrawCell("PROCESS"))#
+<TABLE BORDER=0 ALIGN="CENTER">
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("DATAFLOW"))# >#(..DrawCell("DATAFLOW"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("MESSAGEFLOW"))#>#(..DrawCell("MESSAGEFLOW"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ORDERS"))#>#(..DrawCell("ORDERS"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("RESULTS"))# >#(..DrawCell("RESULTS"))#</TD>
+</TR>
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("NOTIFY"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("NOTIFY"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("AUDIT"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("AUDIT"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("HSAA"))# COLSPAN=1 ROWSPAN=3>#(..DrawCell("HSAA"))#
+<TABLE BORDER=0 ALIGN="CENTER">
+<TR>
+<TR>&nbsp;</TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("HSAACONFIG"))#>#(..DrawCell("HSAACONFIG"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("HSAAUSE"))# >#(..DrawCell("HSAAUSE"))#</TD>
+</TR>
+<TR>&nbsp;</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("HSAAADMIN"))# >#(..DrawCell("HSAAADMIN"))#</TD>
+</TR>
+</TABLE>
+</TD>
+</TR>
+
+
+<!-- Row 5 -->
+
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("PREPORT"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("PREPORT"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("MREPORT"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("MREPORT"))#</TD>
+</TR>
+
+<!-- Row 6 -->
+
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("UI"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("UI"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("PARAMETERS"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("PARAMETERS"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("USERS"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("USERS"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("CONSENT"))# COLSPAN=1 ROWSPAN=1>#(..DrawCell("CONSENT"))#</TD>
+</TR>
+
+
+</TABLE>
+</TD><TD>&nbsp;</TD>
+</TR>
+</TABLE>
+
+<BR>
+<HR>
+
+</BODY>
+</HTML>
+
+<SCRIPT language=Cache method=DrawCell arguments="item:%String">
+    // draw contents of a cell within the map
+    Set txt ="<A"
+    Set:(%link(item)'="") txt = txt _ " HREF="""_%link(item) _ """"
+    Set txt = txt _ " TITLE="""_%text(item)_""">"_%label(item)_"</A>"
+    Quit txt
+</SCRIPT>
+
+<SCRIPT language=Cache method=DrawTD arguments="item:%String">
+    // draw attributes for TD tag
+    Set mousein = "MapItem"
+    Set mouseot = "MapItem"
+    Set:(%link(item)'="") mousein = "MapItemHi"
+    Set txt ="onmouseover=""this.className='" _ mousein _ "';"" onmouseout=""this.className='" _ mouseot _ "';"" "
+    Set:(%link(item)'="") txt = txt _ " onclick=""self.document.location='"_%link(item) _ "';"""
+    Quit txt
+</SCRIPT>
+
+<SCRIPT language=Cache method=DrawTDSmall arguments="item:%String">
+    // draw attributes for TD tag
+    Set mousein = "MapItemSmall"
+    Set mouseot = "MapItemSmall"
+    Set:(%link(item)'="") mousein = "MapItemSmallHi"
+    Set txt ="onmouseover=""this.className='" _ mousein _ "';"" onmouseout=""this.className='" _ mouseot _ "';"" "
+    Set:(%link(item)'="") txt = txt _ " onclick=""self.document.location='"_%link(item) _ "';"""
+    Quit txt
+</SCRIPT>]]></CSP>
+</Export>

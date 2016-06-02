@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.set">
+<Description>
+A collection of books.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<SqlTableName>db_set</SqlTableName>
+<Super>DocBook.container</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Property name="books">
+<Type>book</Type>
+<Cardinality>many</Cardinality>
+<Inverse>set</Inverse>
+<Relationship>1</Relationship>
+</Property>
+
+<Method name="GetBannerInfo">
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+	Set info.title = ..title
+	Set info.booktitle = $$$T("InterSystems Online Documentation")
+	Set info.chap = ""
+	Set info.prev = ""
+	Set info.next = ""
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRender">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	&html<<DIV CLASS="para1">#(..subtitle)#</DIV><BR>>
+
+	Do ..ShowBooks(..%Id())
+]]></Implementation>
+</Method>
+
+<Method name="ShowBooks">
+<Description>
+Show list of books for the this set</Description>
+<Internal>1</Internal>
+<FormalSpec>setid</FormalSpec>
+<Implementation><![CDATA[
+
+	// loop over books
+	&sql(DECLARE BookCursor CURSOR FOR
+		SELECT ID,blockid,title,subtitle,dbrole,remap
+		INTO :id,:bookKey,:title,:desc, :role, :remap
+		FROM DocBook.book
+		WHERE container = :setid
+		ORDER BY remap, title
+	)
+	
+	&sql(OPEN BookCursor)
+	&sql(FETCH BookCursor)
+
+	&html<<TABLE CLASS="Home" BORDER="0" CELLPADDING="0" CELLSPACING="0" COLS="2">>
+	&html<<TR CLASS="HomeGap"><TD COLSPAN="2">&nbsp;</TD></TR>>
+
+	// list books
+	While (SQLCODE = 0) {
+		Set url = ""
+
+		// if there is a preface, link to it (tutorial only!)
+		If (role = "tutorial" && (##class(DocBook.preface).FindId(bookKey _ "_preface") '= ""))	{
+			Set url = "DocBook.UI.FramePage.cls?KEY=" _ $ZCVT(bookKey,"O","URL") _ "_preface"
+		}
+		Else {
+			// link to TOC
+			Set url = "DocBook.UI.FramePage.cls?KEY=" _ $ZCVT(bookKey,"O","URL")
+		}
+
+		&html<<TR CLASS="Home">>
+		&html<<TD CLASS="HomeTitle" NOWRAP 
+				onclick="self.document.location='#(url)#';" 
+				onmouseover="this.className = 'HomeTitleHi'; self.document.all.item('#(bookKey)#').className = 'HomeSubTitleHi';" 
+				onmouseout="this.className='HomeTitle'; self.document.all.item('#(bookKey)#').className = 'HomeSubTitle';">>
+		Write "<A HREF=""", url, """ TITLE=""", $$$T("Show contents of this book."), """>", title,"&nbsp;</A>"
+		&html<</TD>>
+		&html<<TD CLASS="HomeSubTitle" ID="#(bookKey)#">#(desc)#</TD></TR>>
+		&html<<TR CLASS="HomeGap"><TD COLSPAN="2">&nbsp;</TD></TR>>
+
+		&sql(FETCH BookCursor)
+	}
+
+	&html<</TABLE>>
+
+	&sql(CLOSE BookCursor)
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

@@ -1,0 +1,1022 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Renderer">
+<Description>
+Tools for rendering text for DocBook.</Description>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%Library.RegisteredObject</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Parameter name="TagInline">
+<Default>",classname,command,computeroutput,constant,citetitle,emphasis,filename,firstterm,function,guibutton,guilabel,guimenu,guimenuitem,guisubmenu,indexterm,keycap,literal,methodname,parameter,primary,productname,property,quote,replaceable,superscript,systemitem,type,userinput,varname,"</Default>
+</Parameter>
+
+<Parameter name="TagTable">
+<Default>",colspec,entry,row,thead,tbody,tgroup,"</Default>
+</Parameter>
+
+<Parameter name="TagLink">
+<Default>",link,olink,ulink,"</Default>
+</Parameter>
+
+<Parameter name="TagBlock">
+<Default>",para,listitem,itemizedlist,remark,literallayout,orderedlist,programlisting,"</Default>
+</Parameter>
+
+<Parameter name="TagInterface">
+<Default>",interface,"</Default>
+</Parameter>
+
+<Method name="FilterText">
+<Description>
+Convert any entities in text to HTML-safe representation</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>textin:cdata</FormalSpec>
+<ReturnType>cdata</ReturnType>
+<Implementation><![CDATA[
+
+	// remove any indexterms from consideration
+	Set text = textin
+	Set bgntag = "<indexterm"
+	Set endtag = "</indexterm>"
+	Set f1 = 0
+	While (1)
+	{
+		Set f1 = $FIND(text, bgntag, f1)
+		Quit:(f1 = 0)
+		Set termbgn = f1 - $LENGTH(bgntag)
+		Set f2 = $FIND(text, endtag, f1)
+		Set termend = f2 - 1
+		Set $EXTRACT(text, termbgn, termend) = ""
+		Set f1 = termbgn
+	}
+
+	// Now remove any empty paragraphs that result
+	Set bgntag = "<para"
+	Set endtag = "</para>"
+	Set f1 = 0
+	While (1)
+	{
+		Set f1 = $FIND(text, bgntag, f1)
+		Quit:(f1 = 0)
+		Set txtbgn = f1
+		Set termbgn = f1 - $LENGTH(bgntag)
+		
+		Set f2 = $FIND(text, endtag, f1)
+		Set txtend = f2 - $LENGTH(endtag) - 1
+		Set termend = f2 - 1
+		
+		Set paratext = $EXTRACT(text, txtbgn, txtend)
+		Set paratext = $TRANSLATE(paratext, ($CHAR(9) _ $CHAR(10) _ $CHAR(13) _ $CHAR(32)))
+		If ($LENGTH(paratext) > 0)
+		{
+			Set f1 = termend
+		}
+		else
+		{
+			Set $EXTRACT(text, termbgn, termend) = ""
+			Set f1 = termbgn
+		}
+	}
+	
+	Quit text
+]]></Implementation>
+</Method>
+
+<Method name="RenderText">
+<Description>
+Performs the rendering for this Text block.
+Performs substitutions for any inline tags.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:cdata,searchword:cdata="",frame:cdata="",colsep:dbint="",noimg:dbint=0</FormalSpec>
+<Implementation><![CDATA[
+	
+	If (frame '= "") {
+		Set frmcls = " CLASS=""Frame-" _ frame _ """"
+	}
+	Else {
+		Set frmcls = ""
+	}
+	
+	Set tpart = ""
+
+	// remove any indexterms from consideration
+	Set text = ..FilterText(text)
+
+	// make a quick test to see if we can skip processing
+	If (text '[ "<") {
+		If (searchword = "") {
+			// Test if we need to xform any entities
+			If (text [ "&") {
+				Write ..XFormEntity(text)
+			}
+			Else {
+				Write text
+			}
+		}
+		Else {
+			Do ..ShowText(text, searchword)
+		}
+		Quit
+	}
+	
+	// scan what is left as tokens	
+	Set tokens = ##class(%CSP.TokenStream).%New()
+	Do tokens.OpenFromString(text)
+	Set skipTo = ""
+	Set classLink = 0
+
+	While (tokens.NextToken()) {
+		If (skipTo '= "") {
+			// skip until end of skip to
+			If (skipTo = tokens.Tag) {
+				Set skipTo = ""
+			}			
+		}
+		Else 
+		{
+			// start of inline elements
+			If ((tokens.Type = "TAG") && (..IsINLINE(tokens.Tag))) 
+			{
+				If ((tokens.Tag = "remark") && ($G(%session.Data("Remarks"),0) = 0)) 
+				{
+					Write "<SPAN CLASS=""hidden"">"
+				}
+				ElseIf (tokens.Tag = "firstterm")
+				{
+					Write "<SPAN CLASS=""firstterm"">&nbsp;"
+				}
+				ElseIf (tokens.Tag = "systemitem")
+				{
+					Write "<SPAN CLASS=""systemitem""><NOBR>"
+				}
+				ElseIf (tokens.Tag = "quote")
+				{
+					Write "<A TITLE=""",tokens.Tag,"""><SPAN CLASS=""",tokens.Tag,"""><NOBR>"
+					Write "&#147;"
+				}
+				ElseIf (tokens.Tag = "classname")
+				{
+					Write "<A TITLE=""",tokens.Tag,"""><SPAN CLASS=""",tokens.Tag,"""><NOBR>"
+					// check for classname autolinks
+					Set classLink = 1
+				}
+				ElseIf (tokens.Tag = "emphasis")
+				{
+				    Kill attrs
+				    Do tokens.GetAttrs(.attrs)
+				    Set DispClass = tokens.Tag
+                    Set role = $ZCVT($G(attrs("role","value"), ""),"U")
+                    If ($LENGTH(role) > 0)
+                    {
+                        Set:(role = "CAPTION") DispClass = "EmphasisCaption"
+                        Set:(role = "UNDERLINE") DispClass = "EmphasisUnderline"
+                    }
+					Write "<A TITLE=""",tokens.Tag,"""><SPAN CLASS=""",DispClass,"""><NOBR>"
+				}
+				Else 
+				{
+					// all other tags
+					Write "<A TITLE=""",tokens.Tag,"""><SPAN CLASS=""",tokens.Tag,"""><NOBR>"
+				}
+			}
+			
+			// end of inline
+			ElseIf ((tokens.Type = "TAG") && ($E(tokens.Tag,1,1) = "/") && (..IsINLINE($E(tokens.Tag,2,$L(tokens.Tag))))) 
+			{
+				If (tokens.Tag = "/firstterm")
+				{
+					Write "&nbsp;</SPAN>"
+				}
+				ElseIf (tokens.Tag = "/systemitem")
+				{
+					Write "</NOBR></SPAN>"
+				}
+				ElseIf (tokens.Tag = "/quote") 
+				{
+					Write "&#148;"
+					Write "</NOBR></SPAN></A>"
+				}
+				ElseIf (tokens.Tag = "/classname") 
+				{
+					Write "</NOBR></SPAN></A>"
+				}
+				ElseIf (tokens.Tag = "/emphasis") 
+				{
+					Write "</NOBR></SPAN></A>"
+				}
+				Else
+				{
+					Write "</NOBR></SPAN></A>"
+				}
+			}
+
+			// start of inline block elements !!!
+			ElseIf ((tokens.Type = "TAG") && (..IsBLOCK(tokens.Tag))) 
+			{
+				If (tokens.Tag = "para")
+				{ 
+					Write "<DIV CLASS=""para"">"
+				}
+				ElseIf (tokens.Tag = "programlisting")
+				{ 
+					Write "<DIV CLASS=""programlisting"">"
+				}
+				ElseIf (tokens.Tag = "itemizedlist")
+				{ 
+					Write "<UL>"
+				}
+				ElseIf (tokens.Tag = "orderedlist")
+				{ 
+					Write "<OL>"
+				}
+				ElseIf (tokens.Tag = "listitem")
+				{ 
+					Write "<LI>"
+				}
+
+			}
+			
+			// end of inline block
+			ElseIf ((tokens.Type = "TAG") && ($E(tokens.Tag,1,1) = "/") && (..IsBLOCK($E(tokens.Tag,2,$L(tokens.Tag))))) 
+			{
+				If (tokens.Tag = "/para")
+				{ 
+					Write "</DIV>"
+				}
+				ElseIf (tokens.Tag = "/programlisting")
+				{ 
+					Write "</DIV>"
+				}
+				ElseIf (tokens.Tag = "/itemizedlist")
+				{ 
+					Write "</UL>"
+				}
+				ElseIf (tokens.Tag = "/orderedlist")
+				{ 
+					Write "</OL>"
+				}
+				ElseIf (tokens.Tag = "/listitem")
+				{ 
+					Write "</LI>"
+				}
+			}
+			
+			// start of interface elements
+			ElseIf ((tokens.Type = "TAG") && (..IsINTERFACE(tokens.Tag)))
+			{
+				Write "<SPAN class=""interface"">"
+				Set IFText = ""
+				Set continue = tokens.NextToken()
+				While (continue)
+				{
+					If ((tokens.Type = "TAG") && ($E(tokens.Tag,1,1) = "/") && (..IsINTERFACE($E(tokens.Tag,2,$L(tokens.Tag)))))
+					{
+						Write ..FmtInterface(IFText)
+						Write "</SPAN>"
+						Set continue = 0
+					}
+					Else
+					{
+						Set IFText = IFText _ tokens.Text
+						Set continue = tokens.NextToken()
+					}
+				}
+			}
+			
+			// end of interface elements
+			ElseIf ((tokens.Type = "TAG") && ($E(tokens.Tag,1,1) = "/") && (..IsINTERFACE($E(tokens.Tag,2,$L(tokens.Tag))))) 
+			{
+				// the whole thing is done in the "start" processing
+			}
+			
+			// start of link elements
+			ElseIf ((tokens.Type = "TAG") && (..IsLINK(tokens.Tag))) 
+			{
+				Kill attrs
+				Do tokens.GetAttrs(.attrs)
+							
+				Set url = ""
+				If (tokens.Tag = "ulink") 
+				{
+					// 'url' attribute of ulink tag contains link
+					Set linktype = $ZCONVERT($GET(attrs("type","value"),""), "L")
+					Set url = $G(attrs("url","value"))
+					Set url = $ZCONVERT(url, "I", "HTML")
+				
+					If (url '= "") 
+					{
+						Set href = ..ProcessURL(url)
+					Do ..EmitLink(href, linktype)
+					}
+				}
+				ElseIf (tokens.Tag = "link") 
+				{
+					// 'linkend' attribute of link tag contains link
+					Set linktype = $ZCONVERT($GET(attrs("type","value"),""), "L")
+					Set url = $G(attrs("linkend","value"))
+					Set url = $ZCONVERT(url, "I", "HTML")
+				
+					If (url '= "") 
+					{
+						Set href = ..ProcessURL(url)
+						Do ..EmitLink(href, linktype)
+					}
+				}
+				ElseIf (tokens.Tag = "olink") 
+				{
+					// link target is contained in attributes
+					Set linktype = $ZCONVERT($GET(attrs("type","value"),""), "L")
+					Set linkinfo = $GET(attrs("localinfo","value"), "")
+					Set linkrole = $GET(attrs("role","value"), "")
+					Set url = ""
+					
+					If (linktype = "documatic")
+					{
+						Set url = "../documatic/%25CSP.Documatic.cls"
+						Set url = url _ "?PAGE=CLASS"
+						// parse the target reference
+						Set PieceCnt = $LENGTH(linkinfo, ":")
+						If ((PieceCnt < 2) || (PieceCnt > 3))
+						{
+							Set url = ""
+						}
+						Else
+						{
+							If (PieceCnt = 2)
+							{
+								Set namespace = ""
+								Set fqclassname = $PIECE(linkinfo, ":", 1)
+								Set componentname = $PIECE(linkinfo, ":", 2)
+							}
+							Else
+							{
+								Set namespace = $PIECE(linkinfo, ":", 1)
+								Set fqclassname = $PIECE(linkinfo, ":", 2)
+								Set componentname = $PIECE(linkinfo, ":", 3)
+							}
+							If ($LENGTH(namespace) = 0)
+							{
+								Set namespace = "%SYS"
+							}
+							Set url = url _ "&LIBRARY=" _ $ZCONVERT(namespace, "O", "URL")
+							Set url = url _ "&CLASSNAME=" _ $ZCONVERT(fqclassname, "O", "URL")
+							// now the component is there is one
+							If (componentname '= "")
+							{
+								//Set url = url _ "#" _ $ZCONVERT(componentname, "O", "URL")
+								// documatic does not escape component names
+								Set url = url _ "#" _ componentname
+							}
+						}
+					}
+					If (url '= "") 
+					{
+						Set href = ..ProcessURL(url)
+						Do ..EmitLink(href, "new", linkrole)
+					}
+				}
+			}
+			
+			// end of link
+			ElseIf ((tokens.Type = "TAG") && ($E(tokens.Tag,1,1) = "/") && (..IsLINK($E(tokens.Tag,2,$L(tokens.Tag))))) {
+				Write "</A>"
+			}
+			
+			// start of tables
+			ElseIf ((tokens.Type = "TAG") && (..IsTABLE(tokens.Tag))) 
+			{
+				If (tokens.Tag = "entry") {
+					// test for 'morerows'
+					Kill attrs
+					Do tokens.GetAttrs(.attrs)
+					
+					If (+$G(attrs("morerows","value")) > 0) 
+					{
+						Set rowspan = " rowspan=""" _ (attrs("morerows","value") + 1) _ """"
+					}
+					Else 
+					{
+						Set rowspan = ""
+					}
+
+					If (tpart = "thead") 
+					{
+						Write "<TH",frmcls,rowspan,">"
+					}
+					Else 
+					{
+						Write "<TD",frmcls,rowspan,">"
+					}
+				}				
+				ElseIf (tokens.Tag = "row") 
+				{
+					Write "<TR>"
+				}				
+				ElseIf (tokens.Tag = "tgroup") 
+				{
+					// reset statevars
+					Set tpart = ""
+					Write "<TABLE ALIGN=""CENTER"" CLASS=""CALSTable"" CELLPADDING=""5"" CELLSPACING=""0"" BORDER=""0"">"
+				}				
+				ElseIf (tokens.Tag = "thead") 
+				{
+					Set tpart = "thead"
+				}
+				ElseIf (tokens.Tag = "tbody") 
+				{
+					Set tpart = "tbody"
+				}
+				Else 
+				{
+					Set skipTo = "/" _ tokens.Tag
+				}
+			}
+			
+			// end of tables
+			ElseIf ((tokens.Type = "TAG") && ($E(tokens.Tag,1,1) = "/") && (..IsTABLE($E(tokens.Tag,2,$L(tokens.Tag))))) 
+			{
+				If (tokens.Tag = "/entry") 
+				{
+					If (tpart = "thead") 
+					{
+						Write "</TH>",!
+					}
+					Else 
+					{
+						// ensure that no cells are empty!
+						Write "</TD>",!
+					}
+				}				
+				ElseIf (tokens.Tag = "/row") 
+				{
+					Write "</TR>",!
+				}				
+				ElseIf (tokens.Tag = "/tgroup") 
+				{
+					Write "</TABLE>",!
+				}				
+				ElseIf (tokens.Tag = "/thead") 
+				{
+					Set tpart = ""
+				}
+				ElseIf (tokens.Tag = "/tbody") 
+				{
+					Set tpart = ""
+				}
+			}
+			
+			// graphic tag
+			ElseIf ((tokens.Type = "TAG") && ((tokens.Tag = "graphic") || (tokens.Tag = "inlinegraphic"))) 
+			{
+				If ('noimg) 
+				{
+					Kill attrs
+					Do tokens.GetAttrs(.attrs)
+					// lowercase and normalize for UNIX
+					Set href = $TR($ZCVT($G(attrs("fileref","value")),"L"),"\","/")
+					
+					Set align = $G(attrs("align","value"),"center")
+					If (tokens.Tag = "graphic") 
+					{
+						//JMD257: Write "<TABLE ALIGN=""CENTER"" WIDTH=""80%"" BORDER=""0"" CELLPADDING=""0"" CELLSPACING=""0""><TR ALIGN=""",align,"""><TD>"
+						Write "<DIV class=""graphic"">"
+					}
+					// treat SVG differently
+					If (href?1.E1".svg")
+					{
+						Write "<EMBED TYPE=""image/svg+xml"" SRC=""",href,""""
+					}
+					Else
+					{
+						Write "<IMG HSPACE=""10"" BORDER=""0"" SRC=""",href,""""
+					}
+					// Write:align'="" "ALIGN=""",align,""""
+					Write ">"
+					//JMD257 Write:(tokens.Tag = "graphic") "</TD></TR></TABLE>"
+					Write:(tokens.Tag = "graphic") "</div>"
+				}
+			}
+			
+			// /graphic tag
+			ElseIf ((tokens.Type = "TAG") && ((tokens.Tag = "/graphic") || (tokens.Tag = "/inlinegraphic"))) 
+			{
+				// do nothing
+			}
+			
+			Else 
+			{
+				If (searchword '= "") 
+				{
+					Do ..ShowText(tokens.Text,searchword)
+				}	
+				Else {
+					Set render = 0
+					If (classLink = 1) 
+					{
+						Set classLink = 0
+
+						Set cls = tokens.Text
+						Set ClassOK = 0
+						If ($E(cls,1) = "%")
+						{
+							Do NormalizeClassnameByDef^%occName(.cls,cls,cls)
+							Set ClassOK = 1
+						}
+						Else
+						{
+							Set ClassOK = 1
+							Set:($PIECE($ZCONVERT(cls, "U"), ",", 1) [ "SAMPLE") ClassOK = 0
+						}
+						If (ClassOK)
+						{
+							// find out if system class exists
+							Set namesp = ..ProbeClass(cls)
+							If ($LENGTH(namesp) > 0)
+							{
+								// get IP address of this machine
+								Set href = "../documatic/%25CSP.Documatic.cls"
+								Set href = href _ "?"
+								Set href = href _ "APP=1"
+								Set href = href _ "&"
+								Set href = href _ "LIBRARY=" _ $zcvt(namesp,"O","URL")								
+								Set href = href _ "&"
+								Set href = href _ "CLASSNAME=" _ $zcvt(cls,"O","URL")								
+
+								Write "<A HREF=""",href,""" target=""_blank"">"
+								Write tokens.Text
+								;Write $zcvt(cls,"O","URL")
+								Write "</A>"
+								Set render = 1
+							}
+							Else
+							{
+								// cannot get there from here
+								Write "<!-- "
+								Write "[", $ZNSPACE, "] "
+								Write $$$T("Class not found in ^oddDEF: "), cls
+								Write " -->"
+							}
+						}
+						Else
+						{
+							// we will not let people go to Samples
+							Write "<!-- "
+							Write "[", $ZNSPACE, "] "
+							Write $$$T("Class restricted: "), cls
+							Write " -->"
+						}
+					}
+						
+
+					If (render = 0) 
+					{
+						// we did not render: do it here
+						
+						// Test if we need to xform any entities
+						If (tokens.Text [ "&") {
+							Write ..XFormEntity(tokens.Text)
+						}
+						Else 
+						{
+							Write tokens.Text
+						}
+					}
+				}
+			}
+		}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="ProcessURL">
+<Description>
+Common URL processing</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>url:cdata</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+
+	Set xlink = ""
+	Set xhash = ""
+	
+	// short-circuit
+	If (url = "")
+	{
+	    Quit ""
+	}
+	
+	// replace superserver and webserver ports if present
+	if (url [ "localhost:1972")
+	{
+		Set SSport = $PIECE($ZU(172,0), ";", 1)
+		Set Before = $PIECE(url, ":1972", 1)
+		Set After = $PIECE(url, ":1972", 2)
+		Set url = Before _ ":" _ SSport _ After
+	}
+	if (url [ "localhost:57772")
+	{
+		Set WSport = $GET(^%SYS("WebServer", "Port"), "57772")
+		Set Before = $PIECE(url, ":57772", 1)
+		Set After = $PIECE(url, ":57772", 2)
+		Set url = Before _ ":" _ WSport _ After
+	}
+	Set href = ""
+	Set Passed = 0
+	If ((url [ "http:") || (url [ "https:") || (url [ "ftp:"))
+	{
+		Set Passed = 1
+	}
+	ElseIf ((url [ ".html") || (url [ ".htm") || (url [ ".cls") || (url [ ".csp"))
+	{
+		Set Passed = 1
+	}
+	ElseIf (url [ "file:")
+	{
+		If ((url [ ".png") 
+		    || (url [ ".jpg") 
+		    || (url [ ".jpeg") 
+		    || (url [ ".mpeg") 
+		    || (url [ ".gif") 
+		    || (url [ ".png")
+		    || (url [ ".htm")
+		    || (url [ ".html"))
+		{
+			Set Passed = 1
+		}
+	}
+	
+	If (Passed)
+	{
+		// trick for links to static files
+		Set href = $TR(url,"\","/") // normalize
+	}
+	ElseIf ..GetLink(url, .xlink, .xhash) 
+	{
+		If ($G(%tutorial)=1) 
+		{
+			If (xhash '= "") 
+			{
+				Set xlink = xhash
+			}
+			Set href = "DocBook.UI.FramePage.cls?KEY=" _ xlink
+		}
+		Else 
+		{
+			Set href = "DocBook.UI.FramePage.cls?KEY=" _ xlink
+			If (xhash '= "") 
+			{
+				Set href = href _ "#" _ xhash
+			}
+		}
+	}
+	ElseIf (url [ "file:")
+	{
+		Set href = url
+	}
+	Else 
+	{
+		// invalid link
+		Set href = ""
+	}
+	
+	Quit href
+]]></Implementation>
+</Method>
+
+<Method name="EmitLink">
+<Description>
+Generate the link HTML entry sequence</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>href:cdata,linktype:cdata,displaymod:cdata=""</FormalSpec>
+<Implementation><![CDATA[
+	Set displayclass = "Link" _ displaymod
+	Write "<A CLASS=""" _ displayclass _ """ "
+	If (href '= "") 
+	{
+		Write "HREF=""", href,""""
+	}
+	If (("," _ linktype _ ",") [ ",new,") 
+	{
+		Write " target=""_blank"""
+	}
+	Write ">"
+	
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="ProbeClass">
+<Description>
+Guardedly check for the existence of a class</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>clsnm:cdata</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	
+	Set $ZTRAP = "NoAccess"
+	Set NSlist($i(NSlist)) = $lb("%SYS","%SYS")
+	Set result = ""
+	
+	If ##class(%Library.EnsembleMgr).IsEnsembleInstalled() {
+		Set NSlist($i(NSlist)) = $lb("ENSLIB",##class(%Library.EnsembleMgr).GetENSLIB(1))
+		If ##class(%Library.EnsembleMgr).IsHealthShareInstalled() {
+			Set NSlist($i(NSlist)) = $lb("HSLIB", "HSLIB")
+		}
+	}
+	For i=1:1:NSlist {
+		Set NSData = NSlist(i)
+		Set SysNS = $lg(NSData, 1)
+		Set SysDir = $lg(NSData, 2)
+		If ($data(^|SysDir|oddDEF(clsnm)) > 0)
+		{
+			Set result = SysNS
+			Quit
+		}
+	}
+
+NoAccess
+	Set $ZTRAP =""
+	Set $ZERROR = ""
+	Quit result
+]]></Implementation>
+</Method>
+
+<Method name="XFormEntity">
+<Description>
+Convert any entities in text to HTML-safe representation</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:cdata</FormalSpec>
+<ReturnType>cdata</ReturnType>
+<Implementation><![CDATA[
+
+	// remove any indexterms from consideration
+	Set text = ..FilterText(text)
+	
+	Set out = ""
+	Set last = 1
+	Set p = $Find(text,"&",1)
+
+	While (p > 0) {
+		Set out = out _ $E(text,last,p-2)
+		
+		// find end of entity
+		Set last = p
+		Set p = $Find(text,";",p)
+		If (p = 0) {
+			Set out = out _ "&"
+		}
+		Else {
+			Set ent = $E(text,last,p-2)
+			If (ent = "mdash") {
+				Set out = out _ "&#151;"
+			}
+			ElseIf (ent = "ndash") {
+				Set out = out _ "&#150;"
+			}
+			ElseIf (ent = "ldquo") {
+				Set out = out _ "&#147;"
+			}
+			ElseIf (ent = "rdquo") {
+				Set out = out _ "&#148;"
+			}
+			Else {
+				Set out = out _ "&" _ ent _ ";"
+			}
+
+			// find next entity
+			Set last = p
+			Set p = $Find(text,"&",p)
+		}
+	}
+	
+	Set out = out _ $E(text,last,$L(text))
+	Quit out
+]]></Implementation>
+</Method>
+
+<Method name="FmtInterface">
+<Description>
+Convert the INTERFACE value from a comma-separated list 
+to the form it has on the Management Portal address bar.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:cdata</FormalSpec>
+<ReturnType>cdata</ReturnType>
+<Implementation><![CDATA[
+	Set cvtext = ..XFormEntity(text)
+	Set cvtext = ##class(DocBook.PortalUtils).Normalize(cvtext)
+	Set url = ##class(DocBook.PortalUtils).GetPortalURL(cvtext)
+
+	Set result = ##class(DocBook.PortalUtils).Display(cvtext)
+	
+	#;Set ^DocBook.DEBUG = $GET(^DocBook.DEBUG, 0) + 1
+	#;Set ^DocBook.DEBUG(^DocBook.DEBUG, "FmtInterface", "text") = text
+	#;Set ^DocBook.DEBUG(^DocBook.DEBUG, "FmtInterface", "cvtext") = cvtext
+	#;Set ^DocBook.DEBUG(^DocBook.DEBUG, "FmtInterface", "url") = url
+	#;Set ^DocBook.DEBUG(^DocBook.DEBUG, "FmtInterface", "result") = result
+	
+	/*If (url '= "")
+	{
+		Set result = "<A CLASS=""Link"""
+		           _ " "
+		           _ "HREF="""
+		           _ ##class(%CSP.Page).Link(url)
+		           _ """>"
+		           _ result
+		           _ "</A>"
+	}*/
+	
+	Quit result
+]]></Implementation>
+</Method>
+
+<Method name="GetLink">
+<Description>
+Get a link for a given blockID</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[id:id,&link,&hash]]></FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+
+	// special case for technical articles
+	If ($ZCVT(id,"U") = "KNBASE") {
+		Set link = id
+		Set hash = ""
+		Quit 1
+	}
+	
+	&sql(SELECT component->blockid
+		INTO  :owner
+		FROM DocBook.block 
+		WHERE blockid = :id)
+
+	If (SQLCODE '= 0) {
+		/// Invalid link
+		Quit 0
+	}
+	
+	If (owner = "") {
+		Set link = id
+		Set hash = ""
+		Quit 1
+	}
+	
+	Set link = owner
+	Set hash = id
+	
+	Quit 1
+]]></Implementation>
+</Method>
+
+<Method name="RenderTable">
+<Description>
+ Render the contents of a table block</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:cdata,frame:cdata="",colsep:dbint="",searchword:cdata=""</FormalSpec>
+<Implementation><![CDATA[	Do ..RenderText(text,searchword,frame,colsep)
+]]></Implementation>
+</Method>
+
+<Method name="ShowText">
+<Description><![CDATA[
+ This method takes the given text and colors any occurrences
+ of <varname>searchword</varname>.]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:cdata,searchword:cdata</FormalSpec>
+<Implementation><![CDATA[
+
+	If (searchword = "") {
+		Write text,!
+		Quit
+	}
+
+	Set p = 0
+	Set utext = $ZCVT(text,"U")
+	Set searchword = $ZCVT(searchword,"U")
+	Set l = $L(searchword)
+	Do {
+		Set f = $F(utext,searchword,p)
+		If (f = 0) {
+			Write $E(text,p,$L(text))
+		}
+		Else {
+			Write $E(text,p,f-l-1)
+			Write "<SPAN CLASS=""SearchWord"">"
+			Write $E(text,f-l,f-1)
+			Write "</SPAN>"
+		}
+		Set p = f
+	} While (p > 0)
+]]></Implementation>
+</Method>
+
+<Method name="RenderComments">
+<Description>
+display all the user-comments associated with a given block</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>blockid</FormalSpec>
+<Implementation><![CDATA[
+
+	// loop over comments
+	&sql(DECLARE CmtCursor CURSOR FOR
+		SELECT ID,Comment,UserName,CreateTime,Reason
+		INTO :id,:comment,:name,:time,:reason
+		FROM DocBook.UserComment
+		WHERE BlockId = :blockid
+	)
+	
+	&sql(OPEN CmtCursor)
+	&sql(FETCH CmtCursor)
+
+	While (SQLCODE = 0) {
+		&html<<DIV CLASS="UserComment">>
+		&html<<B>#(name)#:</B>&nbsp;#(reason)#&nbsp;#($ZCVT(comment,"O","HTML"))#>
+		Write "<A TITLE=""" _ $$$T("Edit this comment.") _ """ HREF=""javascript:editComment('" _ id _ "');""><IMG BORDER=""0"" SRC=""feedback.jpg""></A>", !
+		&html<</DIV>>
+
+		&sql(FETCH CmtCursor)
+	}
+	&sql(CLOSE CmtCursor)
+
+	&html<</TABLE>>
+]]></Implementation>
+</Method>
+
+<Method name="IsINLINE">
+<Description><![CDATA[
+Return true is <var>element<element> is the
+name of an INLINE element.]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<FormalSpec>element</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[(..#TagInline[(","_$ZSTRIP($ZCONVERT(element,"L"),"<>W")_","))
+]]></Implementation>
+</Method>
+
+<Method name="IsTABLE">
+<Description><![CDATA[
+Return true is <var>element<element> is the
+name of a TABLE element.]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<FormalSpec>element</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[(..#TagTable[(","_$ZSTRIP($ZCONVERT(element,"L"),"<>W")_","))
+]]></Implementation>
+</Method>
+
+<Method name="IsLINK">
+<Description><![CDATA[
+Return true is <var>element<element> is the
+name of a LINK element.]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<FormalSpec>element</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[(..#TagLink[(","_$ZSTRIP($ZCONVERT(element,"L"),"<>W")_","))
+]]></Implementation>
+</Method>
+
+<Method name="IsBLOCK">
+<Description><![CDATA[
+Return true is <var>element<element> is the
+name of an inline BLOCK element.]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<FormalSpec>element</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[(..#TagBlock[(","_$ZSTRIP($ZCONVERT(element,"L"),"<>W")_","))
+]]></Implementation>
+</Method>
+
+<Method name="IsINTERFACE">
+<Description><![CDATA[
+Return true is <var>element<element> is the
+name of an inline INTERFACE element.]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<FormalSpec>element</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[(..#TagInterface[(","_$ZSTRIP($ZCONVERT(element,"L"),"<>W")_","))
+]]></Implementation>
+</Method>
+</Class>
+</Export>

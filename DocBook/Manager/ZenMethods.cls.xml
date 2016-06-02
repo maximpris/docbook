@@ -1,0 +1,670 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.ZenMethods">
+<Description><![CDATA[
+Contains all the Zen methods used by <class>DocBook.Manager.Home</class>.]]></Description>
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%RegisteredObject</Super>
+<TimeCreated>62893,39114.226437</TimeCreated>
+
+<Method name="Initialize">
+<Description>
+Called by client method onloadHandler(), if system is not yet initialized</Description>
+<ClassMethod>1</ClassMethod>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    do ##class(DocBook.ManagerTables.Utils).Initialize()
+]]></Implementation>
+</Method>
+
+<Method name="Rescan">
+<Description><![CDATA[
+Used by the client methods doRescanLinks(), doRescanListings(), doRescanWideChars(), and doRescanFiles().
+Also called by Zen methods SavePathFromUI() and SetPaths() (in both cases with <var>option</var>="files").
+<p>Depending on <var>option</var>, this method invokes the Rebuild() method of one or more classes in  
+<class>DocBook.ManagerTables</class> as follows:
+<ul>
+<li><var>option</var>="listings" -- Invoke Rebuild() in <class>DocBook.ManagerTables.Listings</class></li>
+<li><var>option</var>="files" -- Invoke Rebuild() in <class>DocBook.ManagerTables.Files</class>,
+<li><var>option</var>="interfacetags" -- Invoke Rebuild() in <class>DocBook.ManagerTables.InterfaceTags</class></li>
+<li><var>option</var>="links" -- Invoke Rebuild() in <class>DocBook.ManagerTables.Links</class></li>
+<li><var>option</var>="pages" -- Invoke Rebuild() in <class>DocBook.ManagerTables.Pages</class></li>
+<li><var>option</var>="toc" -- Invoke Rebuild() in <class>DocBook.ManagerTables.TOC</class></li>
+<li><var>option</var>="widechars" -- Invoke Rebuild() in <class>DocBook.ManagerTables.WideChars</class></li>
+<class>DocBook.ManagerTables.SETFiles</class>, and <class>DocBook.ManagerTables.ImageFiles</class></li>
+</ul>]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>option:%String</FormalSpec>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    if (option="listings") {
+        do ##class(DocBook.ManagerTables.Listings).Rebuild()
+
+    } elseif (option="files") {
+        do ##class(DocBook.ManagerTables.SETFiles).Rebuild()
+        do ##class(DocBook.ManagerTables.Files).Rebuild()
+        //do ##class(DocBook.ManagerTables.ImageFiles).Rebuild() //also redoes graphics scan
+
+    } elseif (option="imagefiles") {
+        job ##class(DocBook.ManagerTables.ImageFiles).Rebuild() //also redoes graphics scan
+
+    } elseif (option="indexterms") {
+        job ##class(DocBook.ManagerTables.IndexTerms).Rebuild() 
+
+    } elseif (option="firstterms") {
+        job ##class(DocBook.ManagerTables.FirstTerms).Rebuild() 
+
+    } elseif (option="graphics") {
+        job ##class(DocBook.ManagerTables.Graphics).Rebuild() 
+
+    } elseif (option="interfacetags") {
+        do ##class(DocBook.ManagerTables.InterfaceTags).Rebuild()
+
+    } elseif option="links" {
+        set hsflag=##class(%Library.EnsembleMgr).IsHealthShareInstalled() 
+        do ##class(DocBook.ManagerTables.Links).Rebuild(0,hsflag)
+
+    } elseif option="pages" {
+        do ##class(DocBook.ManagerTables.Pages).Rebuild()
+
+    } elseif (option="toc") {
+        job ##class(DocBook.ManagerTables.TOC).Rebuild()
+
+    //this branch is not actually used but maybe we would need it for some reason
+    } elseif (option="taxonomy") {
+        do ##class(DocBook.ManagerTables.Taxonomy).Rebuild()
+
+    } elseif (option="widechars") {
+        do ##class(DocBook.ManagerTables.WideChars).Rebuild()
+
+    //rebuilds and then classifies
+    } elseif (option="drupalnodes") {
+        job ##class(DocBook.ManagerTables.DrupalNodes).Rebuild() 
+
+    //just classifies the nodes
+    } elseif (option="drupalnodesclassify") {
+        job ##class(DocBook.ManagerTables.DrupalNodes).Classify() 
+
+    }
+]]></Implementation>
+</Method>
+
+<Method name="RestoreDefaultParams">
+<Description><![CDATA[
+Used by client method doRestoreDefaultParams(), which is used by the
+"Restore Defaults" buttons in the UI.
+Invokes the method of the same name in <class>DocBook.Manager.ConfigUtils</class>.]]></Description>
+<ClassMethod>1</ClassMethod>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    do ##class(DocBook.Manager.ConfigUtils).RestoreDefaultParams()
+]]></Implementation>
+</Method>
+
+<Method name="GetPageDetailsFromDisk">
+<Description><![CDATA[
+<p>Returns a <class>%ZEN.proxyObject</class> that contains information about the
+currently selected portal page.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>PageClass:%String,verbose:%Boolean=0</FormalSpec>
+<ReturnType>%ZEN.proxyObject</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    
+    set status = $$$OK
+    set sql = "SELECT * from DocBook_ManagerTables.Pages WHERE PageClass = ? "
+    set query=##class(%SQL.Statement).%New()
+    set status = query.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Utils","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Utils",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+
+    set rset = query.%Execute(PageClass)
+    do rset.%Next()
+    if verbose {
+        //all types
+        write !, "PageClass: " , PageClass
+        write !, "PAGENAME: ", rset.%Get("PAGENAME")
+        write !, "PageType: ", rset.%Get("PageType")
+
+        //applies to type 1
+        write !, "HELPADDRESS: ", rset.%Get("HELPADDRESS")
+        write !, "AnchorGlobalEntry: ", rset.%Get("AnchorGlobalEntry")
+        //applies to types 2 and 3
+        write !, "ComputedHelpAddress: ", rset.%Get("ComputedHelpAddress")
+        write !, "AnchorGlobalEntry: ", rset.%Get("AnchorGlobalEntry")
+        //applies to type 4
+        write !, "DOCBOOKID: ", rset.%Get("DOCBOOKID")
+        //applies to type 5
+        write !, "HSHELPKEY: ", rset.%Get("HSHELPKEY")
+
+        //all types
+        write !, "ExpectedDocBookId: ", rset.%Get("ExpectedDocBookId")
+        write !, "HelpFound: ", rset.%Get("HelpFound")
+
+        write !, "CSPURL: ", rset.%Get("CSPURL")
+    }
+
+    set details=##class(%ZEN.proxyObject).%New()
+
+    set details.PAGENAME="Page name: "_rset.%Get("PAGENAME")
+    //to provide additional info
+    if (rset.%Get("CSPURL")="") {
+        set details.CSPURL=""
+        } else {
+        set details.CSPURL="CSPURL parameter: "_rset.%Get("CSPURL")   
+    }
+    //to tell client how to display the returned info
+    //also used to control comments sent to client
+    set details.PageType=rset.%Get("PageType")
+    if (rset.%Get("PageType")=1 || (rset.%Get("PageType")=2) || (rset.%Get("PageType")=3)) {
+        set details.Comment="To create help for this page, insert one or more appropriate anchors into a doc. source file"
+    } elseif (rset.%Get("PageType")=4) {
+        set details.Comment="To create help for this page,specify the DOCBOOKID parameter in the page class"
+    } elseif (rset.%Get("PageType")=5) {
+        set details.Comment="To create help for this page,specify the HSHELPKEY parameter in the page class"
+    } 
+
+    if (rset.%Get("HELPADDRESS")="") { 
+        set details.HELPADDRESS="HELPADDRESS parameter: not specified"
+    } else {
+        set details.HELPADDRESS="HELPADDRESS parameter: "_rset.%Get("HELPADDRESS")
+    }
+    
+    if (rset.%Get("ComputedHelpAddress")="") { 
+        set details.ComputedHelpAddress="Computed help address: not applicable"
+    } else {
+        set details.ComputedHelpAddress="Computed help address: "_rset.%Get("ComputedHelpAddress")
+    }
+
+    if (rset.%Get("AnchorGlobalEntry")="") { 
+        set details.AnchorGlobalEntry="Anchor found by help address: none"
+    } else {
+        set details.AnchorGlobalEntry="Anchor found by help address: "_rset.%Get("AnchorGlobalEntry")
+    }
+
+    if (rset.%Get("DOCBOOKID")="") { 
+        set details.DOCBOOKID="DOCBOOKID parameter: not specified"
+    } else {
+        set details.DOCBOOKID="DOCBOOKID parameter: "_rset.%Get("DOCBOOKID")
+    }
+
+    if (rset.%Get("HSHELPKEY")="") { 
+        set details.HSHELPKEY="HSHELPKEY parameter: not specified"
+    } else {
+        set details.HSHELPKEY="HSHELPKEY parameter: "_rset.%Get("HSHELPKEY")
+    }
+
+    set details.HelpAttempted=rset.%Get("HelpAttempted")
+    set details.HelpFound=rset.%Get("HelpFound")
+
+    if (rset.%Get("HelpAttempted")=0) { 
+        set details.ExpectedDocBookId=""
+        set details.HelpFoundComment="No expected topic -- only default Help is available"
+
+    } elseif (rset.%Get("HelpFound")=0) {
+        set details.ExpectedDocBookId="Expected DocBookId: "_rset.%Get("ExpectedDocBookId")
+        set details.HelpFoundComment="Topic does not exist -- only default Help is available"
+    } else { 
+        set details.ExpectedDocBookId="Expected DocBookId: "_rset.%Get("ExpectedDocBookId")
+        set details.HelpFoundComment=""
+    }
+    
+    quit details
+]]></Implementation>
+</Method>
+
+<Method name="GetParamsFromDisk">
+<Description><![CDATA[
+Used by client methods doGetParamsFromDisk() and doRestoreDefaultParams().
+<p>Returns a <class>%ZEN.proxyObject</class> that contains values of configuration
+settings obtained from disk.]]></Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%ZEN.proxyObject</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    set params=##class(%ZEN.proxyObject).%New()
+    set list = ##class(DocBook.ConfigUtils).GetSOURCE() ; returns a $LIST
+    set extralist=##class(DocBook.Manager.ConfigUtils).GetEXTRASOURCE() ; returns a $LIST
+    set delim=$C(13,10)
+    set params.SOURCE = $LISTTOSTRING(list,delim)_delim_$LISTTOSTRING(extralist,delim)
+    set params.CASESENSITIVESEARCH =    ##class(DocBook.Manager.ConfigUtils).GetParam("CASESENSITIVESEARCH")
+    set params.COMPONENTSVIAFILEMGR =   ##class(DocBook.Manager.ConfigUtils).GetParam("COMPONENTSVIAFILEMGR")
+    set params.DBMBUILDDIR =            ##class(DocBook.Manager.ConfigUtils).GetParam("DBMBUILDDIR")
+    set params.ENTITYCHECK =            ##class(DocBook.Manager.ConfigUtils).GetParam("ENTITYCHECK")
+    set params.IGNORECOLORERROR =       ##class(DocBook.Manager.ConfigUtils).GetParam("IGNORECOLORERROR")
+    set params.INCLREMARK =             ##class(DocBook.Manager.ConfigUtils).GetParam("INCLREMARK")
+    set params.INDEXREBUILD =           ##class(DocBook.Manager.ConfigUtils).GetParam("INDEXREBUILD")
+    set params.PAGESIZE =               ##class(DocBook.Manager.ConfigUtils).GetParam("PAGESIZE")
+    set params.PDFCHECK =               ##class(DocBook.Manager.ConfigUtils).GetParam("PDFCHECK")
+    set params.SHOWALL =                ##class(DocBook.Manager.ConfigUtils).GetParam("SHOWALL")
+    set params.SHOWPORTALOPTIONS =      ##class(DocBook.Manager.ConfigUtils).GetParam("SHOWPORTALOPTIONS")
+    set params.SUPPRESSFRAMEWARNING =   ##class(DocBook.Manager.ConfigUtils).GetParam("SUPPRESSFRAMEWARNING")
+    set params.WIDECHARCHECK =          ##class(DocBook.Manager.ConfigUtils).GetParam("WIDECHARCHECK")
+    quit params
+]]></Implementation>
+</Method>
+
+<Method name="GetPathFromDisk">
+<Description>
+Used in a couple of places when we want to make sure the displayed path is cleaned up (blank
+lines removed, etc.).</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    set list = ##class(DocBook.ConfigUtils).GetSOURCE() ; returns a $LIST
+    set delim=$C(13,10)
+    set path = $LISTTOSTRING(list,delim)
+    set extrasourcelist = ##class(DocBook.Manager.ConfigUtils).GetEXTRASOURCE() ; returns a $LIST
+    set extrasourceliststring=$LISTTOSTRING(extrasourcelist,delim)
+    quit path_delim_extrasourceliststring
+]]></Implementation>
+</Method>
+
+<Method name="SaveParamsFromUI">
+<Description>
+Called by client method doSaveParamsFromUI(), which is called by the Save Changes button
+on the Config tab (when you are viewing other config info).</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>params:%ZEN.proxyObject</FormalSpec>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("CASESENSITIVESEARCH",params.CASESENSITIVESEARCH)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("COMPONENTSVIAFILEMGR",params.COMPONENTSVIAFILEMGR)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("DBMBUILDDIR",params.DBMBUILDDIR)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("ENTITYCHECK",params.ENTITYCHECK)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("IGNORECOLORERROR",params.IGNORECOLORERROR)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("INCLREMARK",params.INCLREMARK)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("INDEXREBUILD",params.INDEXREBUILD)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("PDFCHECK",params.PDFCHECK)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("SHOWALL",params.SHOWALL)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("SHOWPORTALOPTIONS",params.SHOWPORTALOPTIONS)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("SUPPRESSFRAMEWARNING",params.SUPPRESSFRAMEWARNING)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("PAGESIZE",params.PAGESIZE)
+    do ##class(DocBook.Manager.ConfigUtils).SetParam("WIDECHARCHECK",params.WIDECHARCHECK)
+
+    do ##class(DocBook.Manager.ConfigUtils).BackupParams()
+]]></Implementation>
+</Method>
+
+<Method name="SavePathFromUI">
+<Description>
+Called by client method doSavePathFromUI(), which is called by the Save Changes button
+on the Config tab (when you are viewing path info).</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>SOURCE</FormalSpec>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    //convert SOURCE to a $LIST
+    set delim=$C(10) ; this works
+    set SOURCE = $LISTFROMSTRING(SOURCE,delim)
+
+    do ##class(DocBook.Manager.ConfigUtils).SetPathFromList(SOURCE)
+    do ##class(DocBook.Manager.ConfigUtils).BackupParams()
+
+    //rebuild the file-related tables
+    do ..Rescan("files")
+]]></Implementation>
+</Method>
+
+<Method name="GetDocInfo">
+<Description><![CDATA[
+Used by client method onSelectFilename().
+<p>Given a filename, return a ZEN proxy object that contains the DocBook Id, 
+DocType (article, book, or component, and Title (for use in the UI).]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String</FormalSpec>
+<ReturnType>%ZEN.proxyObject</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    set proxy=##class(%ZEN.proxyObject).%New()
+    set docbookid=##class(DocBook.Manager.Utils).GetIdFromFilename(filename)
+    set proxy.DocBookId=docbookid
+    set proxy.DocType=##class(DocBook.Manager.Utils).GetTypeFromFilename(filename)
+    //set proxy.Loaded=##class(DocBook.Manager.Utils).GetLoaded(docbookid)
+    set proxy.Title=##class(DocBook.Manager.Utils).GetTitleFromId(docbookid)
+    quit proxy
+]]></Implementation>
+</Method>
+
+<Method name="GetInfoFromDocBookId">
+<Description>
+given a docbook id, return ZEN proxy object that contains
+name of primary file and type</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String</FormalSpec>
+<ReturnType>%ZEN.proxyObject</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    set proxy=##class(%ZEN.proxyObject).%New()
+    set proxy.Filename=##class(DocBook.Manager.Utils).GetFilenameFromId(DocBookId)
+    set proxy.DocType=##class(DocBook.Manager.Utils).GetTypeFromId(DocBookId)
+    quit proxy
+]]></Implementation>
+</Method>
+
+<Method name="GetSETFilename">
+<Description><![CDATA[
+Used by client method onSelectSET().
+<p>Given the DocBookId of a SET, return a ZEN proxy object that contains the 
+title and the list of books in the set. The title is shown in the UI.
+The client method uses the book list to affect the set component query.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>setid:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    quit ##class(DocBook.Manager.Utils).GetFilenameFromSETId(setid)
+]]></Implementation>
+</Method>
+
+<Method name="GetSETInfo">
+<Description><![CDATA[
+Used by client method onSelectSETRemapInfo().
+<p>Given the DocBookId of a SET, return a ZEN proxy object that contains the 
+title and the list of books in the set. The title is shown in the UI.
+The client method uses the book list to affect the set component query.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>setid:%String</FormalSpec>
+<ReturnType>%ZEN.proxyObject</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    set proxy=##class(%ZEN.proxyObject).%New()
+    //set proxy.Loaded=##class(DocBook.Manager.Utils).GetLoaded(setid)
+    //set proxy.Title=##class(DocBook.Manager.Utils).GetTitleFromId(setid)
+    set proxy.Filename=##class(DocBook.Manager.Utils).GetFilenameFromSETId(setid)
+   
+    set list=##class(DocBook.Manager.Utils).GetBookListFromId(setid)
+    //need to build list in form needed for secondary query in paneSETs
+    set newlist=""
+    for i=1:1:$LENGTH(list,",") {
+        set listitem=$PIECE(list,",",i)
+        set listitem="'"_listitem_"'"
+        set newlist=newlist_","_listitem
+        }
+    set newlist=$ZSTRIP(newlist,"<",",")
+    set newlist="("_newlist_")"
+    set proxy.Booklist=newlist
+    quit proxy
+]]></Implementation>
+</Method>
+
+<Method name="GetInitializedTimeStamp">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    quit ##class(DocBook.ManagerTables.Utils).GetInitializedTimeStamp()
+]]></Implementation>
+</Method>
+
+<Method name="GetAreWeInitialized">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%ZEN.Datatype.boolean</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    quit ##class(DocBook.ManagerTables.Utils).GetAreWeInitialized()
+]]></Implementation>
+</Method>
+
+<Method name="GetDBMVersion">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[    quit $$$DOCBOOKMANAGERBUILDNAME
+]]></Implementation>
+</Method>
+
+<Method name="GetServerInfo">
+<Description>
+Return a ZEN proxy object that contains info about the state of the system</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%ZEN.proxyObject</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    set proxy=##class(%ZEN.proxyObject).%New()
+    
+    set proxy.Initialized       = ..GetAreWeInitialized()
+    set proxy.dbmversion        = ..GetDBMVersion()
+    
+    //this value is an integer
+    set proxy.WideCharProblems  =##class(DocBook.ManagerTables.WideChars).GetWideCharFindCount()
+
+    //these values are 1 or 0
+    set proxy.WideCharCheck     =##class(DocBook.ManagerTables.WideChars).Initialized()
+    set proxy.WideCharScanStale =##class(DocBook.ManagerTables.WideChars).ScanIsStale()
+    
+    set proxy.CoreVersion       =$PIECE($ZVERSION,") ",2)_")"
+    set proxy.InstanceName      =##class(%SYS.System).GetInstanceName() 
+
+    quit proxy
+]]></Implementation>
+</Method>
+
+<Method name="Remove">
+<Description>
+Used by client method doRemoveDocument()</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>which:%String,verbose:%Boolean=0</FormalSpec>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    do ##class(DocBook.Manager.Utils).Remove(which,verbose)
+]]></Implementation>
+</Method>
+
+<Method name="GetScanTimeStamps">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%ZEN.proxyObject</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    set proxy=##class(%ZEN.proxyObject).%New()
+
+    set ts=##class(DocBook.ManagerTables.Utils).GetInitializedTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.SystemInit=ts
+
+    set ts=##class(DocBook.Manager.LoadUtils).GetLoadDeleteTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.Load=ts
+
+    //do all the manager tables
+    set ts=##class(DocBook.ManagerTables.Listings).GetTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.Listings=ts
+
+    set ts=##class(DocBook.ManagerTables.Files).GetTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.Files=ts
+
+    set ts=##class(DocBook.ManagerTables.Graphics).GetTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.Graphics=ts
+
+    set ts=##class(DocBook.ManagerTables.ImageFiles).GetTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.ImageFiles=ts
+
+    set ts=##class(DocBook.ManagerTables.InterfaceTags).GetTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.InterfaceTags=ts
+
+    set ts=##class(DocBook.ManagerTables.Links).GetTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.Links=ts
+
+    set ts=##class(DocBook.ManagerTables.Pages).GetTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.Pages=ts
+
+    set ts=##class(DocBook.ManagerTables.SETFiles).GetTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.SETFiles=ts
+
+    set ts=##class(DocBook.ManagerTables.TOC).GetTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.TOC=ts
+
+    set ts=##class(DocBook.ManagerTables.Taxonomy).GetTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.Taxonomy=ts
+
+    set ts=##class(DocBook.ManagerTables.WideChars).GetTimeStamp()
+    if (+ts="1900") { set ts="never" }
+    set proxy.WideChars=ts
+
+    quit proxy
+]]></Implementation>
+</Method>
+
+<Method name="PurgeLog">
+<ClassMethod>1</ClassMethod>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    do ##class(DocBook.ManagerTables.Log).%KillExtent()
+]]></Implementation>
+</Method>
+
+<Method name="GetPARAM">
+<Description>
+there are a couple of parameters we retrieve from disk outside of the config page</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>param:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    quit ##class(DocBook.Manager.ConfigUtils).GetParam(param)
+]]></Implementation>
+</Method>
+
+<Method name="SetPARAM">
+<Description>
+there are a couple of parameters we set from the UI outside of the config page</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>param,value</FormalSpec>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    do ##class(DocBook.Manager.ConfigUtils).SetParam(param,value)
+]]></Implementation>
+</Method>
+
+<Method name="ExportItem">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId</FormalSpec>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    if ($$$UPPER(DocBookId)="ALLFLAT") {
+        job ##class(DocBook.Manager.ExportUtils).ExportAll()
+    } else {
+        job ##class(DocBook.Manager.ExportUtils).ExportItem(DocBookId)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ExportGroup">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup</FormalSpec>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    job ##class(DocBook.Manager.ExportUtils).ExportPDFGroup(pdfgroup)
+]]></Implementation>
+</Method>
+
+<Method name="GenerateCLBatForGroup">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup</FormalSpec>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    do ##class(DocBook.Manager.PerforceUtils).GenerateCLBatForGroup("",pdfgroup)
+    do ##class(DocBook.Manager.PerforceUtils).GenerateCLBatsForPDFCat2("",pdfgroup)
+]]></Implementation>
+</Method>
+
+<Method name="RebuildPDFToolsTable">
+<ClassMethod>1</ClassMethod>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    do ##class(DocBook.ManagerTables.DBContents).ScanPDFDirs()
+]]></Implementation>
+</Method>
+
+<Method name="GetPDFGroupDetailsFromDisk">
+<Description><![CDATA[
+<p>Returns a <class>%ZEN.proxyObject</class> that contains information about the
+currently selected PDF group]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>PDFGroup:%String,verbose:%Boolean=0</FormalSpec>
+<ReturnType>%ZEN.proxyObject</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "SELECT * from DocBook_ManagerTables.PDFGroups WHERE ID = ? "
+    set query=##class(%SQL.Statement).%New()
+    set status = query.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Utils","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Utils",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+
+    set rset = query.%Execute(PDFGroup)
+    do rset.%Next()
+    set details=##class(%ZEN.proxyObject).%New()
+    set details.Origin=rset.%Get("Origin")
+    set details.DefaultCoverVersion = rset.%Get("DefaultCoverVersion")
+    set details.DefaultTargetPerforceVersion = rset.%Get("DefaultTargetPerforceVersion")
+    set details.CoverVersionOverride=##class(DocBook.ManagerTables.PDFGroups).GetCoverVersion("override",PDFGroup)
+    set details.PerforceVersionOverride=##class(DocBook.ManagerTables.PDFGroups).GetPerforceVersion("override",PDFGroup)
+    quit details
+]]></Implementation>
+</Method>
+
+<Method name="SavePDFGroupDetails">
+<Description>
+Called by client method doSavePDFGroupDetails(), which is called by the Save Changes button
+on the PDF Groups tab </Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>params:%ZEN.proxyObject</FormalSpec>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    set pdfgroup=params.pdfgroupid
+    if (pdfgroup'="") {
+        do ##class(DocBook.ManagerTables.PDFGroups).SetCoverVersionOverride(pdfgroup,params.coverversion)
+        do ##class(DocBook.ManagerTables.PDFGroups).SetPerforceVersionOverride(pdfgroup,params.perforceversion)
+    }
+    do ##class(DocBook.ManagerTables.DBContents).ScanPDFDirs()
+    do ##class(DocBook.Manager.ConfigUtils).BackupParams()
+]]></Implementation>
+</Method>
+
+<Method name="ReloadApp">
+<ClassMethod>1</ClassMethod>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    set builddir=##class(DocBook.Manager.ConfigUtils).GetParam("DBMBUILDDIR")
+    set includefile=##class(DocBook.Manager.Utils).AppendToPath(builddir,"inc\DocBookManagerInclude.inc")
+    if ##class(%File).Exists(includefile) {
+        job ##class(DocBook.Manager.Setup).LoadAndCompile()
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ReloadSavedParms">
+<ClassMethod>1</ClassMethod>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    do ##class(DocBook.ManagerTables.Utils).ReloadSavedParms()
+]]></Implementation>
+</Method>
+
+<Method name="LoadAllSources">
+<ClassMethod>1</ClassMethod>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[    job ##class(DocBook.Manager.LoadUtils).LoadAndLog()
+]]></Implementation>
+</Method>
+
+<Method name="ExportTOCToCSV">
+<Description><![CDATA[
+Used by the client method doExportToctoCSV().
+<p>Exports the TOC data to a CSV file. Returns the name of the exported file.]]></Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+    set exportfilename=##class(DocBook.ManagerTables.TOC).ExportToCSV()
+    quit exportfilename
+]]></Implementation>
+</Method>
+</Class>
+</Export>

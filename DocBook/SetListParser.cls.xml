@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.SetListParser">
+<Description>
+A special parser for SetList documents.</Description>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%XML.SAX.ContentHandler</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Method name="error">
+<Internal>1</Internal>
+<FormalSpec>error:%Library.String</FormalSpec>
+<Implementation><![CDATA[  Write "SAX Error: ",error,!
+]]></Implementation>
+</Method>
+
+<Method name="fatalError">
+<Description>
+Error handler</Description>
+<Internal>1</Internal>
+<FormalSpec>fatalerror:%Library.String</FormalSpec>
+<Implementation><![CDATA[ Write $$$T("SAX Fatal Error: "),fatalerror,!
+]]></Implementation>
+</Method>
+
+<Method name="startElement">
+<Internal>1</Internal>
+<FormalSpec>uri:%Library.String,localname:%Library.String,qname:%Library.String,attrs:%Library.List</FormalSpec>
+<Implementation><![CDATA[
+
+	Do ..UnpackAttrs(attrs,.arr)
+	Set key = $G(arr("id"))
+
+	// the only thing we care about is <set>
+	If (localname = "set") {
+		// add a set to the database
+		Set set = ##class(set).OpenKey(key)
+		If (set = "") {
+			Set set = ##class(set).%New()
+			Set set.id = key
+			Write "Creating set: ",key,!
+		}
+		Else {
+			Write "Updating set: ",key,!
+		}
+		Do set.%Save()
+	}
+]]></Implementation>
+</Method>
+
+<Method name="UnpackAttrs">
+<Description>
+Converts list of attrs into an array keyed by attr name</Description>
+<Internal>1</Internal>
+<FormalSpec><![CDATA[attrs:%List,&array:cdata]]></FormalSpec>
+<Implementation><![CDATA[
+
+	For i = 1:5:$LL(attrs) {
+		If ($LG(attrs,i+1) '= "") {
+			Set array($LG(attrs,i+1)) = $LG(attrs,i+4)
+		}
+	}
+]]></Implementation>
+</Method>
+</Class>
+</Export>

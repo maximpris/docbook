@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.ObsoletePDFs">
+<Description>
+This table lists all the PDF files that we need to remove from Perforce</Description>
+<Super>%Persistent</Super>
+<TimeCreated>63720,63643.633255</TimeCreated>
+
+<Property name="DocBookId">
+<Description><![CDATA[
+id of <set> <book> or <chapter> etc.
+Displayed in table; used as filter.]]></Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="PDFGroup">
+<Type>DocBook.ManagerTables.PDFGroups</Type>
+</Property>
+
+<Property name="FullFilename">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="2000"/>
+</Property>
+
+<Index name="FullFilenameIdx">
+<IdKey>1</IdKey>
+<Properties>FullFilename</Properties>
+</Index>
+
+<Method name="Rebuild">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.ObsoletePDFs:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: Obsolete PDF scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Looking for obsolete PDF files...",verbose)
+    do ..%KillExtent()
+    set pdfgrouplist=##class(DocBook.ManagerTables.PDFGroups).GetPDFGroups(verbose)
+    for i=1:1:$LL(pdfgrouplist) {
+        set pdfgroup=$LG(pdfgrouplist,i)
+        if verbose {
+            write !, "Looking at ", pdfgroup
+        }
+        &sql(SELECT TargetPDFArea INTO :TargetPDFArea FROM DocBook_ManagerTables.PDFGroups WHERE ID=:pdfgroup)
+        if (SQLCODE=0) {
+            set fulldir=##class(DocBook.Manager.Utils).AppendToPath(TargetPDFArea,"full/pdfs")
+            do ..FindObsoleteFilesInDir(fulldir,0,verbose) 
+            set installdir=##class(DocBook.Manager.Utils).AppendToPath(TargetPDFArea,"install/pdfs")
+            do ..FindObsoleteFilesInDir(installdir,1,verbose) 
+            
+        } else {
+            quit //skip out of loop
+        }
+    }
+
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE looking for obsolete PDF files...",verbose)
+]]></Implementation>
+</Method>
+
+<Method name="FindObsoleteFilesInDir">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>directory:%String,static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+
+    set stmt = ##class(%SQL.Statement).%New()
+    set status = stmt.%PrepareClassQuery("%File","FileSet")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+    set rset = stmt.%Execute(directory,"*.pdf",,1)
+    while rset.%Next() {
+         set filename=rset.%Get("Name")
+         set type=rset.%Get("Type")
+         if (type'="F") continue
+         set shortFilename=##class(%File).GetFilename(filename)
+         set docbookid=$REPLACE(shortFilename,".pdf","")
+         set exists=##class(DocBook.ManagerTables.DBContents).%ExistsId(docbookid)
+
+         set obsolete=0
+         if 'exists {
+             set obsolete=1
+         } elseif (exists && static) {
+             //let's take a look and see what category it is
+             set docbookitem=##class(DocBook.ManagerTables.DBContents).%OpenId(docbookid)
+             set pdfcategory=docbookitem.PDFCategory
+             if pdfcategory<3 {
+                 set obsolete=1
+             }
+         }
+         
+         
+         if obsolete {
+            if verbose {
+                write !, "Found an obsolete file: "
+                write !, filename
+            }
+            set record=..%New()
+            set record.DocBookId=docbookid
+            set record.FullFilename=filename
+            set record.PDFGroup=##class(DocBook.ManagerTables.PDFGroups).GetPDFGroup(directory,,verbose)
+            set status=record.%Save()
+            if $$$ISERR(status) {
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.FullFilename)
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$SYSTEM.Status.GetErrorText(status))
+            }
+         }
+    }
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.Manag74DA.ObsoletePDFsD</DataLocation>
+<DefaultData>ObsoletePDFsDefaultData</DefaultData>
+<IdLocation>^DocBook.Manag74DA.ObsoletePDFsD</IdLocation>
+<IndexLocation>^DocBook.Manag74DA.ObsoletePDFsI</IndexLocation>
+<StreamLocation>^DocBook.Manag74DA.ObsoletePDFsS</StreamLocation>
+<Data name="ObsoletePDFsDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>DocBookId</Value>
+</Value>
+<Value name="3">
+<Value>PDFGroup</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

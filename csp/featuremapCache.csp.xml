@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="featuremapCache.csp" application="/csp/docbook/" default="1"><![CDATA[
+<HTML>
+<HEAD>
+<TITLE>Cach&eacute; Feature Map</TITLE>
+
+<LINK REL="stylesheet" TYPE="text/css" HREF="docbookhtml.css" TITLE="Standard Style" >
+
+<STYLE>
+
+BODY {  font-family: Lucida sans unicode, Verdana,sans-serif;
+            font-size: 14pt; background: #FFFAE7;
+            }
+
+.para {
+	font-family: Lucida sans unicode, Verdana,sans-serif;
+	font-size: 0.8em;
+}
+
+A { text-decoration: none; color: yellow; }
+
+TD.MapOuter {}
+
+TD.MapItem {
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 8pt;
+            padding-right: 8pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+			background: #000040;
+			background-image: url(/csp/broker/images/grad-blue-10x100.png);
+			background-repeat: repeat-x;
+            }
+
+
+TD.MapItemHi {
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 8pt;
+            padding-right: 8pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+            background: #62A0FC;
+            }
+
+
+TD.MapItemSmall { 
+            padding: 2pt;
+            padding-right: 6px;
+            padding-left: 6px;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+			background: #000040;
+			background-image: url(/csp/broker/images/grad-blue-10x30.png);
+			background-repeat: repeat-x;
+            }
+
+TD.MapItemSmallHi { 
+            padding: 2pt;
+            padding-right: 6px;
+            padding-left: 6px;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+            background: #62A0FC;
+            }
+
+TD.MapGap { padding: 0pt; background: #FFFF80; }
+
+H1 { 
+    padding: 0pt; background: #FFFF80; 
+    font-weight: normal;
+    text-align: center; }
+
+CAPTION {
+    padding: 2pt;
+    font-weight: bold;
+    padding-right: 6px;
+    padding-left: 6px;
+	font-family: Lucida sans unicode, Verdana,sans-serif;
+    font-size: 12pt;
+    color: yellow;
+    text-align: center;
+    }
+
+TABLE.Container {
+			font-family: Lucida sans unicode, Verdana,sans-serif;
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 2pt;
+            padding-right: 2pt;
+            text-align: center;
+            border: darkblue solid 1px;
+			background: #C0C0C0;
+			background-image: url(/csp/broker/images/grad-halfgray-10x100.png);
+			background-repeat: repeat-x;
+            }
+
+    
+
+</STYLE>
+</HEAD>
+
+<SCRIPT LANGUAGE="CACHE" RUNAT="SERVER">
+
+    // define text arrays for the map
+    
+    // labels
+
+    Set %label("LANG") = "Language Bindings"
+    Set %label("JAVA") = "Java"
+    Set %label("JAVA_BINDING") = "Java"
+    Set %label("JAVA_PERSIST") = "Java Persistence<BR>Architecture"
+    Set %label("JAVA_JDBC") = "JDBC"
+    Set %label("JAVA_EXTREME") = "Java eXtreme"
+    Set %label("JAVA_JALAPENO") = "Jalape&ntilde;o"
+    Set %label("ACTX") = "ActiveX"
+    Set %label("NET") = ".NET"
+    Set %label("PERL") = "Perl"
+    Set %label("PYTHON") = "Python"
+    Set %label("CPP") = "C++"
+
+    Set %label("ZEN") = "Zen"
+    Set %label("CSP") = "CSP"
+    Set %label("ZENRPT") = "Zen<BR>Reports"
+    Set %label("XML") = "XML"
+    Set %label("SOAP") = "SOAP"
+    Set %label("WEBSVCS") = "Web<BR>Services"
+    
+    Set %label("MV") = "MultiValue"
+
+    Set %label("ODBC") = "ODBC"
+    Set %label("JDBC") = "JDBC"
+    Set %label("CMQL") = "CMQL"
+    
+    Set %label("DEEPSEE") = "Business<BR>Intelligence"
+
+    Set %label("OBJ") = "Objects"
+    Set %label("SQL") = "SQL Tables"
+    Set %label("MVRECS") = "MultiValue<BR>Records"
+    Set %label("GLOBAL") = "Multidimensional<BR>Arrays"
+    Set %label("IKNOW") = "Unstructured<BR>Data"
+
+    Set %label("COS") = "Cach&eacute; ObjectScript"
+    Set %label("BAS") = "Cach&eacute; Basic"
+    Set %label("MVBAS") = "Cach&eacute; MVBasic"
+    Set %label("JSCRIPT") = "Javascript"
+
+    Set %label("STD") = "Cach&eacute;<BR>Studio"
+    Set %label("SMP") = "Management<BR>Portal"
+    Set %label("DB") = "Multidimensional Data Engine"
+    Set %label("SQG") = "SQL<BR>Gateway"
+    Set %label("LIB") = "Class<BR>Library"
+
+    Set %label("ADMIN") = "Administrative<BR>Tools"
+    Set %label("ACTG") = "ActiveX<BR>Gateway"
+
+    Set %label("PLATFORMS") = "Platforms"
+    Set %label("LINUX") = "LINUX"
+    Set %label("UNIX") = "UNIX"
+    Set %label("VMS") = "OpenVMS"
+    Set %label("WINDOWS") = "Windows"
+    Set %label("MACINTOSH") = "Macintosh"
+
+    Set %label("ECP") = "Distributed<BR>Data<BR>Management"
+    Set %label("SEC_ROLES") = "Role-Based Security"
+    Set %label("SEC_MKEYS") = "Managed Key<BR>Encryption"
+    Set %label("SEC_AUDIT") = "Event Auditing"
+    Set %label("CLUSTER") = "Clusters"
+    Set %label("MIRROR") = "System<BR>Mirrors"
+    Set %label("MONITOR") = "System<BR>Monitors"
+    Set %label("BACKUP") = "Database<BR>Backup"
+
+    // descriptions
+    Set %text("LANG") = "Cach&eacute; provides access to its data natively from applications written in many languages."
+    Set %text("JAVA") = "Cach&eacute; includes a pure Java binding which provides Java applications with native access to Cach&eacute;."
+    Set %text("JAVA_BINDING") = "Cach&eacute; provides a powerful, easy-to-use way to access native data from Java."
+    Set %text("JAVA_PERSIST") = "Cach&eacute; supports the use of the Java Persistence Architecture.."
+    Set %text("JAVA_JDBC") = "Cach&eacute; includes a high-performance, standard JDBC driver. This driver is implemented using pure Java code."
+    Set %text("JAVA_EXTREME") = "Cach&eacute; allows direct access to the multidimensional data engine."
+    Set %text("JAVA_JALAPENO") = "Cach&eacute; provides a powerful, easy-to-use way to store Java objects without object-relational mapping."
+    Set %text("ACTX") = "Cach&eacute; includes an ActiveX binding which provides object access to Windows and .NET applications."
+    Set %text("NET") = "Cach&eacute; includes a number of ways to work with .NET applications."
+    Set %text("PERL") = "Cach&eacute; includes a Perl binding which provides Perl applications with access to Cach&eacute;."
+    Set %text("PYTHON") = "Cach&eacute; includes a Python binding which provides Python applications with access to Cach&eacute;."
+    Set %text("CPP") = "Cach&eacute; includes a C++ binding which provides C++ applications with native access to Cach&eacute;."
+
+    Set %text("ZEN") = "Cach&eacute; Zen provides a simple way to rapidly create complex, data-rich Web applications by assembling pre-built object components."
+    Set %text("CSP") = "Cach&eacute; Server Pages provides a rich set of tools and technologies for rapidly developing web applications."
+    Set %text("ZENRPT") = "Cach&eacute; provides powerful tools and technologies for report generation."
+    Set %text("XML") = "Cach&eacute; includes a wide variety of native XML features."
+    Set %text("SOAP") = "Cach&eacute; includes support for services based on the SOAP standard."
+    Set %text("WEBSVCS") = "Cach&eacute; includes support for native Web Services."
+    
+    Set %text("MV") = "Cach&eacute; provides support for the most common MultiValue environments."
+
+    Set %text("ODBC") = "Cach&eacute; includes a high-performance, standard ODBC driver. This driver is available on a variety of platforms."
+    Set %text("JDBC") = "Cach&eacute; includes a high-performance, standard JDBC driver. This driver is implemented using pure Java code."
+    Set %text("CMQL") = "Cach&eacute; provides support for MultiValue queries."
+    
+    Set %text("DEEPSEE") = "Cach&eacute; provides superior business intelligance capabilities."
+
+    Set %text("OBJ") = "Cach&eacute; includes a powerful object and object database system."
+    Set %text("SQL") = "Cach&eacute; includes a powerful SQL Engine."
+    Set %text("MVRECS") = "Cach&eacute; allows use of MultiValue records, fields and attributes."
+    Set %text("GLOBAL") = "Cach&eacute; permits direct access to multidimensional data."
+    Set %text("IKNOW") = "Cach&eacute; iKnow enables the discovery of relationships in unstructured data"
+
+    Set %text("COS") = "Cach&eacute; supports Cach&eacute; ObjectScript as a native scripting language."
+    Set %text("BAS") = "Cach&eacute; supports BASIC as a native scripting language."
+    Set %text("MVBAS") = "Cach&eacute; supports MultiValue BASIC as a programming language."
+    Set %text("JSCRIPT") = "Cach&eacute; supports Javascript as a programming language for methods."
+
+    Set %text("STD") = "Cach&eacute; Studio is a full-featured integrated development environment for rapidly developing database and web applications."
+    Set %text("SMP") = "The Cach&eacute; Management Portal provides a browser-based administrative interface for Cach&eacute;."
+    Set %text("DB") = "The Cach&eacute; Multidimensional Data Engine with certified security mechanisms provides the core of its performance, scalability, and robustness."
+    Set %text("SQG") = "The Cach&eacute; SQL Gateway provides transparent access to data stored in external database systems."
+    Set %text("LIB") = "Cach&eacute; includes a rich library of re-usable object classes."
+
+    Set %text("ADMIN") = "Cach&eacute; includes a set of easy-to-use adminstrative tools."
+    Set %text("ACTG") = "The Cach&eacute; ActiveX Gateway gives Cach&eacute; applications direct access to ActiveX components."
+
+    Set %text("PLATFORMS") = "Cach&eacute; runs on most industry-standard platforms."
+    Set %text("LINUX") = "Cach&eacute; supports the LINUX operating system."
+    Set %text("UNIX") = "Cach&eacute; supports the leading UNIX operating systems include AIX, HP-UX, Solaris, and Tru64."
+    Set %text("VMS") = "Cach&eacute; supports the OpenVMS operating system."
+    Set %text("WINDOWS") = "Cach&eacute; supports the Windows family of operating systems including Window XP and Windows 2000."
+    Set %text("MACINTOSH") = "Cach&eacute; supports the Apple OS X operating system."
+
+    Set %text("ECP") = "Cach&eacute; offers a unique distributed database architecture that provides applications with outstanding scalability."
+    Set %text("SEC_ROLES") = "Cach&eacute; provides a role-based security model that allow precise control over access to data and applications."
+    Set %text("SEC_MKEYS") = "Cach&eacute; permits encrypted data through the use of managed keys."
+    Set %text("SEC_AUDIT") = "Cach&eacute; allows for auditing of system- and user-defined events in a secure log."
+    Set %text("CLUSTER") = "Cach&eacute; offers support for clustered environments to provide a scalable, robust environment for application deployment."
+    Set %text("MIRROR") = "Cach&eacute; high-availability provides support mirrored systems."
+    Set %text("BACKUP") = "Cach&eacute; provides a variety of mechanisms for performing database backup."
+    Set %text("MONITOR") = "Cach&eacute; provides interfaces for leading System Monitoring Tools."
+
+    // links
+    Set dbook = ..Link("/csp/docbook/" _ "DocBook.UI.Page.cls") // !!!
+    //Set dbook = "/csp/docbook/" _ "DocBook.UI.Page.cls" // !!!
+    Set dbook = dbook  _ "?KEY="
+
+    Set %link("LANG") = dbook _ "SETLangBind"
+    Set %link("JAVA") = dbook _ "BLJV_preface"
+    Set %link("JAVA_BINDING") = dbook _ "BLJV_preface"
+    Set %link("JAVA_PERSIST") = dbook _ "BLJV_preface"
+    Set %link("JAVA_JDBC") = dbook _ "BGJD_preface"
+    Set %link("JAVA_EXTREME") = dbook _ "BLXT_preface"
+    Set %link("JAVA_JALAPENO") = dbook _ "BLJV_preface"
+    Set %link("ACTX") = dbook _ "BLAX_preface"
+    Set %link("NET") = dbook _ "GBMP_preface"
+    Set %link("PERL") = dbook _ "GBPL_preface"
+    Set %link("PYTHON") = dbook _ "GBPY_preface"
+    Set %link("CPP") = dbook _ "GBCP_preface"
+
+    Set %link("ZEN") = dbook _ "GZEN_preface"
+    Set %link("CSP") = dbook _ "GCSP_preface"
+    Set %link("ZENRPT") = dbook _ "GRPT_preface"
+    Set %link("XML") = dbook _ "GXML_preface"
+    Set %link("SOAP") = dbook _ "GSOAP_preface"
+    Set %link("WEBSVCS") = dbook _ "GSOAP_preface"
+    
+    Set %link("MV") = dbook _ "GVGS_preface"
+
+    Set %link("ODBC") = dbook _ "BGOD_preface"
+    Set %link("JDBC") = dbook _ "BGJD_preface"
+    Set %link("CMQL") = dbook _ "GVOD_queries"
+    
+    Set %link("DEEPSEE") = dbook _ "D2GS_preface"
+    
+    Set %link("OBJ") = dbook _ "GOBJ_preface"
+    Set %link("SQL") = dbook _ "GSQL_preface"
+    Set %link("MVRECS") = dbook _ "GVGS_preface"
+    Set %link("GLOBAL") = dbook _ "GGBL_preface"
+    Set %link("IKNOW") = dbook _ "GIKNOW_preface"
+
+    Set %link("COS") = dbook _ "GCOS_preface"
+    Set %link("BAS") = dbook _ "GBAS_preface"
+    Set %link("MVBAS") = dbook _ "RVBS_preface"
+    //Set %link("JSCRIPT") = dbook _ "RVBS_preface"
+
+    Set %link("STD") = dbook _ "GSTD_preface"
+    Set %link("SMP") = dbook _ "GSA_using_portal"
+    Set %link("SEC_ROLES") = dbook _ "GCAS_preface"
+    Set %link("SEC_MKEYS") = dbook _ "GCAS_encrypt"
+    Set %link("SEC_AUDIT") = dbook _ "GCAS_audit"
+    Set %link("DB") = dbook _ "GIC_preface"
+    Set %link("SQG") = dbook _ "GSQL_gateway"
+    
+    // get IP address of this machine
+    Set %link("LIB") = ..Link("/csp/documatic/%25CSP.Documatic.cls")
+    //Set %link("LIB") = "/csp/documatic/%25CSP.Documatic.cls"
+
+    Set %link("ADMIN") = dbook _ "GSA_preface"
+    Set %link("ACTG") = dbook _ "BGAX_preface"
+
+    Set %link("PLATFORMS") = dbook _ "ISP_preface"
+    Set %link("LINUX") = dbook _ "GCI_unix"
+    Set %link("UNIX") = dbook _ "GCI_unix"
+    Set %link("VMS") = dbook _ "GCI_vms"
+    Set %link("WINDOWS") = dbook _ "GCI_windows"
+    Set %link("MACINTOSH") = dbook _ "GCI_mac"
+
+    Set %link("ECP") = dbook _ "GDDM_preface"
+    Set %link("CLUSTER") = dbook _ "GHA_preface"
+    Set %link("MIRROR") = dbook _ "GHA_mirror"
+    Set %link("MONITOR") = dbook _ "GCM_preface"
+    Set %link("BACKUP") = dbook _ "GCDI_backup"
+    
+    Set border = 1
+    Set:(%request.UserAgent["MSIE") border=0
+    
+</SCRIPT>
+
+<BODY>
+
+<a name="top">
+</a>
+<table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 10pt;">
+<tr>
+<td nowrap bgcolor="#FFFAE7" valign="bottom" align="left" >
+<a href="http://www.intersystems.com">
+<img src="/csp/sys/images/logo-topl-intersystems.gif" alt="InterSystems" align="left" width="205" height="78" border="none">
+</a>
+<br clear="left">
+<nobr>&nbsp;
+</nobr>
+</td>
+<td nowrap bgcolor="#FFFAE7" valign="top" align="left">
+<div class="wizardltlabel" style="margin-top:8px;">
+<span style="font-size:11pt; padding-right:5px;">InterSystems Online Documentation</span>
+</div>
+<div style="color: darkblue; margin-top:4px; font-weight: bold; font-size:15pt;">
+Cach&eacute; Feature Map
+</div>
+</td>
+<td nowrap width="308" height="78" bgcolor="#FFFAE7" valign="bottom" align="left" style='background-repeat: repeat-y; background-image: url("../../csp/sys/images/opposite-pic-intersys.jpg");'>&nbsp;</td>
+<td width="2%" bgcolor="#388CCC">&nbsp;</td>
+<td bgcolor="#388CCC" valign="bottom">
+</td>
+<td bgcolor="#388CCC">&nbsp;</td>
+</tr>
+<tr>
+<td colspan="8" bgcolor="#D36D00">
+<img src="/csp/sys/images/spacer.gif" width="100%" height="2" alt="-" border="0">
+</td>
+</tr>
+<tr>
+<td class="LocatorBar" colspan="10">&nbsp;</td>
+</tr>
+</table>
+   
+<BR>
+
+<!-- Here is the feature map -->
+<DIV CLASS="para">The Feature Map displays a schematic overview of Cach&eacute;. You can click on the various features to find more information.
+</DIV>
+
+<HR>
+<BR>
+
+<TABLE BORDER=0><TR><TD>&nbsp;</TD>
+<TD>
+<TABLE CLASS="Container" BORDER="#(border)#" CELLSPACING="0" CELLPADDING="2">
+
+<TR>
+<TD></TD>
+
+<TD CLASS="MapItem" #(..DrawTD("LANG"))# COLSPAN=2> #(..DrawCell("LANG"))#
+<TABLE BORDER=0>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("JAVA_BINDING"))#>#(..DrawCell("JAVA_BINDING"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CPP"))#>#(..DrawCell("CPP"))#</TD>
+</TR>
+<TR></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("JAVA_PERSIST"))#>#(..DrawCell("JAVA_PERSIST"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("NET"))#>#(..DrawCell("NET"))#</TD>
+</TR>
+<TR></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("JAVA_JDBC"))#>#(..DrawCell("JAVA_JDBC"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("PERL"))#>#(..DrawCell("PERL"))#</TD>
+</TR>
+<TR></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("JAVA_EXTREME"))#>#(..DrawCell("JAVA_EXTREME"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("PYTHON"))#>#(..DrawCell("PYTHON"))#</TD>
+</TR>
+<TR></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("JAVA_JALAPENO"))#>#(..DrawCell("JAVA_JALAPENO"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ACTX"))#>#(..DrawCell("ACTX"))#</TD>
+<TD>&nbsp;</TD>
+</TR>
+</TABLE>
+</TD>
+
+<TD CLASS="MapItem" COLSPAN=1>
+<TABLE BORDER=0>
+<CAPTION>Web Interfaces</CAPTION>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ZEN"))#>#(..DrawCell("ZEN"))#</TD>
+</TR>
+<TR></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CSP"))# >#(..DrawCell("CSP"))#</TD>
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ZENRPT"))# >#(..DrawCell("ZENRPT"))#</TD>
+</TR>
+</TABLE>
+</TD>
+
+<TD CLASS="MapItem"  COLSPAN=1 #(..DrawTD("XML"))#>#(..DrawCell("XML"))#</TD>
+<TD CLASS="MapItem"  COLSPAN=1 #(..DrawTD("SOAP"))#>#(..DrawCell("SOAP"))#</TD>
+<TD CLASS="MapItem"  COLSPAN=1 #(..DrawTD("WEBSVCS"))#>#(..DrawCell("WEBSVCS"))#</TD>
+<TD CLASS="MapItem"  COLSPAN=1 #(..DrawTD("MV"))#>#(..DrawCell("MV"))#</TD>
+
+<TD CLASS="MapItem" COLSPAN=1>
+<TABLE BORDER=0>
+<CAPTION>Query Access</CAPTION>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ODBC"))#>#(..DrawCell("ODBC"))#</TD>
+</TR>
+<TR></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("JDBC"))#>#(..DrawCell("JDBC"))#</TD>
+</TR>
+<TR></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CMQL"))#>#(..DrawCell("CMQL"))#</TD>
+</TR>
+</TABLE>
+</TD>
+
+<TD CLASS="MapItem"  COLSPAN=1 #(..DrawTD("DEEPSEE"))#>#(..DrawCell("DEEPSEE"))#</TD>
+
+</TR>
+
+<TR>
+<TD></TD>
+<TD CLASS="MapItem" COLSPAN=9>
+<TABLE BORDER=0>
+<CAPTION>Implementation Languages</CAPTION>
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("COS"))#>#(..DrawCell("COS"))#</TD>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+<TD CLASS="MapItem" #(..DrawTD("BAS"))#>#(..DrawCell("BAS"))#</TD>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+<TD CLASS="MapItem" #(..DrawTD("MVBAS"))#>#(..DrawCell("MVBAS"))#</TD>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+<TD CLASS="MapItem" #(..DrawTD("JSCRIPT"))#>#(..DrawCell("JSCRIPT"))#</TD>
+</TR>
+</TABLE>
+</TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("SMP"))#>#(..DrawCell("SMP"))#</TD>
+<TD CLASS="MapItem" COLSPAN=9>
+<TABLE BORDER=0>
+<CAPTION>Data Access</CAPTION>
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("OBJ"))#>#(..DrawCell("OBJ"))#</TD>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+<TD CLASS="MapItem" #(..DrawTD("SQL"))#>#(..DrawCell("SQL"))#</TD>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+<TD CLASS="MapItem" #(..DrawTD("MVRECS"))#>#(..DrawCell("MVRECS"))#</TD>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+<TD CLASS="MapItem" #(..DrawTD("GLOBAL"))#>#(..DrawCell("GLOBAL"))#</TD>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+<TD CLASS="MapItem" #(..DrawTD("IKNOW"))#>#(..DrawCell("IKNOW"))#</TD>
+</TR>
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("LIB"))#>#(..DrawCell("LIB"))#</TD>
+</TR>
+
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("ADMIN"))#>#(..DrawCell("ADMIN"))#</TD>
+
+<TD CLASS="MapItem" #(..DrawTD("DB"))# COLSPAN=9 ROWSPAN=2>#(..DrawCell("DB"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("SQG"))#>#(..DrawCell("SQG"))#</TD>
+</TR>
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("STD"))#>#(..DrawCell("STD"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("ACTG"))#>#(..DrawCell("ACTG"))#</TD>
+</TR>
+
+<TR>
+<TD></TD>
+
+<TD CLASS="MapItem" COLSPAN=2 #(..DrawTD("PLATFORMS"))#>#(..DrawCell("PLATFORMS"))#
+<TABLE BORDER=0>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("LINUX"))#>#(..DrawCell("LINUX"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("UNIX"))# >#(..DrawCell("UNIX"))#</TD>
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("VMS"))#>#(..DrawCell("VMS"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("WINDOWS"))#>#(..DrawCell("WINDOWS"))#</TD>
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("MACINTOSH"))#>#(..DrawCell("MACINTOSH"))#</TD>
+</TR>
+</TABLE>
+</TD>
+
+<TD CLASS="MapItem" ROWSPAN=1 COLSPAN=2>
+<TABLE BORDER=0>
+<CAPTION>Security</CAPTION>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("SEC_ROLES"))#>#(..DrawCell("SEC_ROLES"))#</TD>
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("SEC_MKEYS"))#>#(..DrawCell("SEC_MKEYS"))#</TD>
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("SEC_AUDIT"))#>#(..DrawCell("SEC_AUDIT"))#</TD>
+</TR>
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("ECP"))# ROWSPAN=1 COLSPAN=1>#(..DrawCell("ECP"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("CLUSTER"))# ROWSPAN=1 COLSPAN=1>#(..DrawCell("CLUSTER"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("MIRROR"))# ROWSPAN=1 COLSPAN=1>#(..DrawCell("MIRROR"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("BACKUP"))# ROWSPAN=1 COLSPAN=1>#(..DrawCell("BACKUP"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("MONITOR"))# ROWSPAN=1 COLSPAN=1>#(..DrawCell("MONITOR"))#</TD>
+</TR>
+
+</TABLE>
+</TD><TD>&nbsp;</TD>
+</TR>
+</TABLE>
+
+<BR>
+<HR>
+
+</BODY>
+</HTML>
+
+<SCRIPT language=Cache method=DrawCell arguments="item:%String">
+    // draw contents of a cell within the map
+    Set txt ="<A"
+    Set:($GET(%link(item),"")'="") txt = txt _ " HREF="""_%link(item) _ """"
+    Set txt = txt _ " TITLE="""_%text(item)_""">"_%label(item)_"</A>"
+    Quit txt
+</SCRIPT>
+
+<SCRIPT language=Cache method=DrawTD arguments="item:%String">
+    // draw attributes for TD tag
+    Set mousein = "MapItem"
+    Set mouseot = "MapItem"
+    Set:($GET(%link(item),"")'="") mousein = "MapItemHi"
+    Set txt ="onmouseover=""this.className='" _ mousein _ "';"" onmouseout=""this.className='" _ mouseot _ "';"" "
+    Set:($GET(%link(item),"")'="") txt = txt _ " onclick=""self.document.location='"_%link(item) _ "';"""
+    Quit txt
+</SCRIPT>
+
+<SCRIPT language=Cache method=DrawTDSmall arguments="item:%String">
+    // draw attributes for TD tag
+    Set mousein = "MapItemSmall"
+    Set mouseot = "MapItemSmall"
+    Set:($GET(%link(item),"")'="") mousein = "MapItemSmallHi"
+    Set txt ="onmouseover=""this.className='" _ mousein _ "';"" onmouseout=""this.className='" _ mouseot _ "';"" "
+    Set:($GET(%link(item),"")'="") txt = txt _ " onclick=""self.document.location='"_%link(item) _ "';"""
+    Quit txt
+</SCRIPT>
+]]></CSP>
+</Export>

@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.ImageFiles">
+<Description><![CDATA[
+This class stores one record for each image file in the /images subdirectories
+of the search path.
+For general comments, see <class>DocBook.ManagerTables.Utils</class>.  ]]></Description>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="Filename">
+<Description>
+Complete path and filename -- displayed in UI INFO field.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="ShortFilename">
+<Description>
+Displayed in table.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="ShortFilenameIdx">
+<Properties>ShortFilename</Properties>
+</Index>
+
+<Property name="Problem">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Index name="ProblemIdx">
+<Properties>Problem</Properties>
+</Index>
+
+<Property name="NameHasSpaces">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Index name="NameHasSpacesIdx">
+<Properties>NameHasSpaces</Properties>
+</Index>
+
+<Property name="NameHasUppercase">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Index name="NameHasUppercaseIdx">
+<Properties>NameHasUppercase</Properties>
+</Index>
+
+<Property name="IsWriteable">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Index name="IsWriteableIdx">
+<Properties>IsWriteable</Properties>
+</Index>
+
+<Property name="PDFGroup">
+<Type>DocBook.ManagerTables.PDFGroups</Type>
+</Property>
+
+<Method name="Rebuild">
+<Description>
+verbose is 0, 1, or 2</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.ImageFiles:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: Image file already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of image filenames in DocBook path...",verbose)
+    do ..%KillExtent()
+    do ..ScanImageFiles(verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE scanning image files",verbose)
+
+    //always redo Graphics scan after redoing image scan (to avoid confusion)
+    set msg="Starting automatic graphic tag scan (after rescanning image files)... "
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+    do ##class(DocBook.ManagerTables.Graphics).Rebuild()
+    set ^DocBookManager("LastImageFileScan")=$zdt($h,3)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="GetTimeStamp">
+<Description>
+Returns time stamp of last time we scanned the image files on the search path</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastImageFileScan"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Method name="ScanImageFiles">
+<Description>
+verbose is 0, 1, or 2</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    set branchlist = ##class(DocBook.Manager.LoadUtils).BuildSearchList()
+
+    if (branchlist.Count() = 0) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Source location not specified. No directories on DocBook path.",verbose)
+    }
+    
+    for i=1:1:branchlist.Count() {
+        set fullbranch=branchlist.GetAt(i)
+        if (verbose=2) {
+            write !, fullbranch
+        }
+       
+        set branchstmt = ##class(%SQL.Statement).%New()
+        set status = branchstmt.%PrepareClassQuery("%File","FileSet")
+        if $$$ISERR(status) { 
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+            quit  
+        }
+
+        set branchrset = branchstmt.%Execute(fullbranch,,,1)
+        while branchrset.%Next() {
+            set type=branchrset.%Get("Type")
+            if (type="D") {
+                set directory=branchrset.%Get("Name")
+                set shortsubdirname=##class(DocBook.Manager.Utils).GetShortFilename(directory)
+                if (verbose=2) {
+                    write !, "   subdirectory: ",shortsubdirname
+                }
+
+                //this is the universal convention
+                set imagedir=##class(DocBook.Manager.Utils).AppendToPath(directory,"images")
+                
+                set imagedirstatement=##class(%SQL.Statement).%New()
+                set status=imagedirstatement.%PrepareClassQuery("%File","FileSet")
+                if $$$ISERR(status) {
+                    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+                    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+                    quit
+                }
+
+                set imagedirrset = imagedirstatement.%Execute(imagedir)
+                while imagedirrset.%Next() {
+                    set imagefilename=imagedirrset.%Get("Name")
+                    set shortfilename=##class(DocBook.Manager.Utils).GetShortFilename(imagefilename)
+                    if (verbose=2) {
+                        write !, "      ",shortfilename
+                    }
+                    set record=..%New()
+                    set record.Filename=imagefilename
+                    set record.ShortFilename=shortfilename
+
+                    set record.PDFGroup=##class(DocBook.ManagerTables.PDFGroups).GetPDFGroup(fullbranch,,verbose)
+                    
+                    set lowercase=$$$LOWER(shortfilename)
+                    if (shortfilename'=lowercase) {
+                        set record.NameHasUppercase=1
+                    }
+                    
+                    //examine file and save interesting facts
+                    set record.NameHasSpaces=shortfilename [ " "
+                    set record.IsWriteable=##class(%File).Writeable(imagefilename)
+                    
+                    if (record.NameHasSpaces || record.NameHasUppercase || record.IsWriteable) {
+                        set record.Problem=1
+                    }
+
+                    set status= record.%Save()
+                    if $$$ISERR(status) {
+                        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.Filename,verbose)
+                        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+                    }
+                    
+                    
+                } // end of image file loop
+                
+            } // end of "D"  
+
+        }  //end of loop to iterate through subdirectories of fullbranch 
+       
+    } ; end fullbranch loop
+]]></Implementation>
+</Method>
+
+<Method name="GetCount">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+   &sql(SELECT COUNT(*) into :mycount FROM DocBook_ManagerTables.ImageFiles)
+   if (SQLCODE'=0) {
+       set mycount=99999
+   }
+   quit mycount
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.Manager74DA.ImageFilesD</DataLocation>
+<DefaultData>ImageFilesDefaultData</DefaultData>
+<IdLocation>^DocBook.Manager74DA.ImageFilesD</IdLocation>
+<IndexLocation>^DocBook.Manager74DA.ImageFilesI</IndexLocation>
+<StreamLocation>^DocBook.Manager74DA.ImageFilesS</StreamLocation>
+<ExtentSize>3077</ExtentSize>
+<Data name="ImageFilesDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>Filename</Value>
+</Value>
+<Value name="3">
+<Value>ShortFilename</Value>
+</Value>
+<Value name="4">
+<Value>Problem</Value>
+</Value>
+<Value name="5">
+<Value>NameHasSpaces</Value>
+</Value>
+<Value name="6">
+<Value>NameHasUppercase</Value>
+</Value>
+<Value name="7">
+<Value>IsWriteable</Value>
+</Value>
+<Value name="8">
+<Value>PDFGroup</Value>
+</Value>
+</Data>
+<Property name="%%CLASSNAME">
+<Selectivity>0.0422%</Selectivity>
+<OutlierSelectivity>.995783:</OutlierSelectivity>
+</Property>
+<Property name="Branch">
+<Selectivity>5.1204%</Selectivity>
+<OutlierSelectivity>.89759:"2015.1.x"</OutlierSelectivity>
+</Property>
+<Property name="Filename">
+<Selectivity>0.0325%</Selectivity>
+</Property>
+<Property name="IsWriteable">
+<Selectivity>0.0422%</Selectivity>
+<OutlierSelectivity>.995783:0</OutlierSelectivity>
+</Property>
+<Property name="NameHasSpaces">
+<Selectivity>0.0422%</Selectivity>
+<OutlierSelectivity>.995783:0</OutlierSelectivity>
+</Property>
+<Property name="NameHasUppercase">
+<Selectivity>4.8192%</Selectivity>
+<OutlierSelectivity>.951807:0</OutlierSelectivity>
+</Property>
+<Property name="Problem">
+<Selectivity>4.8192%</Selectivity>
+<OutlierSelectivity>.951807:0</OutlierSelectivity>
+</Property>
+<Property name="Product">
+<Selectivity>7.2289%</Selectivity>
+<OutlierSelectivity>.710843:"cache"</OutlierSelectivity>
+</Property>
+<Property name="ShortFilename">
+<Selectivity>0.0325%</Selectivity>
+</Property>
+</Storage>
+</Class>
+</Export>

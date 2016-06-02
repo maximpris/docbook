@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/catalog" application="/csp/docbook/" default="1"><![CDATA[
+-- Catalog for Arbortext DocBook XML DTD --
+
+-- ATI XML DocBook 4.0 --
+
+PUBLIC "-//Arbortext//DTD DocBook XML V4.0//EN" 
+       "axdocbook.dtd"
+
+PUBLIC "-//Arbortext//ELEMENTS DocBook XML Information Pool V4.0//EN"
+       "dbpoolx.mod"
+
+PUBLIC "-//Arbortext//ELEMENTS DocBook XML Document Hierarchy V4.0//EN" 
+       "dbhierx.mod"
+
+PUBLIC "-//Arbortext//ENTITIES DocBook XML Notations V4.0//EN"
+       "dbnotnx.mod"
+
+PUBLIC "-//Arbortext//ENTITIES DocBook XML Character Entities V4.0//EN"
+       "dbcentx.mod"
+
+PUBLIC "-//Arbortext//ENTITIES DocBook XML Additional General Entities V4.0//EN" 
+       "dbgenent.ent"
+
+-- ATI XML DocBook 3.1 (adb3xml) mapped to ATI XML DocBook 4.0 --
+
+PUBLIC "-//Arbortext//DTD DocBk XML V2.0//EN" 
+       "axdocbook.dtd"
+
+-- DocBook 3.0 which points to the 4.0 doctype intentionally --
+
+PUBLIC "-//Arbortext//DTD DocBk30 XML V1.0//EN" 
+       "axdocbook.dtd"
+
+-- Epic Document Classes: DocBook 4.0 (and 3.1 and 3.0 which intentionally map to 4.0) -- 
+
+-- design-temp.xml --
+PUBLIC "-//Arbortext//DTD DocBook XML Design V4.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk XML Design V2.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk30 XML Design V1.0//EN" "axdocbook.dtd"  
+
+-- funcspec-temp.xml --
+PUBLIC "-//Arbortext//DTD DocBook XML Functional Specification V4.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk XML Functional Specification V2.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk30 XML Functional Specification V1.0//EN" "axdocbook.dtd"  
+
+-- install-temp.xml --
+PUBLIC "-//Arbortext//DTD DocBook XML Installation V4.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk XML Installation V2.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk30 XML Installation V1.0//EN" "axdocbook.dtd"  
+
+-- refgd-temp.xml --
+PUBLIC "-//Arbortext//DTD DocBook XML Reference Guide V4.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk XML Reference Guide V2.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk30 XML Reference Guide V1.0//EN" "axdocbook.dtd"  
+
+-- release-temp.xml --
+PUBLIC "-//Arbortext//DTD DocBook XML Release Notes V4.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk XML Release Notes V2.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk30 XML Release Notes V1.0//EN" "axdocbook.dtd"  
+
+-- reqs-temp.xml --
+PUBLIC "-//Arbortext//DTD DocBook XML Requirements V4.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk XML Requirements V2.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk30 XML Requirements V1.0//EN" "axdocbook.dtd"  
+
+-- testplan-temp.xml --
+PUBLIC "-//Arbortext//DTD DocBook XML Test Plan V4.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk XML Test Plan V2.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk30 XML Test Plan V1.0//EN" "axdocbook.dtd"  
+
+-- usergd-temp.xml --
+PUBLIC "-//Arbortext//DTD DocBook XML User Guide V4.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk XML User Guide V2.0//EN" "axdocbook.dtd"  
+PUBLIC "-//Arbortext//DTD DocBk30 XML User Guide V1.0//EN" "axdocbook.dtd"  
+
+-- FOSI entities (not installed) --
+DELEGATE "-//Arbortext//TEXT FOSI ADB-Print" "catalog-fosients"
+
+-- ActiveX(tm) control support --
+PUBLIC "-//Arbortext//TEXT AXControl Document Type Configuration 1.0//EN" "axdocbook-no-activex.ent"
+-- comment out the Public ID above, and enable the Public ID below, to employ ActiveX samples --
+-- PUBLIC "-//Arbortext//TEXT AXControl Document Type Configuration 1.0//EN" "axdocbook-activex.ent" --
+
+]]></CSP>
+</Export>

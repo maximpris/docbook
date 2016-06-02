@@ -1,0 +1,1211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/sample-frame-map.xml" application="/csp/docbook/" default="1"><![CDATA[
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE intrchng-map PUBLIC "-//Arbortext//DTD Epic Interchange Conversion Map V1.0//EN"
+ "intrchngmap.dtd">
+<!--ArborText, Inc., 1988-2001, v.4002-->
+<intrchng-map version="1.0">
+<start-elem>
+<mapelem name="" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</start-elem>
+<mapelem-groups></mapelem-groups>
+<map-entries><indexterm-entry style-name="default-index-term" suppress="FALSE">
+<core-elem>
+<mapelem name="indexterm" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<reqchild-elems>
+<mapelem name="primary" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="%PCDATA%" value="%INDEXENTRY1%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+<mapelem name="secondary" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="%PCDATA%" value="%INDEXENTRY2%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+<mapelem name="tertiary" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="%PCDATA%" value="%INDEXENTRY3%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</reqchild-elems>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="indexterm" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</autoclose-elems>
+</indexterm-entry><indexterm-entry style-name="default-index-term" suppress="FALSE">
+<core-elem>
+<mapelem name="indexterm" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<reqchild-elems>
+<mapelem name="primary" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="%PCDATA%" value="%INDEXENTRY1%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+<mapelem name="secondary" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="%PCDATA%" value="%INDEXENTRY2%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</reqchild-elems>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="indexterm" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</autoclose-elems>
+</indexterm-entry><indexterm-entry style-name="default-index-term" suppress="FALSE">
+<core-elem>
+<mapelem name="indexterm" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<reqchild-elems>
+<mapelem name="primary" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="%PCDATA%" value="%INDEXENTRY1%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</reqchild-elems>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="indexterm" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</autoclose-elems>
+</indexterm-entry>
+<paragraph-entry style-name="HeadingRunIn" suppress="FALSE">
+<close-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</close-elems>
+<parent-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="emphasis" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="remap" value="HeadingRunIn"></mapelem-attr>
+<mapelem-attr name="role" value="bold"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Bulleted" suppress="FALSE">
+<close-elems>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="orderedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="itemizedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Bullet1" suppress="FALSE">
+<close-elems>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="orderedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="itemizedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Endnote" suppress="FALSE">
+<close-elems>
+<mapelem name="itemizedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="orderedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="remap" value="endnote"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Numbered" suppress="FALSE">
+<close-elems>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="itemizedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="orderedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="CONDITIONAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Numbered1" suppress="FALSE">
+<remark>For Import</remark>
+<close-elems>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="itemizedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="orderedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Numbered1" suppress="FALSE">
+<remark>For Export</remark>
+<close-elems>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="itemizedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="orderedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</close-elems>
+<core-elem>
+<mapelem name="orderedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<character-entry style-name="gotoURL" suppress="FALSE">
+<core-elem>
+<mapelem name="ulink" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="url" value="%IDREF%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="ulink" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</character-entry>
+<character-entry style-name="hypertext" suppress="FALSE">
+<core-elem>
+<mapelem name="link" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="linkend" value="%IDREF%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="link" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</character-entry>
+<paragraph-entry style-name="Footnote" suppress="FALSE">
+<remark>This entry is required for importing the text of a footnote.</remark>
+<wrapper-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</wrapper-elems>
+</paragraph-entry>
+<paragraph-entry style-name="NoteBody" suppress="FALSE">
+<wrapper-elems>
+<mapelem name="note" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</wrapper-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="Indented" suppress="FALSE">
+<close-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="emphasis" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="itemizedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="chapter" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<reqchild-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</reqchild-elems>
+</mapelem>
+</wrapper-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="remap" value="Indented"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="Body" suppress="FALSE">
+<close-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="emphasis" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="itemizedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="note" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="orderedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="chapter" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<reqchild-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</reqchild-elems>
+</mapelem>
+</wrapper-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<character-entry style-name="Year" suppress="FALSE">
+<core-elem>
+<mapelem name="year" level-operator="equal" level-number="0" filter="@ " insert-method="NORMAL">
+</mapelem>
+</core-elem>
+</character-entry>
+<crossref-entry style-name="http://www.arbortext.com" suppress="FALSE">
+<comment>www.arbortext.com map entry'</comment>
+<core-elem>
+<mapelem name="link" level-operator="equal" level-number="0" filter="" insert-method="CONDITIONAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%IDREF%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<ifancestor-elems>
+<mapelem name="link" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</ifancestor-elems>
+</crossref-entry>
+<crossref-entry style-name="default-xref" suppress="FALSE">
+<core-elem>
+<mapelem name="ulink" level-operator="equal" level-number="0" filter="" insert-method="CONDITIONAL">
+<mapelem-attrs>
+<mapelem-attr name="url" value="%IDREF%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<ifancestor-elems>
+<mapelem name="ulink" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</ifancestor-elems>
+</crossref-entry>
+<crossref-entry style-name="default-xref" suppress="FALSE">
+<core-elem>
+<mapelem name="link" level-operator="equal" level-number="0" filter="" insert-method="CONDITIONAL">
+<mapelem-attrs>
+<mapelem-attr name="linkend" value="%IDREF%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<ifancestor-elems>
+<mapelem name="link" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</ifancestor-elems>
+</crossref-entry>
+<crossref-entry style-name="default-xref" suppress="FALSE">
+<core-elem>
+<mapelem name="xref" level-operator="equal" level-number="0" filter="%ALL%"
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="linkend" value="%IDREF%"></mapelem-attr>
+<mapelem-attr name="remap" value="%CONTENT%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+</crossref-entry>
+<paragraph-entry style-name="CellText" suppress="FALSE">
+<close-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</close-elems>
+<parent-elems>
+<mapelem name="entry" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="CellHeading" suppress="FALSE">
+<close-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</close-elems>
+<parent-elems>
+<mapelem name="entry" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="CellBody" suppress="FALSE">
+<close-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</close-elems>
+<parent-elems>
+<mapelem name="entry" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="City" suppress="FALSE">
+<core-elem>
+<mapelem name="city" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="Address" suppress="FALSE">
+<core-elem>
+<mapelem name="address" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</core-elem>
+</paragraph-entry>
+<character-entry style-name="Street" suppress="FALSE">
+<core-elem>
+<mapelem name="street" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+</character-entry>
+<character-entry style-name="State" suppress="FALSE">
+<core-elem>
+<mapelem name="state" level-operator="equal" level-number="0" filter=", "
+insert-method="NORMAL"></mapelem>
+</core-elem>
+</character-entry>
+<paragraph-entry style-name="Abstract" suppress="FALSE">
+<close-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="itemizedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="orderedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</close-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<ifancestor-elems>
+<mapelem name="abstract" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</ifancestor-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Text" suppress="FALSE">
+<close-elems>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="listitem" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="itemizedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="orderedlist" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</close-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="PartHeading" suppress="FALSE">
+<close-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="book" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="part" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="ChapterTitle" suppress="FALSE">
+<close-elems>
+<mapelem name="chapter" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="book" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="chapter" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<character-entry style-name="Holder" suppress="FALSE">
+<core-elem>
+<mapelem name="holder" level-operator="equal" level-number="0" filter="   "
+insert-method="NORMAL"></mapelem>
+</core-elem>
+</character-entry>
+<paragraph-entry style-name="Heading1" suppress="FALSE">
+<close-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect1" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect2" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect3" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect4" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect5" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="chapter" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<reqchild-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</reqchild-elems>
+</mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="sect1" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Heading2" suppress="FALSE">
+<close-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect2" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect3" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect4" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect5" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="chapter" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<reqchild-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</reqchild-elems>
+</mapelem>
+<mapelem name="sect1" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="sect2" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Heading3" suppress="FALSE">
+<close-elems>
+<mapelem name="sect3" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect4" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect5" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="chapter" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+<mapelem name="sect2" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="sect3" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Heading4" suppress="FALSE">
+<close-elems>
+<mapelem name="sect4" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="sect5" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="sect3" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="sect4" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Heading5" suppress="FALSE">
+<close-elems>
+<mapelem name="sect5" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</close-elems>
+<wrapper-elems>
+<mapelem name="sect4" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</wrapper-elems>
+<parent-elems>
+<mapelem name="sect5" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="TableTitle" suppress="FALSE">
+<wrapper-elems>
+<mapelem name="table" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</wrapper-elems>
+<core-elem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="CONDITIONAL">
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<character-entry style-name="Endnote Reference" suppress="FALSE"></character-entry>
+<direct-entry style-name="Italic&Bold" suppress="FALSE" applied-style="bold italic">
+<wrapper-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="italic"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</wrapper-elems>
+<core-elem>
+<mapelem name="emphasis" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="bold"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="bold"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+<mapelem name="emphasis" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="italic"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</autoclose-elems>
+</direct-entry>
+<direct-entry style-name="Bold" suppress="FALSE" applied-style="bold">
+<core-elem>
+<mapelem name="emphasis" level-operator="equal" level-number="1" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="bold"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="1" filter=""
+insert-method="NORMAL"></mapelem>
+</autoclose-elems>
+</direct-entry>
+<direct-entry style-name="Bold&Italic" suppress="FALSE" applied-style="bold italic">
+<wrapper-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="1" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="bold"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</wrapper-elems>
+<core-elem>
+<mapelem name="emphasis" level-operator="equal" level-number="2" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="italic"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="2" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="italic"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+<mapelem name="emphasis" level-operator="equal" level-number="1" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="bold"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</autoclose-elems>
+</direct-entry>
+<direct-entry style-name="Italic" suppress="FALSE" applied-style="italic">
+<core-elem>
+<mapelem name="emphasis" level-operator="equal" level-number="1" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="italic"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="1" filter=""
+insert-method="NORMAL"></mapelem>
+</autoclose-elems>
+</direct-entry>
+<direct-entry style-name="Bold&Italic&Underline" suppress="FALSE" applied-style="bold italic underline">
+<wrapper-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="1" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="bold"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+<mapelem name="emphasis" level-operator="equal" level-number="2" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="italic"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</wrapper-elems>
+<core-elem>
+<mapelem name="emphasis" level-operator="equal" level-number="3" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="underline"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="3" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="underline"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+<mapelem name="emphasis" level-operator="equal" level-number="2" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="italic"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+<mapelem name="emphasis" level-operator="equal" level-number="1" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="bold"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</autoclose-elems>
+</direct-entry>
+<direct-entry style-name="Italic&Underline" suppress="FALSE" applied-style="italic underline">
+<wrapper-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="1" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="italic"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</wrapper-elems>
+<core-elem>
+<mapelem name="emphasis" level-operator="equal" level-number="2" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="underline"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="2" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="italic"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+<mapelem name="emphasis" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="underline"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</autoclose-elems>
+</direct-entry>
+<direct-entry style-name="Underline" suppress="FALSE" applied-style="underline">
+<core-elem>
+<mapelem name="emphasis" level-operator="equal" level-number="1" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="role" value="underline"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="emphasis" level-operator="equal" level-number="1" filter=""
+insert-method="NORMAL"></mapelem>
+</autoclose-elems>
+</direct-entry>
+<paragraph-entry style-name="default-comment" suppress="TRUE">
+<core-elem>
+<mapelem name="#comment" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</core-elem>
+</paragraph-entry>
+<direct-entry style-name="Superscript" suppress="FALSE" applied-style="superscript">
+<core-elem>
+<mapelem name="superscript" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="superscript" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</autoclose-elems>
+</direct-entry>
+<direct-entry style-name="Subscript" suppress="FALSE" applied-style="subscript">
+<core-elem>
+<mapelem name="subscript" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="subscript" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</autoclose-elems>
+</direct-entry>
+<paragraph-entry style-name="Anchor" suppress="FALSE"></paragraph-entry>
+<paragraph-entry style-name="FigTitle" suppress="FALSE">
+<remark>Figure Title</remark>
+<parent-elems>
+<mapelem name="figure" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="CONDITIONAL">
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<graphic-entry style-name="table-graphic" suppress="FALSE" caption-style-name=""
+caption-location="BEFORE" export-inline="FALSE">
+<core-elem>
+<mapelem name="graphic" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="depth" value="%GraphicReprodep%"></mapelem-attr>
+<mapelem-attr name="scalefit" value="1"></mapelem-attr>
+<mapelem-attr name="width" value="%GraphicReprowid%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<ifancestor-elems>
+<mapelem name="table" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</ifancestor-elems>
+</graphic-entry>
+<graphic-entry style-name="default-graphic" suppress="FALSE" caption-style-name="FigTitle"
+caption-location="BEFORE" export-inline="FALSE">
+<wrapper-elems>
+<mapelem name="figure" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+<reqchild-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</reqchild-elems>
+</mapelem>
+</wrapper-elems>
+<core-elem>
+<mapelem name="graphic" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="depth" value="%GraphicReprodep%"></mapelem-attr>
+<mapelem-attr name="scalefit" value="1"></mapelem-attr>
+<mapelem-attr name="width" value="%GraphicReprowid%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+</graphic-entry>
+<paragraph-entry style-name="Figure" suppress="FALSE">
+<parent-elems>
+<mapelem name="figure" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</parent-elems>
+<core-elem>
+<mapelem name="graphic" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="depth" value="%GraphicReprodep%"></mapelem-attr>
+<mapelem-attr name="scalefit" value="1"></mapelem-attr>
+<mapelem-attr name="width" value="%GraphicReprowid%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<table-entry style-name="default-table" suppress="FALSE" caption-style-name="TableTitle"
+caption-location="BEFORE">
+<close-elems>
+<mapelem name="note" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</close-elems>
+<core-elem>
+<mapelem name="table" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+<reqchild-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+<mapelem name="tgroup" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</reqchild-elems>
+</mapelem>
+</core-elem>
+</table-entry>
+<footnote-entry style-name="Footnote" suppress="FALSE">
+<remark>This entry is required for importing a footnote.  This inserts a footnote
+wrapper.  Use a Footnote paragraph type to map the text.</remark>
+<wrapper-elems>
+<mapelem name="footnote" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%FOOTNOTE%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</wrapper-elems>
+<core-elem>
+<mapelem name="para" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="footnote" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</autoclose-elems>
+</footnote-entry>
+<footnote-entry style-name="Footnote" suppress="FALSE">
+<remark>This entry is required for exporting a footnote.</remark>
+<core-elem>
+<mapelem name="footnote" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%IDREF%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+</footnote-entry>
+<paragraph-entry style-name="OtherAddr" suppress="FALSE">
+<core-elem>
+<mapelem name="otheraddr" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="Email" suppress="FALSE">
+<core-elem>
+<mapelem name="email" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="Fax" suppress="FALSE">
+<core-elem>
+<mapelem name="fax" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="Productname" suppress="FALSE">
+<core-elem>
+<mapelem name="productname" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="Phone" suppress="FALSE">
+<core-elem>
+<mapelem name="phone" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="CorpAuthor" suppress="FALSE">
+<core-elem>
+<mapelem name="corpauthor" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="Copyright" suppress="FALSE">
+<core-elem>
+<mapelem name="copyright" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</core-elem>
+</paragraph-entry>
+<paragraph-entry style-name="Country" suppress="FALSE">
+<core-elem>
+<mapelem name="country" level-operator="equal" level-number="0" filter=""
+insert-method="NORMAL"></mapelem>
+</core-elem>
+</paragraph-entry>
+<character-entry style-name="Postcode" suppress="FALSE">
+<core-elem>
+<mapelem name="postcode" level-operator="equal" level-number="0" filter=" "
+insert-method="NORMAL"></mapelem>
+</core-elem>
+</character-entry>
+<paragraph-entry style-name="NoteTitle" suppress="FALSE">
+<remark>Note Title</remark>
+<wrapper-elems>
+<mapelem name="note" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</wrapper-elems>
+<core-elem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+<paragraph-entry style-name="Title" suppress="FALSE">
+<core-elem>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+<mapelem-attrs>
+<mapelem-attr name="id" value="%ID%"></mapelem-attr>
+</mapelem-attrs>
+</mapelem>
+</core-elem>
+<autoclose-elems>
+<mapelem name="title" level-operator="equal" level-number="0" filter="" insert-method="NORMAL">
+</mapelem>
+</autoclose-elems>
+</paragraph-entry>
+</map-entries>
+</intrchng-map>
+]]></CSP>
+</Export>

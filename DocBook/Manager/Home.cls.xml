@@ -1,0 +1,3033 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.Home">
+<Description>
+Fancy new centralized tool for DocBook.</Description>
+<Super>%ZEN.Component.page,DocBook.Manager.CreateRS,DocBook.Manager.ZenMethods</Super>
+<TimeCreated>62893,39114.226437</TimeCreated>
+
+<Parameter name="APPLICATION">
+<Description>
+Application this page belongs to. The app class defines the style sheet</Description>
+<Default>DocBook.Manager.AppDefinition</Default>
+</Parameter>
+
+<Property name="SelectedFilename">
+<Description>
+Use this property to communicate with the secondary query of paneMain</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="SelectedDocBookId">
+<Description>
+Use this property to communicate with the secondary query of paneMain</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100"/>
+</Property>
+
+<Property name="SelectedDocType">
+<Description>
+Use this property to communicate with the secondary query of paneMain
+The types are "article", "component" (a file within a book), "book" and "set"</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="SelectedSET">
+<Description>
+Use this property to communicate with the secondary query of paneSETs</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="SelectedBookList">
+<Description>
+Use this property to communicate with the secondary query of paneSETs</Description>
+<Type>%String</Type>
+</Property>
+
+<XData name="Contents">
+<Description>
+This XML defines the contents of this page.</Description>
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<page xmlns="http://www.intersystems.com/zen" title="DocBook Manager" >
+
+<hgroup containerStyle="background:#FFFAE7" width="100%" >
+
+<vgroup >
+<image src="/csp/sys/images/logo-topl-intersystems.gif"  />
+<label value="DocBook Manager" controlClass="title" containerStyle="position:absolute;left:12px;top:60px;" />
+</vgroup>
+
+<vgroup valign="top" >
+<spacer height="10"/>
+<label id="msgcoreversion"/>
+<label id="msginstancename"/>
+<label id="msgdbmversion"/>
+</vgroup>
+
+<image src="/csp/sys/images/opposite-pic-intersys.jpg"  align="right" hidden="true"/>
+
+</hgroup>
+
+<vgroup containerStyle="background:#FFFAE7" width="100%">
+<label id="INITIALIZINGmessage" value="Initializing... " hidden="true" controlClass="initializing"/>
+<label id="STALEwideCharCount" value="Be sure to check for wide characters! (You have loaded files but have not run the wide character scan.)" controlClass="alert" hidden="true" />
+<label id="SUMMARYwideCharAlert1" controlClass="alert" containerStyle="background:#FFFAE7" hidden="true"  
+       value="There are wide characters in one or more of the files you have loaded."/>
+<label id="SUMMARYwideCharAlert2" controlClass="alert" containerStyle="background:#FFFAE7" hidden="true" 
+       value="Remove these characters before checking the files into Perforce (unless you are building the Japanese doc.)." />
+<spacer height="20"/>
+</vgroup>
+
+<hgroup containerStyle="background:#FFFAE7" width="100%" >
+<spacer width="10"/>
+<vgroup valign="top" enclosingClass="buttonGroup">
+<html>
+<b>Configuration</b>
+</html>
+<button caption="Configuration"         controlClass="leftbutton" onclick="zenPage.showPane('paneConfig');"/>
+
+<spacer height="10"/>
+<html>
+<b>Loading Files</b>
+</html>
+<button caption="Files &amp; Documents" controlClass="leftbutton" onclick="zenPage.showPane('paneMain');" />
+<button caption="More Load Options"     controlClass="leftbutton" onclick="zenPage.showPane('paneMoreLoadOptions');"/>
+
+<spacer height="10"/>
+<html>
+<b>Testing the Doc.</b>
+</html>
+<button caption="Image Files"           controlClass="leftbutton" onclick="zenPage.showPane('paneImageFiles');"/>
+<button caption="Wide Characters"       controlClass="leftbutton" onclick="zenPage.showPane('paneWideChars');"/>
+<button caption="Links"                 controlClass="leftbutton" onclick="zenPage.showPane('paneLinks');"/>
+<button caption="Program Listings"      controlClass="leftbutton" onclick="zenPage.showPane('paneListings');"/>
+<button caption="Graphic Tags"          controlClass="leftbutton" onclick="zenPage.showPane('paneGraphics');"/>
+<button id="PortalOption1" caption="Portal Pages &amp; Help"  controlClass="leftbutton" onclick="zenPage.showPane('panePages');"/>
+<button id="PortalOption2" hidden="true" caption="Links to Portal"       controlClass="leftbutton" onclick="zenPage.showPane('paneLinksToPortal');"/>
+<button caption="Book/Article Attributes"       controlClass="leftbutton" onclick="zenPage.showPane('paneAttributes');"/>
+
+<spacer height="10"/>
+<html>
+<b>Informational Only</b>
+</html>
+<button caption="Remap Values"          controlClass="leftbutton" onclick="zenPage.showPane('paneRemap');"/>
+<button caption="Table of Contents"     controlClass="leftbutton" onclick="zenPage.showPane('paneTOC');"/>
+<button caption="Taxonomy"              controlClass="leftbutton" onclick="zenPage.showPane('paneTaxonomy');"/>
+
+
+<spacer height="10"/>
+<html>
+<b>Other Tools</b>
+</html>
+<button caption="PDF Tools"             controlClass="leftbutton" onclick="zenPage.showPane('panePDFTools');"/>
+<button caption="Search DOCBOOK"        controlClass="leftbutton" onclick="zenPage.showPane('paneSearch');"/>
+<button caption="Activity Log" controlClass="leftbutton" onclick="zenPage.showPane('paneLog');"/>
+
+<spacer height="10"/>
+<html>
+<b>Links</b>
+</html>
+<combobox id="DBMCombo" 
+        onchange="zenPage.openLink(zenThis.getValue(),'devkeys');"
+        editable="false" dropdownHeight="200" valign="bottom">
+<option text="DocBook Home Page" value="DocBook" />
+<option text="Documatic" value="Documatic" />
+<option text="Management Portal" value="ManagementPortal" />
+<option text="File Manager" value="FileManager" />
+<option text="Index Terms" value="IndexTerms" />
+<option text="First Terms" value="FirstTerms" />
+<option text="Drupal Nodes" value="DrupalNodes" />
+<option text="FUNGDELL" value="FUNGDELL" />
+<option text="DevLog 3.0" value="DevLog3.0" />
+<option text="JIRA" value="JIRA" />
+<option text="TrakCare Environments" value="TrakCareEnvironments" />
+</combobox>
+
+
+</vgroup>
+
+<spacer width="10"/>
+
+<!--next vgroup has text-align:left but this does nothing-->
+<vgroup valign="top" containerStyle="text-align:left;">
+<pane paneName="paneMessages"/>
+<pane paneName="paneConfig"                id="paneConfig" hidden="true"/>
+<pane paneName="paneMain"      id="paneMain" />
+<pane paneName="paneSETs"                  id="paneSETs" hidden="true" />
+<pane paneName="paneImageFiles"            id="paneImageFiles" hidden="true" />
+<pane paneName="paneMoreLoadOptions"       id="paneMoreLoadOptions" hidden="true"/>
+<pane paneName="paneWideChars"             id="paneWideChars" hidden="true"/>
+<pane paneName="paneLinks"                 id="paneLinks" hidden="true"/>
+<pane paneName="paneListings"           id="paneListings" hidden="true"/>
+<pane paneName="paneGraphics"              id="paneGraphics" hidden="true"/>
+<pane paneName="panePages"                 id="panePages" hidden="true"/>
+<pane paneName="paneAttributes"            id="paneAttributes" hidden="true"/>
+<pane paneName="paneRemap"                 id="paneRemap" hidden="true"/>
+<pane paneName="paneTOC"                   id="paneTOC" hidden="true"/>
+<pane paneName="paneLinksToPortal"         id="paneLinksToPortal" hidden="true"/>
+<pane paneName="paneTaxonomy"              id="paneTaxonomy" hidden="true"/>
+<pane paneName="paneExport"                id="paneExport" hidden="true"/>
+<pane paneName="panePDFTools"              id="panePDFTools" hidden="true"/>
+<pane paneName="paneSearch"                id="paneSearch" hidden="true"/>
+<pane paneName="paneLog"                   id="paneLog" hidden="true"/>
+</vgroup>
+<spacer width="10"/>
+</hgroup>
+
+</page>
+]]></Data>
+</XData>
+
+<Method name="openLink">
+<FormalSpec>which</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+
+    if (which=='DocBook') {
+        window.open('DocBook.UI.HomePageZen.cls','dbmchildDocBook');
+
+    } else if (which=='Documatic') {
+        window.open('/csp/documatic/%25CSP.Documatic.cls','dbmchildDocumatic');
+        
+    } else if (which=='ManagementPortal') {
+        window.open('/csp/sys/UtilHome.csp','dbmchildManagementPortal');
+        
+    } else if (which=='FileManager') {
+        window.open('DocBook.UI.FileManager.cls','dbmchildFileManager');
+        
+    } else if (which=='IndexTerms') {
+        window.open('DocBook.Manager.IndexPage.cls','dbmchildIndexTerms');
+        
+    } else if (which=='FirstTerms') {
+        window.open('DocBook.Manager.FirstTermPage.cls','dbmchildFirstTerms');
+        
+    } else if (which=='DrupalNodes') {
+        window.open('DocBook.Manager.DrupalNodesPage.cls','dbmchildDrupalNodes');
+        
+    } else if (which=='FUNGDELL') {
+        window.open('http://fungdell2:57772/csp/docbook/DocBook.UI.Page.cls?KEY=SETInternal','dbmchildFungdell');
+
+    } else if (which=='DevLog3.0') {
+        window.open('http://turbo.iscinternal.com/prodlog/devlog3.csp','dbmchildDevLog');
+
+    } else if (which=='JIRA (Trak)') {
+        window.open('http://jira.iscinternal.com/login.jsp','dbmchildJiraTrak');
+
+    } else if (which=='TrakCareEnvironments') {
+        window.open('http://env.iscinternal.com/','dbmchildTCEnv');
+    }
+]]></Implementation>
+</Method>
+
+<Method name="showPane">
+<Description>
+Called when a user clicks a tab. This hides all components and then displays the 
+desired one. It also reruns one or more queries (if needed) and calls updateDisplay().</Description>
+<FormalSpec>which</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+
+    //alert(which);
+    //this method needs to hide all panes and then display
+    //only the selected one
+    zen('paneAttributes').setHidden(true)
+    zen('paneListings').setHidden(true);
+    zen('paneMain').setHidden(true);
+    zen('paneConfig').setHidden(true);
+    zen('paneExport').setHidden(true);
+    zen('paneGraphics').setHidden(true);
+    zen('paneImageFiles').setHidden(true);
+    zen('paneLinks').setHidden(true);
+    zen('paneLinksToPortal').setHidden(true);
+    zen('paneLog').setHidden(true);
+    zen('paneMoreLoadOptions').setHidden(true);
+    zen('panePages').setHidden(true);
+    zen('panePDFTools').setHidden(true);
+    zen('paneRemap').setHidden(true);
+    //zen('paneSETs').setHidden(true);
+    zen('paneSearch').setHidden(true);
+    zen('paneTaxonomy').setHidden(true);
+    zen('paneTOC').setHidden(true);
+    zen('paneWideChars').setHidden(true);
+
+    if (which=='paneAttributes') {
+        zen('paneAttributes').setHidden(false);
+        zen('attributeTable').executeQuery();
+   
+    } else if (which=='paneListings') {
+        zen('paneListings').setHidden(false);
+        //do not rescan now because too slow (this rescan is on-demand only)
+        zen('badListingTable').executeQuery();
+   
+    } else if (which=='paneMain') {
+        zen('paneMain').setHidden(false);
+        //do not rescan now; we rescan files only when paths change
+        zen('mainTable').executeQuery();
+        zen('loadedTable').executeQuery();
+        zen('extraSourceTable').executeQuery();
+        zen('SETTable').executeQuery();
+   
+    } else if (which=='paneConfig') {
+        zen('paneConfig').setHidden(false);
+        zenPage.doUseParamsFromDisk();        
+
+    } else if (which=='paneExport') {
+        zen('paneExport').setHidden(false);
+        
+    } else if (which=='paneGraphics') {
+        zen('paneGraphics').setHidden(false);
+        
+    } else if (which=='paneImageFiles') {
+        zen('paneImageFiles').setHidden(false);
+        //do not rescan now; we rescan files only when paths change
+        zen('imageFileTable').executeQuery();
+   
+    } else if (which=='paneLinks') {
+        zen('paneLinks').setHidden(false);
+        //do not rescan now because too slow (this rescan is on-demand only)
+        zen('linkTable').executeQuery();
+
+    } else if (which=='paneLinksToPortal') {
+        zen('paneLinksToPortal').setHidden(false);
+        zenPage.Rescan('interfacetags');
+        zen('interfaceTagsTable').executeQuery();
+   
+    } else if (which=='paneLog') {
+        zen('paneLog').setHidden(false);
+        zenPage.doShowScanTimes();
+        zen('logTable').executeQuery();
+
+    } else if (which=='paneMoreLoadOptions') {
+        zen('paneMoreLoadOptions').setHidden(false);
+
+    } else if (which=='panePages') {
+        zenPage.Rescan('pages');
+    
+        zen('panePages').setHidden(false);
+        zen('portalPageTable').executeQuery();
+        
+    } else if (which=='panePDFTools') {
+        zenPage.doRebuildPDFToolsTable();
+        zen('panePDFTools').setHidden(false);
+        zen('PDFGroupTable').executeQuery();
+        zen('PDFTable').executeQuery();
+        zen('ObsoletePDFTable').executeQuery();
+        zen('NoCheckinGroupTable').executeQuery();
+    } else if (which=='paneRemap') {
+        zen('paneRemap').setHidden(false);
+        zen('remapBookTable').executeQuery();
+
+    } else if (which=='paneSearch') {
+        zen('paneSearch').setHidden(false);
+        zenPage.doGetPARAM('CASESENSITIVESEARCH');
+        zen('searchTable').executeQuery();
+
+    } else if (which=='paneSETs') {
+        zen('paneSETs').setHidden(false);
+        //do not rescan now; we rescan files only when paths change
+        zen('SETTable').executeQuery();
+   
+    } else if (which=='paneTaxonomy') {
+        zen('paneTaxonomy').setHidden(false);
+        //do not rescan now because this data is hardcoded and can't change anyway!
+        zen('taxonomyTable').executeQuery();
+
+    } else if (which=='paneTOC') {
+        zen('paneTOC').setHidden(false);
+        //do not rescan now because too slow (this rescan is on-demand only)
+        zen('tocTable').executeQuery();
+
+    } else if (which=='paneWideChars') {
+        zen('paneWideChars').setHidden(false);
+        //do not rescan now because too slow (this rescan is on-demand only)
+        zen('widecharTable').executeQuery();
+    }
+
+    //do the next things for all cases
+    zenPage.updateDisplay();
+
+    zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+
+<XData name="paneMessages">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<spacer height="15"/>
+<label id="msgProgress" hidden="true"
+      value="Working..." 
+      controlClass="progressMessage" 
+       enclosingClass="basictext"/>
+
+<label id="msgDone" 
+value="Done!"
+      hidden="true"
+      controlClass="doneMessage" 
+       enclosingClass="basictext"/>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneAttributes">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Attributes of &lt;book> and &lt;article> tags" controlClass="label"/>
+<label value="This table provides information on the values of the arch, revision, role, status, and xreflabel attributes" />
+<label value="of the books and articles in this DOCBOOK database. The buttons below link to help on fungdell." />
+<hgroup>
+<button caption="arch attribute" valign="top"
+       onclick="window.open('http://fungdell2:57772/csp/docbook/DocBook.UI.Page.cls?KEY=XREF_arch_attribute','dbmchildWindow')"
+        enclosingClass="basictext"/>
+<spacer width="10"/>
+<button caption="revision attribute" valign="top"
+       onclick="window.open('http://fungdell2:57772/csp/docbook/DocBook.UI.Page.cls?KEY=XREF_revision_attribute','dbmchildWindow')"
+        enclosingClass="basictext"/>
+<spacer width="10"/>
+<button caption="role attribute" valign="top"
+       onclick="window.open('http://fungdell2:57772/csp/docbook/DocBook.UI.Page.cls?KEY=XREF_role_attribute','dbmchildWindow')"
+        enclosingClass="basictext"/>
+<spacer width="10"/>
+<button caption="status attribute" valign="top"
+       onclick="window.open('http://fungdell2:57772/csp/docbook/DocBook.UI.Page.cls?KEY=XREF_status_attribute','dbmchildWindow')"
+        enclosingClass="basictext"/>
+<spacer width="10"/>
+<button caption="xreflabel attribute" valign="top"
+       onclick="window.open('http://fungdell2:57772/csp/docbook/DocBook.UI.Page.cls?KEY=XREF_xreflabel_attribute','dbmchildWindow')"
+        enclosingClass="basictext"/>
+<spacer width="10"/>
+</hgroup>
+<spacer height="15"/>
+
+<tablePane id="attributeTable" OnCreateResultSet="CreateAttributeRS"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+showRowSelector="false"
+enclosingStyle="font-size:10pt;">
+<column colName="DocBookId" filterType="text"/>
+<column colName="tagArch" header="arch" filterType="query" 
+filterQuery="SELECT DISTINCT %EXACT(tagarch) FROM DocBook_ManagerTables.DBContents WHERE tagarch IS NOT NULL UNION SELECT 'NULL'"/>
+<column colName="tagRevision" header="revision" filterType="query" 
+filterQuery="SELECT DISTINCT %EXACT(tagRevision) FROM DocBook_ManagerTables.DBContents WHERE tagRevision IS NOT NULL UNION SELECT 'NULL'"/>
+<column colName="tagRole" header="role" filterType="query" hidden="false"
+filterQuery="SELECT DISTINCT %EXACT(tagRole) FROM DocBook_ManagerTables.DBContents WHERE tagRole IS NOT NULL UNION SELECT 'NULL'"/>
+<column colName="tagStatus" header="status" filterType="query" 
+filterQuery="SELECT DISTINCT %EXACT(tagStatus) FROM DocBook_ManagerTables.DBContents WHERE tagStatus IS NOT NULL UNION SELECT 'NULL'"/>
+<column colName="tagXreflabel" header="xreflabel" filterType="query" 
+filterQuery="SELECT DISTINCT %EXACT(tagXreflabel) FROM DocBook_ManagerTables.DBContents WHERE tagXreflabel IS NOT NULL UNION SELECT 'NULL'"/>
+<column colName="Title" filterType="text"/>
+</tablePane>
+<tableNavigator tablePaneId="attributeTable"  align="left" />
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneListings">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Program Listings" controlClass="label"/>
+<label value="This table lists program listings in this DOCBOOK database, as found by an initial scan." />
+<label value="After you load files, use the button below to redo the scan." />
+
+<vgroup valign="top" enclosingClass="basictext">
+<button caption="Scan Program Listings" 
+       onclick="zenPage.doRescan('listings');" 
+        enclosingClass="basictext" valign="top"/>
+</vgroup>
+
+<tabGroup remember="true" showTabBar="true">
+<tab caption="All Listings">
+<tableNavigator tablePaneId="badListingTable"  align="left" />
+<tablePane id="badListingTable" OnCreateResultSet="CreateBadListingRS"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+showRowSelector="false"
+enclosingStyle="font-size:10pt;">
+<column colName="BadSyntax" header="Bad Syntax?" width="60"
+       filterType="enum" 
+       filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" 
+        />
+<column colName="HasProblem" header="Has Problem?" width="60"
+       filterType="enum" 
+       filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" 
+       filterValue="1"
+        />
+<column colName="HasTab" header="Has Tabs?" width="60"
+       filterType="enum" 
+       filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" 
+        />
+<column colName="LongLine" header="Long Lines?" width="60"
+       filterType="enum" 
+       filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" 
+        />
+<column colName="SourceFile" header="Source File" 
+filterType="text" />
+<column colName="ParentTopic"  header="Location" filterType="text"
+link="DocBook.UI.Page.cls?KEY=#(%query.ParentTopic)#"/>
+<column colName="ShortContent" header="Content (Truncated)" />
+<column colName="Lang" header="Language"  width="100"
+filterType="query" 
+filterQuery="select distinct %EXACT(Lang) from DocBook_ManagerTables.Listings order by Lang"/>
+<condition colName="BadSyntax" 
+          predicate="EQ"
+          value="1"
+           cellStyle="background: red;font-size:10pt;color: white;"/>
+<condition colName="HasTab" 
+          predicate="EQ"
+          value="1"
+           cellStyle="background: red;font-size:10pt;color: white;"/>
+<condition colName="LongLine" 
+          predicate="EQ"
+          value="1"
+           cellStyle="background: red;font-size:10pt;color: white;"/>
+</tablePane>
+</tab>
+<tab caption="Run It Listings">
+<tableNavigator tablePaneId="runitListingTable"  align="left" />
+<tablePane id="runitListingTable" OnCreateResultSet="CreateRunItListingRS"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+showRowSelector="false"
+enclosingStyle="font-size:9pt;">
+<column colName="SourceFile" header="Source File" width="175"
+filterType="text" />
+<column colName="ParentTopic"  header="Location" filterType="text"
+link="DocBook.UI.Page.cls?KEY=#(%query.ParentTopic)#" width="175"/>
+<column colName="Content" filterType="text"/>
+<column colName="Lang" header="Language"  width="100"
+filterType="query" 
+filterQuery="select distinct %EXACT(Lang) from DocBook_ManagerTables.Listings WHERE %SQLUPPER(lang) [ 'RUN' order by Lang"/>
+</tablePane>
+</tab>
+</tabGroup>
+
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneMain">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="View &amp; Load Books and Articles" controlClass="label"/>
+
+<tabGroup remember="true" showTabBar="true">
+<tab caption="Files on the Search Path">
+<pane paneName="paneFilesOnPath"/>
+</tab>
+<tab caption="SET Files on the Search Path">
+<pane paneName="paneSETFilesOnPath"/>
+</tab>
+<tab caption="Extra Sources">
+<pane paneName="paneExtraSources"/>
+</tab>
+<tab caption="Documents in the Database" >
+<pane paneName="paneDatabaseContents"/>
+</tab>
+</tabGroup>
+
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneFilesOnPath">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Product and Branch are extracted from the directory that contains the file." />
+<hgroup enclosingClass="buttongroup" valign="top">
+<button id="btnReloadDocument" caption="Load Selected Item..." 
+       onclick="zenPage.doLoadBookOrArticle();"   
+        disabled="true" valign="top"/>
+<spacer width="10"/>
+<button caption="Rescan Files" 
+       onclick="zenPage.doRescan('files');" 
+       hint="Use if you have added or removed files on disk (or changed the path outside of this UI)"
+        valign="top"/>
+</hgroup>
+
+<label id="INFOselectedfile" enclosingClass="basictext"/>
+
+<hgroup >
+<vgroup valign="top" >
+<tablePane id="mainTable" OnCreateResultSet="CreateMainRS"
+valueColumn="DocBookId"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+onselectrow="zenPage.onSelectItem('filename','main');"
+onunselectrow="zenPage.disableFileButtons();"
+showRowSelector="false"
+showZebra="true"
+useKeys="true"
+pageSize="2000"
+maxRows="100000"
+autoExecute="true"
+nowrap="false"
+useSnapshot="true"
+showQuery="false"
+enclosingStyle="font-size:10pt;">
+<column id="LoadFileCol" colName="Load"  hidden="false" 
+link="DocBook.Manager.LoadOutput.cls?ID=#(%query.DocBookId)#"
+cellTitle="Load file(s) in this book. Suggestion: Use right-click and open in new tab."/>
+<column colName="DocBookId" filterType="text" />
+<column colName="Product"   filterType="query"
+filterQuery="select DISTINCT %EXACT(originproduct) from DocBook_ManagerTables.PDFGroups WHERE Extra=0 order by originproduct"/>
+<column colName="Branch"    filterType="query"
+filterQuery="select DISTINCT %EXACT(originbranch) from DocBook_ManagerTables.PDFGroups WHERE Extra=0 order by originbranch"/>
+<column colName="Filename"  hidden="false"/>
+<column id="ViewFilesCol" colName="ViewFiles" header="View Files"
+link="DocBook.UI.FileManager.cls?BOOK=#(%query.DocBookId)#" hidden="true"
+cellTitle="View file(s) for this book in File Manager. Suggestion: Use right-click and open in new tab."/>
+</tablePane>
+<tableNavigator tablePaneId="mainTable" onclick="zenPage.hideComponents();" containerStyle="position:relative;left:50px;" />
+</vgroup>
+
+
+<spacer width="20" />
+
+<vgroup valign="top"  id="componentTableGroup" hidden="true">
+<tablePane id="componentTable" OnCreateResultSet="CreateComponentRS" caption="All Files in This Directory"
+valueColumn="Filename"
+showRowNumbers="true"
+onselectrow="zenPage.onSelectItem('filename','component');"
+onunselectrow="zenPage.disableFileButtons();"
+showRowSelector="false"
+showZebra="true"
+useKeys="true"
+pageSize="2000"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+enclosingStyle="font-size:10pt;">
+<parameter id="queryparm"/>
+<column colName="Load"  hidden="true" link="DocBook.Manager.LoadFileOutput.cls?FILE=#(%query.Filename)#"/>
+<column colName="ShortFilename" />
+<column colName="Filename"      hidden="true" />
+</tablePane>
+</vgroup>
+
+</hgroup>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneSETFilesOnPath">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Product and Branch are extracted from the directory that contains the file." />
+<hgroup enclosingClass="buttongroup" >
+<button id="btnReloadSET" caption="Load Selected Item..." 
+       onclick="zenPage.doLoadSET();"   
+       disabled="true" 
+        valign="top" />
+<spacer width="20"/>
+<button caption="Rescan Files" 
+       onclick="zenPage.doRescan('files');" 
+        hint="Use if you have added or removed files on disk (or changed the path outside of this UI)"/>
+
+</hgroup>
+
+<vgroup enclosingClass="basictext" >
+<label id="INFOselectedsetfile" />
+</vgroup>
+
+<tablePane id="SETTable" OnCreateResultSet="CreateSETRS"
+valueColumn="DocBookId"
+headerLayout="headersOnTop"
+onselectrow="zenPage.onSelectItem('setfile');"
+showRowNumbers="true"
+showRowSelector="false"
+showZebra="true"
+useKeys="true"
+pageSize="2000"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+enclosingStyle="font-size:10pt;"
+showQuery="false">
+<column colName="Load"  hidden="true"  style="text-decoration:underline;" onclick="zenPage.doLoadSET();" />
+<column colName="DocBookId" header="SETs in Remap Order" filterType="text"/>
+<column colName="Product"   filterType="query"
+filterQuery="select DISTINCT %EXACT(originproduct) from DocBook_ManagerTables.PDFGroups WHERE Extra=0 order by originproduct"/>
+<column colName="Branch"    filterType="query"
+filterQuery="select DISTINCT %EXACT(originbranch) from DocBook_ManagerTables.PDFGroups WHERE Extra=0 order by originbranch"/>
+<column colName="BookList" header="Books in This Set (in Remap Order)" filterType="text" hidden="true"/>
+</tablePane>
+<tableNavigator tablePaneId="SETTable"  align="left"/>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneExtraSources">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="This tab lists any extra sources specified via EXTRA: in the SOURCE input field (Configuration>Search Paths)." />
+<label value="Product and Branch are extracted from the directory that contains the file." />
+<hgroup >
+<vgroup valign="top" >
+<tablePane id="extraSourceTable" OnCreateResultSet="CreateExtraSourceRS"
+valueColumn="Filename"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+onselectrow="zenPage.onSelectItem('filename','main');"
+onunselectrow="zenPage.disableFileButtons();"
+showRowSelector="false"
+showZebra="true"
+useKeys="true"
+pageSize="2000"
+maxRows="100000"
+autoExecute="true"
+nowrap="false"
+useSnapshot="true"
+showQuery="false"
+enclosingStyle="font-size:10pt;">
+<column id="LoadFileCol2" colName="Load"  hidden="false" 
+link="DocBook.Manager.LoadFileOutput.cls?FILE=#(%query.Filename)#"
+cellTitle="Load file(s) in this book. Suggestion: Use right-click and open in new tab."/>
+<column colName="DocBookId" filterType="text" />
+<column colName="TopLevel" filterType="enum" filterValue="1"
+filterEnum="1,0" filterEnumDisplay="yes(1),no(0)"/>
+<column colName="Product"   filterType="query"
+filterQuery="select DISTINCT %EXACT(originproduct) from DocBook_ManagerTables.PDFGroups WHERE Extra=1 order by originproduct"/>
+<column colName="Branch"    filterType="query"
+filterQuery="select DISTINCT %EXACT(originbranch) from DocBook_ManagerTables.PDFGroups WHERE Extra=1 order by originbranch"/>
+<column colName="Filename"  hidden="false"/>
+</tablePane>
+<tableNavigator tablePaneId="extraSourceTable" onclick="zenPage.hideComponents();" containerStyle="position:relative;left:50px;" />
+</vgroup>
+</hgroup>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneDatabaseContents">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Product and Branch are extracted from the directory from which the content was loaded, if known." />
+<hgroup enclosingClass="buttongroup">
+<button caption="Rerun Query" 
+       onclick="zen('loadedTable').executeQuery();" 
+        valign="top" />
+<spacer width="20"/>
+<button id="btnViewDocument" caption="View Selected Item" 
+       onclick="zenPage.viewItem();"
+        disabled="true" valign="top"/>
+<spacer width="20"/>
+<button id="btnRemoveDocument" caption="Remove Selected Item from Database" 
+       onclick="zenPage.doRemoveDocument();"
+        disabled="true" valign="top"/>
+</hgroup>
+
+<hgroup >
+<vgroup valign="top"  disabled="true">
+<tablePane id="loadedTable" OnCreateResultSet="CreateLoadedRS"
+valueColumn="DocBookId"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+onselectrow="zenPage.onSelectItem('document');"
+onunselectrow="zenPage.disableDocumentButtons();"
+showRowSelector="false"
+showZebra="true"
+useKeys="true"
+pageSize="2000"
+maxRows="100000"
+autoExecute="true"
+nowrap="false"
+useSnapshot="true"
+showQuery="false"
+enclosingStyle="font-size:10pt;">
+<column colName="Type"  width="75" filterType="query"
+filterQuery="select distinct %EXACT(type) from DocBook_ManagerTables.DBContents order by type"/>
+<column colName="DocBookId" header="DocBookId" filterType="text"/>
+<column colName="Title" filterType="text"/>
+<column colName="Remap" />
+<column colName="OriginProduct"   filterType="query"
+filterQuery="select DISTINCT %EXACT(originproduct) from DocBook_ManagerTables.PDFGroups order by originproduct"/>
+<column colName="OriginBranch"    filterType="query"
+filterQuery="select DISTINCT %EXACT(originbranch) from DocBook_ManagerTables.PDFGroups order by originbranch"/>
+<column colName="WhenLoaded" header="When Loaded"/>
+</tablePane>
+<tableNavigator tablePaneId="loadedTable" containerStyle="position:relative;left:50px;" />
+</vgroup>
+</hgroup>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneConfig">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Configuration" controlClass="label" hidden="true"/>
+<label value="Use these tabs to configure the search path and other options." hidden="true"/>
+<spacer height="15" hidden="true"/>
+
+<tabGroup showTabBar="true" remember="true" >
+<tab caption="Search Path">
+<pane paneName="paneConfigSOURCE"/>
+</tab>
+
+<tab caption="Other Options" onshow="zenPage.doUseParamsFromDisk();">
+<pane paneName="paneConfigParams"/>
+</tab>
+
+<tab caption="Support Notes">
+<vgroup enclosingClass="basictext">
+<html>
+<p>Support notes:</p>
+<ul>
+<li>Works only on Windows.</li>
+<li>Tested only with Firefox.</li>
+<li>You can use this tool as an add-on to many different core product versions: 14.1, 15.1, and latest.</li>
+<li>In cursory testing, appears to work on core 13.1, 12.2, and 12.1.</li>
+<li>I believe this works with both Minimal and Normal security installs. </li>
+</ul>
+</html>
+</vgroup>
+</tab>
+</tabGroup>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneConfigSOURCE">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<vgroup enclosingClass="basictext">
+<textarea id="SOURCE" label="Search path, one directory per line" labelClass="label" cols="80" rows="20" />
+<spacer height="10" />
+<label value='To specify additional files *not* on the path, use EXTRA: followed by the file or directory.'/>
+<label value='For example: EXTRA:C:\Perforce\projects\DocDB\doc\cache\en-us\src\GDOCDB\'/>
+<hgroup align="left" enclosingClass="basictext" valign="top">
+<button caption="Cancel Manual Edits" onclick="zenPage.doUseParamsFromDisk('cancelpathedits');" valign="top"/>
+<spacer width="20"/>
+<button caption="Save Manual Edits"  onclick="zenPage.doSavePathFromUI();" valign="top"  hint="Can take a few seconds."/>
+</hgroup>
+</vgroup>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneConfigParams">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<expando caption="Basic Options"  expanded="true" remember="false" framed="true">
+<vgroup id="paramsGroup" labelPosition="left" enclosingClass="basictext">
+
+<checkbox id="ENTITYCHECK" hidden="true"         
+label="ENTITYCHECK" 
+labelClass="label" 
+ hint="Recommended: ON. Controls whether to check for entities when loading files."/>
+
+ <spacer height="7" hidden="true"/>
+<checkbox id="COMPONENTSVIAFILEMGR" hidden="false"         
+label="COMPONENTSVIAFILEMGR" 
+labelClass="label" 
+ hint="If true, component files of a book are shown via the old File Manager. For Margaret et al. RELOAD PAGE AFTER CHANGING."/>
+
+ <spacer height="7"/>
+<checkbox id="IGNORECOLORERROR"     
+label="IGNORECOLORERROR"
+labelClass="label" 
+ hint="Recommended: OFF. Controls whether to report syntax errors in &lt;programlisting> elements."/>
+
+ <spacer height="7"/>
+<checkbox id="INCLREMARK"             
+label="INCLREMARK"  
+labelClass="label"
+ hint="Controls whether to include &lt;remark> elements when loading files."/>
+
+ <spacer height="7" hidden="true"/>
+<checkbox id="INDEXREBUILD"           
+label="INDEXREBUILD" 
+labelClass="label" hidden="true" 
+ hint="Recommended: ON. Controls whether to rebuild the DocBook index and anchor index after loading files."/>
+
+ <spacer height="7"/>
+<text id="PAGESIZE"
+label="PAGESIZE"
+labelClass="label"
+ hint="Number of rows to display in tables. To use defaults, specify 0." />
+
+ <spacer height="7" hidden="true"/>
+<checkbox id="PDFCHECK" hidden="true"               
+label="PDFCHECK" 
+labelClass="label"  
+ hint="Recommended: ON. Controls whether to check for items that would interfere with the PDF output."/>
+
+<spacer height="7"/>
+<checkbox id="SHOWPORTALOPTIONS"
+label="SHOWPORTALOPTIONS"
+labelClass="label"
+hint="Controls display of two options: 1) Portal Pages &amp; Help, and 2) Links to Portal. RELOAD PAGE AFTER CHANGING."/>
+
+ <spacer height="7"/>
+<checkbox id="SHOWALL"    
+label="SHOWALL" 
+labelClass="label"
+ hint="Default: OFF. For Josh L. Controls whether Files on Path tab has two tables (default) or one table with all files."/>
+
+ <spacer height="7" hidden="true"/>
+<checkbox id="SUPPRESSFRAMEWARNING"    
+label="SUPPRESSFRAMEWARNING" 
+labelClass="label" hidden="true"
+ hint="Recommended: OFF. Controls whether to suppress warnings if tables are missing the frame attribute."/>
+
+ <spacer height="7"/>
+<checkbox id="WIDECHARCHECK"        
+label="WIDECHARCHECK" 
+labelClass="label"
+ hint="Recommended: ON (unless loading Japanese files). Controls whether to check for wide characters when using Load All option."/>
+
+<spacer height="20" />
+<hgroup align="left" enclosingClass="basictext" >
+<button caption="Restore Default Settings"  onclick="zenPage.doRestoreDefaultParams();"/>
+<spacer width="20"/>
+<button caption="Cancel Changes"    onclick="zenPage.doUseParamsFromDisk('cancelconfigedits');"/>
+<spacer width="20"/>
+<button caption="Save Changes"      onclick="zenPage.doSaveParamsFromUI();"/>
+</hgroup>
+
+</vgroup>
+ <spacer height="15"/>
+</expando>
+<expando id="expandoReinstallApp" caption="Update this application"  expanded="false" remember="false" framed="true">
+<group labelPosition="left">
+<hgroup>
+<text id="DBMBUILDDIR" label="DBMBUILDDIR" 
+labelClass="label" size="100"
+hint="Directory that contains the source files for this application."/>
+<spacer width="10"/>
+<button caption="Save Changes"      onclick="zenPage.doSaveParamsFromUI();"/>
+</hgroup>
+<label value='BE SURE TO SYNC THIS DIRECTORY BEFORE USING THE BUTTON BELOW.' labelClass="label"/>
+<label value='Tip: Use the generated SyncDBMSources.bat file (in &lt;install-dir>/DocBookManager).' labelClass="label"/>
+</group>
+<spacer height="5"/>
+<button caption="Reinstall App" onclick="zenPage.ReloadApp();"
+hint="Check progress on Logs tab; refresh page when we have reloaded and recompiled the classes" />
+</expando>
+<expando caption="Reload parameters from disk" expanded="false" remember="false" framed="true">
+<spacer height="10"/>
+<button caption="Reload Parameters" onclick="zenPage.doReloadSavedParms();"
+hint="Loads parameters from install-dir/DocBookManager/BACKUP/DocBook.Config.xml" />
+</expando>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneGraphics">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Graphic Tags" controlClass="label"/>
+<label value="This table lists &lt;graphic> and &lt;inlinegraphic> elements in this DOCBOOK database, as found by an initial scan." />
+<label value="After you load files, use the button below to redo the scan." />
+<spacer height="15"/>
+<vgroup enclosingClass="buttongroup">
+<hgroup>
+<button caption="Rescan Graphics" 
+       onclick="zenPage.doRescan('graphics');"
+       hint="Runs in background; rerun query to see new results"/>
+ <spacer width="10"/>
+<button caption="Rerun Query" 
+       onclick="zen('graphicTable').executeQuery();" 
+        enclosingClass="basictext" valign="top" hidden="false"/>
+</hgroup>
+</vgroup>
+<hgroup>
+<vgroup valign="top" >
+<label value="Beware of false positives--the File on Path? column indicates whether the file exists on the *current* search path." />
+<label value="If you change the paths, redo the graphics scan, so that we can update this column." />
+<tablePane id="graphicTable" OnCreateResultSet="CreateGraphicRS"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showRowSelector="false"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true" 
+nowrap="false"
+enclosingStyle="font-size:10pt;">
+<column colName="SourceFile" header="Source File" 
+filterType="text" />
+
+<column colName="ParentTopic" header="Location"         filterType="text" 
+link="DocBook.UI.Page.cls?KEY=#(%query.ParentTopic)#"/>
+
+<column colName="GraphicTag"  header="Graphic Tag" filterType="enum" 
+filterEnum="graphic,inlinegraphic" width="75"/>
+
+<column colName="Fileref" filterType="text"/>
+
+<column colName="Problem"  header="Maybe Problem?" width="75" 
+       filterType="enum" 
+       filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" 
+       filterValue="1"
+        cellTitle="Maybe Problem=1 means look at the columns to the right of this."/>
+<column colName="FileOnPath"    header="File on Path?" width="80" 
+       filterType="enum" 
+       filterEnum="1,0"
+       filterEnumDisplay="yes(1),no(0)" 
+       cellTitle="If file is not on the path AND the paths include the document that contains this graphic, then the file is missing!"
+        />
+<column colName="NameHasSpaces"    header="Spaces in Filename?" width="80" 
+       filterType="enum" 
+       filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" 
+        cellTitle="Our convention is not to have spaces in filenames."        />
+<column colName="NameHasUppercase" header="Upper Case in Fileref?" width="80" 
+       filterType="enum" 
+       filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" 
+       cellTitle="Our convention is lowercase filenames."
+        />
+
+<condition colName="Problem" 
+          predicate="EQ"
+          value="1"
+           cellStyle="background: red;color: white;"/>
+<condition colName="FileOnPath" 
+          predicate="EQ"
+          value="0"
+           cellStyle="background: red;color: white;"/>
+<condition colName="NameHasSpaces" 
+          predicate="EQ"
+          value="1"
+           cellStyle="background: red;color: white;"/>
+<condition colName="NameHasUppercase" 
+          predicate="EQ"
+          value="1"
+           cellStyle="background: red;color: white;"/>
+</tablePane>
+<tableNavigator tablePaneId="graphicTable"  align="left"/>
+</vgroup>
+<spacer width="20"/>
+</hgroup>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneImageFiles">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Image Files" controlClass="label"/>
+<label value="This table lists image files on the search path." />
+<spacer height="15"/>
+<label id="INFOselectedimagefile" />
+
+<vgroup enclosingClass="buttongroup">
+<hgroup>
+<button caption="Rescan Files" 
+       onclick="zenPage.doRescan('imagefiles');"
+       hint="Use if you have added or removed files on disk (or changed the path outside of this UI)"
+/>
+ <spacer width="10"/>
+<button caption="Rerun Query" 
+       onclick="zen('imageFileTable').executeQuery();" 
+        enclosingClass="basictext" valign="top" hidden="false"/>
+</hgroup>
+
+</vgroup>
+<spacer height="15"/>
+
+<hgroup>
+<vgroup valign="top" >
+<tablePane id="imageFileTable" OnCreateResultSet="CreateImageFileRS"
+valueColumn="Filename"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+onselectrow="zenPage.onSelectItem('imagefile');"
+showRowSelector="false"
+nowrap="false"
+enclosingStyle="font-size:10pt;">
+<column colName="Filename" hidden="true"/>
+<column colName="Product"   filterType="query"
+filterQuery="select DISTINCT %EXACT(originproduct) from DocBook_ManagerTables.PDFGroups order by originproduct"/>
+<column colName="Branch"    filterType="query"
+filterQuery="select DISTINCT %EXACT(originbranch) from DocBook_ManagerTables.PDFGroups order by originbranch"/>
+<column colName="ShortFilename"    header="Filename"   filterType="text"  />
+<column colName="Problem"          header="Problem?"
+       filterType="enum" 
+       filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" 
+       filterValue="1"
+        cellTitle="Problem=1 means look at the columns to the right of this."/>
+<column colName="IsWriteable"      header="Writable?"
+       filterType="enum" 
+       filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" 
+        cellTitle="If file is writable, maybe you should check it in."/>
+<column colName="NameHasSpaces"    header="Spaces in Name?"
+       filterType="enum" 
+       filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" 
+        cellTitle="Our convention is not to have spaces in filenames."/>
+<column colName="NameHasUppercase" header="Upper Case in Name?"
+       filterType="enum" 
+       filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" 
+        cellTitle="Our convention is lowercase filenames."/>
+<condition colName="Problem" 
+          predicate="EQ"
+          value="1"
+           cellStyle="background: red;color: white;"/>
+<condition colName="IsWriteable" 
+          predicate="EQ"
+          value="1"
+           cellStyle="background: red;color: white;"/>
+<condition colName="NameHasSpaces" 
+          predicate="EQ"
+          value="1"
+           cellStyle="background: red;color: white;"/>
+<condition colName="NameHasUppercase" 
+          predicate="EQ"
+          value="1"
+           cellStyle="background: red;color: white;"/>
+</tablePane>
+<tableNavigator tablePaneId="imageFileTable"  align="left"/>
+</vgroup>
+<spacer width="20"/>
+</hgroup>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneLinks">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Links" controlClass="label"/>
+<label value="This table lists &lt;link>, &lt;ulink>, and &lt;olink> elements in this DOCBOOK database, as found by an initial scan."/>
+<label value="After you load files, use the button below to redo the scan." />
+<spacer height="15"/>
+<vgroup valign="top" >
+<hgroup >
+<button caption="Recheck All Links"     
+       onclick="zenPage.doRescan('links');"
+       hint="Can take a couple of minutes"
+        valign="top"/>
+ <spacer width="10"/>
+<button caption="Rerun Query" 
+       onclick="zen('linkTable').executeQuery();" 
+        enclosingClass="basictext" valign="top" hidden="true"/>
+ </hgroup>
+
+<spacer height="15"/>
+</vgroup>
+
+<vgroup valign="top" >
+<tablePane id="linkTable" OnCreateResultSet="CreateLinkRS"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showRowSelector="false"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+enclosingStyle="font-size:10pt;">
+<column colName="SourceFile" header="Source File" width="175"
+filterType="text" />
+<column colName="ParentTopic"  header="Location" filterType="text" 
+link="DocBook.UI.Page.cls?KEY=#(%query.ParentTopic)#" width="200"/>
+<column colName="ShortContent" header="Text at Location (Truncated)" width="200"/>
+<column colName="LinkTag"      header="Link Tag" filterType="query"  
+filterQuery="SELECT DISTINCT %Exact(LinkTag) FROM DocBook_ManagerTables.Links ORDER BY LinkTag" width="75"/>
+<column colName="LinkTarget"   header="Link Target"  filterType="text" />
+<column colName="LinkType"     header="Link Type" filterType="query" filterValue="bad" 
+filterQuery="SELECT DISTINCT %Exact(LinkType) FROM DocBook_ManagerTables.Links ORDER BY LinkType"
+width="75"/>
+<column colName="LinkToBook"     header="Link to Book?" filterType="enum"  
+filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" hidden="true"
+width="75"/>
+<condition colName="LinkType" 
+          predicate="EQ"
+          value="bad"
+           cellStyle="background: red;color: white;"/>
+</tablePane>
+<tableNavigator tablePaneId="linkTable"  align="left"/>
+</vgroup>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneLinksToPortal">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Links to the Management Portal" controlClass="label"/>
+<label value="This table lists interface tags in this DOCBOOK database (data is regenerated whenever you display this option)." />
+<label value="These tags define links to the Management Portal. About 10% of them work!" />
+<spacer height="15"/>
+<button caption="Read about this on FUNGDELL" valign="top"
+       onclick="window.open('http://fungdell2:57772/csp/docbook/DocBook.UI.Page.cls?KEY=XREF_docbook_links_to_portal','dbmchildWindow')"
+        enclosingClass="basictext"/>
+ <vgroup valign="top" >
+<tablePane id="interfaceTagsTable" OnCreateResultSet="CreateInterfaceRS"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showRowSelector="false"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+enclosingStyle="font-size:10pt;">
+<column colName="SourceFile" header="Source File" 
+filterType="text" />
+<column colName="ParentTopic" header="Location"     
+ link="DocBook.UI.Page.cls?KEY=#(%query.ParentTopic)#"/>
+<column colName="InterfaceRef"    
+header="Contents of &lt;interface> Tag " 
+ filterType="text" />
+ <column colName="TagWorks" header="Link Works?"
+ filterType="enum" filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" />
+ <column colName="URL" hidden="true"/>
+<condition colName="TagWorks" 
+          predicate="EQ"
+          value="0"
+           cellStyle="background: red;color: white;"/>
+ </tablePane>
+<tableNavigator tablePaneId="interfaceTagsTable"  align="left"/>
+</vgroup>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneLog">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane align="left">
+<label value="Activity Log" controlClass="label" />
+<hgroup >
+<button caption="Rerun query" onclick="zen('logTable').executeQuery();"/>
+<spacer width="10"/>
+<button caption="Purge Log" onclick="zenPage.doPurgeLog();"/>
+</hgroup>
+<tablePane id="logTable" OnCreateResultSet="CreateLogRS"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showRowSelector="false"
+showZebra="true"
+useKeys="true"
+pageSize="15"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+enclosingStyle="font-size:10pt;">
+<column colName="LogGroup"  filterType="query"
+filterQuery="SELECT DISTINCT %EXACT(LogGroup) FROM DocBook_ManagerTables.Log"/>
+<column colName="LogItem" filterType="text"/>
+</tablePane>
+<tableNavigator tablePaneId="logTable"  align="left"/>
+
+<expando framed="true" hidden="true">
+<vgroup enclosingClass="basictext">
+<hgroup>
+<label value="Most recent file load:" controlClass="label"/>
+<spacer width="5"/>
+<label id="timeload" />
+</hgroup>
+<spacer height="15"/>
+
+<label value="Most recent file scans (automatic or on-demand)" controlClass="label"/>
+<hgroup>
+<label value="Books and article files:"/>
+<spacer width="5"/>
+<label id="timefiles"/>
+</hgroup>
+<hgroup>
+<label value="SET files:"/>
+<spacer width="5"/>
+<label id="timesetfiles"/>
+</hgroup>
+<hgroup>
+<label value="Image files:"/>
+<spacer width="5"/>
+<label id="timeimagefiles"/>
+</hgroup>
+<spacer height="15"/>
+
+<label value="Other most recent automatic scans" controlClass="label"/>
+<hgroup>
+<label value="Portal pages &amp; help:"/>
+<spacer width="5"/>
+<label id="timepagehelp"/>
+</hgroup>
+<hgroup>
+<label value="Links to Portal (interface tags):"/>
+<spacer width="5"/>
+<label id="timeinterfacetags"/>
+</hgroup>
+<spacer height="15"/>
+
+<label value="Most recent on-demand scans" controlClass="label"/>
+<hgroup>
+<label value="Links:"/>
+<spacer width="5"/>
+<label id="timelinks"/>
+</hgroup>
+<hgroup>
+<label value="Program listings:"/>
+<spacer width="5"/>
+<label id="timelistings"/>
+</hgroup>
+<hgroup>
+<label value="Wide characters:"/>
+<spacer width="5"/>
+<label id="timewidechars"/>
+</hgroup>
+<hgroup>
+<label value="Table of contents:"/>
+<spacer width="5"/>
+<label id="timetoc"/>
+</hgroup>
+<hgroup>
+<label value="Graphic tags:"/>
+<spacer width="5"/>
+<label id="timegraphics"/>
+</hgroup>
+<spacer height="15"/>
+
+<label value="One-time activities" controlClass="label"/>
+<hgroup>
+<label value="System initialization:"/>
+<spacer width="5"/>
+<label id="timesysteminit"/>
+</hgroup>
+<hgroup>
+<label value="Taxonomy scan:"/>
+<spacer width="5"/>
+<label id="timetaxonomy"/>
+</hgroup>
+
+</vgroup>
+</expando>
+
+
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneMoreLoadOptions">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="More Load Options" controlClass="label"/>
+
+<spacer height="15"/>
+<button caption="Rescan Files" 
+       onclick="zenPage.doRescan('files');" />
+<label value="Use if you have added or removed files on disk (or changed the path outside of this UI)."/>
+
+<spacer height="15"/>
+<button caption="Load All..." 
+       onclick="zenPage.doLoadAllSources();" />
+ <label value="Clears the database and then loads all files on the search path and all EXTRA files."/>
+ <label value="This runs in the background and writes to the log file &lt;install-dir>/DocBookManager/LoadAllLog.txt."/>
+
+<spacer height="15"/>
+<button caption="Remove All"  
+       onclick="zenPage.doRemoveAll();"/>
+<label value="Removes all DocBook content from the database."/>
+
+<spacer height="30"/>
+<label value="Useful Terminal commands (use in the DOCBOOK namespace):"/>
+<label value="do ##class(DocBook.Manager.LoadUtils).LoadAll()"/>
+<label value="do ##class(DocBook.Manager.LoadUtils).RemoveAll()"/>
+
+</pane>
+]]></Data>
+</XData>
+
+<XData name="panePages">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Portal Pages &amp; Their Help Links" controlClass="label"/>
+<label value="This table lists Portal pages, with information about their Help links (data is regenerated whenever you display this option)." />
+<label value="Note: In 2014.1 and earlier, this page cannot list type 1 pages (because they cannot be queried as needed for our purposes)." />
+<label value="Also, in 2014.1 and earlier, this page lists only some of the type 2 pages." />
+<spacer height="15"/>
+
+<hgroup>
+<vgroup valign="top">
+<label id="pgdetailClassname"/>
+<label id="pgdetailCspUrl" hidden="true"/>
+<label id="pgdetailPagename"/>
+<label id="pgdetailHelpAddress"/>
+<label id="pgdetailHardcodedDocBookId"/>
+<label id="pgdetailAnchorTopic"/>
+<label id="pgdetailExpectedTopicId"/>
+<label id="pgdetailHelpFoundComment"/>
+<spacer height="5"/>
+<label valign="top" id="pgdetailComment" controlClass="paneHint"/>
+</vgroup >
+<spacer width="5"/>
+<button caption="Read about this on FUNGDELL" 
+        onclick="window.open('http://fungdell2:57772/csp/docbook/DocBook.UI.Page.cls?KEY=XREF_portal_help_pages','dbmchildWindow')"
+        enclosingClass="basictext" valign="top"/>
+</hgroup>
+
+<tablePane id="portalPageTable" OnCreateResultSet="CreatePageRS"
+valueColumn="PageClass"
+headerLayout="headersOnTop"
+showRowSelector="false"
+showZebra="true"
+showRowNumbers="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+showQuery="false"
+onselectrow="zenPage.onSelectItem('portalpage');"
+nowrap="false"
+enclosingStyle="font-size:10pt;">
+<column colName="PageType" header="Page Type" width="75" 
+        filterType="enum"  filterEnum=",1,2,3,4,5"  filterEnumDisplay=",1,2 (CSP autopages),3 (Ensemble),4 (DeepSee),5 (HealthShare)"/>
+
+<column colName="PageClass" header="Page Class" 
+        filterType="text" />
+
+<column colName="PAGENAME" header="Page Name" 
+        filterType="text"  />
+
+<column colName="ExpectedDocBookId" header="Expected DocBookId" 
+        filterType="text"  />
+
+<column colName="HelpAttempted" header="Help Attempted?" width="100" 
+        filterType="enum" filterEnum="1,0" filterEnumDisplay="yes(1),no(0)"/>
+
+<column colName="HelpFound" header="Help Found?" width="75" 
+        filterType="enum" filterEnum="1,0" filterEnumDisplay="yes(1),no(0)"/>
+        
+<column colName="HelpBroken" hidden="true"/>
+
+<condition colName="HelpAttempted" 
+          predicate="EQ"
+          value="0"
+           cellStyle="background: red;font-size:10pt;color: white;"/>
+<condition colName="HelpFound" 
+          predicate="EQ"
+          value="0"
+           cellStyle="background: red;font-size:10pt;color: white;"/>
+</tablePane>
+<tableNavigator tablePaneId="portalPageTable"  align="left"/>
+
+</pane>
+]]></Data>
+</XData>
+
+<XData name="panePDFTools">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="For use in generating PDFs" controlClass="label"/>
+<spacer height="15"/>
+
+<tabGroup  showTabBar="true" remember="true">
+<tab caption="PDF Groups">
+<pane paneName="panePDFGroups"/>
+</tab>
+
+<tab caption="PDF Files to Update or Add">
+<pane paneName="paneFilesToUpdateOrAdd"/>
+</tab>
+
+<tab caption="PDF Files to Delete">
+<pane paneName="paneFilesToDelete"/>
+</tab>
+
+<tab caption="PDF Files That Don't Get Checked In">
+<pane paneName="paneNoCheckinGroup"/>
+</tab>
+
+</tabGroup>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="panePDFGroups">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="The PDF Group of a file that you loaded is determined from the full path of the file. "/>
+<label value="It determines the default cover version and the default target location for the corresponding PDF file."/>
+<label value="You can override the cover version and target location for PDF file."/>
+<spacer height="15"/>
+<group id="pdfgroupdetails" hidden="true">
+<hgroup>
+<button id="btnSavePDFGroupDetails" caption="Save Changes" 
+       onclick="zenPage.doSavePDFGroupDetails();" 
+        enclosingClass="basictext" valign="top" disabled="true"/>
+<spacer width="15"/>
+<vgroup>
+<hgroup>
+<label value="PDF Group ID:" enclosingClass="basiclabel"/>
+<spacer width="5"/>
+<label id="INFOpdfgroupid" />
+</hgroup>
+<hgroup valign="top">
+<label value="Origin of Source Files:" enclosingClass="basiclabel"/>
+<spacer width="5"/>
+<label id="INFOpdfgrouporigin" />
+</hgroup>
+<spacer height="20"/>
+<hgroup valign="top">
+<label value="Default Cover Version:" enclosingClass="basiclabel" />
+<spacer width="5"/>
+<label id="INFOpdfgroupdefaultcoverversion"  />
+<spacer width="10"/>
+<label value="(affects PDF covers)" />
+</hgroup>
+<hgroup valign="top">
+<label value="Desired Cover Version: " enclosingClass="basiclabel" />
+<spacer width="5"/>
+<text id="INPUTcoverversion" />
+</hgroup><spacer height="20"/>
+<hgroup valign="top">
+<label value="Default Target Version: " enclosingClass="basiclabel" />
+<spacer width="5"/>
+<label id="INFOpdfgroupdefaulttargetperforceversion" />
+<spacer width="10"/>
+<label value="(affects generation of P4 change lists)" />
+</hgroup>
+<hgroup valign="top">
+<label value="Desired Target Version: " enclosingClass="basiclabel" />
+<spacer width="5"/>
+<text id="INPUTperforceversion"  />
+</hgroup>
+</vgroup>
+</hgroup>
+<spacer height="10"/>
+</group>
+
+<hgroup>
+<button caption="Export All" 
+       onclick="zenPage.doExportAll('ALLFLAT');"
+        enclosingClass="basictext" valign="top" 
+         hint="Use for daily PDFs"/>
+<spacer width="15"/>
+<button id="btnExportPDFGroup" caption="Export Group" 
+       onclick="zenPage.doExportPDFGroup();" 
+        enclosingClass="basictext" valign="top" disabled="true"/>
+<spacer width="15"/>
+<button id="btnGenerateCLForGroup" caption="Make Change List for Group"
+       onclick="zenPage.doGenerateCLBatForGroup();"
+        enclosingClass="basictext" valign="top" disabled="true"
+        hint="Generates .bat file to generate change list"/>
+</hgroup>
+
+<tablePane id="PDFGroupTable" OnCreateResultSet="CreatePDFGroupRS"
+valueColumn="ID"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+onselectrow="zenPage.onSelectItem('pdfgroup')"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+showQuery="false"
+showRowSelector="false"
+enclosingStyle="font-size:10pt;">
+<column colName="ID" header="PDF Group ID"/>
+<column colName="Load"   
+link="DocBook.Manager.LoadPDFGroupOutput.cls?ID=#(%query.ID)#"
+cellTitle="Load all files in this PDF Group. Suggestion: Use right-click and open in new tab."/>
+<column colName="CoverVersion" header="Cover Version for PDFs" />
+<column colName="Origin" header="Origin of Source Files"/>
+<column colName="TargetPDFArea" header="Target Area for PDFs" />
+<column colName="CoverVersionIsDefault" header="Cover Version Is Default?" />
+<condition colName="CoverVersionIsDefault" 
+          predicate="EQ"
+          value="0"
+           cellStyle="background: red;font-size:10pt;color: white;"/>
+
+</tablePane>
+<tableNavigator tablePaneId="PDFGroupTable"  align="left" />
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneFilesToUpdateOrAdd">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="This tab shows information used when we generate the Perforce change list for each PDF group."/>
+<label value="It displays information about PDF files to update or add (based on comparing the database contents to the existing PDFs)."/>
+<label hidden="true" value="PDF Categories shown here: 2=PDFs to be checked into full/pdfs;"/>
+<label hidden="true" value="2=PDFs to be checked into full/pdfs;3=PDFs to be checked into full/pdfs AND into install/pdfs."/>
+<button caption="Rescan PDF Files on Disk" 
+       onclick="zenPage.doRebuildPDFToolsTable();" 
+       hint="Use after loading files and after resyncing the PDF directories (scan also updates PDF Files to Delete or Add tab)"
+        valign="top" hidden="true"/>
+<spacer height="15"/>
+<button id="btnExportItem" caption="Export Item"
+onclick="zenPage.doExportItem();"
+valign="top" disabled="true"/>
+
+<tablePane id="PDFTable" OnCreateResultSet="CreatePDFRS"
+valueColumn="DocBookId"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+showQuery="false"
+showRowSelector="false"
+onselectrow="zenPage.onSelectItem('pdftablerow');"
+enclosingStyle="font-size:10pt;">
+<column colName="Type"  width="75" filterType="enum"
+filterEnum="book,article"/>
+<column colName="DocBookId" filterType="text"/>
+<column colName="Title" filterType="text"/>
+<column colName="PDFCategory" header="PDF Category" filterType="enum" 
+filterEnum="2,3" width="60"  cellTitle="2=PDFs to be checked into full/pdfs;3=PDFs to be checked into full/pdfs AND into install/pdfs."/>
+<column colName="PDFGroup" header="PDF Group" filterType="query" 
+filterQuery="SELECT Name FROM DocBook_ManagerTables.PDFGroups "/>
+<column colName="FullPDFAction" header="P4 Action for full/pdfs" filterType="enum" 
+filterEnum="update,add" width="75"/>
+<column colName="InstallPDFAction" header="P4 Action for install/pdfs" filterType="enum" 
+filterEnum="update,add" width="75"/>
+</tablePane>
+<tableNavigator tablePaneId="PDFTable"  align="left" />
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneFilesToDelete">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="This tab shows information used when we generate the Perforce change list for each PDF group."/>
+<label value="It displays information about PDF files to delete (based on comparing the database contents to the existing PDFs)."/>
+<button caption="Rescan PDF Files on Disk" 
+       onclick="zenPage.doRebuildPDFToolsTable();" 
+       hint="Use after loading files and after resyncing the PDF directories (scan also updates PDF Files to Update or Add tab)"
+        valign="top" hidden="true"/>
+
+<tablePane id="ObsoletePDFTable" OnCreateResultSet="CreateObsoletePDFRS"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+showRowSelector="false"
+enclosingStyle="font-size:10pt;"
+showQuery="false">
+<column colName="DocBookId" filterType="text"/>
+<column colName="Title" filterType="text"/>
+<column colName="PDFCategory" header="PDF Category" filterType="enum" 
+filterEnum="0,1,2,3"/>
+<column colName="PDFGroup" header="PDF Group" filterType="query" 
+filterQuery="SELECT DISTINCT %EXACT(PDFGroup) FROM DocBook_ManagerTables.ObsoletePDFs"/>
+<column colName="FullPDFAction" header="PDF Action (full/pdfs)" filterType="enum" 
+filterEnum="update,add,delete"/>
+<column colName="InstallPDFAction" header="PDF Action (install/pdfs)" filterType="enum" 
+filterEnum="update,add,delete"/>
+<column colName="TargetFullPDFDir" header="full/pdfs dir"/>
+<column colName="TargetInstallPDFDir" header="install/pdfs dir"/>
+</tablePane>
+<tableNavigator tablePaneId="ObsoletePDFTable"  align="left" />
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneNoCheckinGroup">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<tablePane id="NoCheckinGroupTable" OnCreateResultSet="CreateNoCheckinGroupRS"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+showRowSelector="false"
+enclosingStyle="font-size:10pt;"
+showQuery="false">
+<column colName="DocBookId" filterType="text"/>
+<column colName="Title" filterType="text"/>
+<column colName="Product"   filterType="query"
+filterQuery="select DISTINCT %EXACT(originproduct) from DocBook_ManagerTables.PDFGroups order by originproduct"/>
+<column colName="Branch"    filterType="query"
+filterQuery="select DISTINCT %EXACT(originbranch) from DocBook_ManagerTables.PDFGroups order by originbranch"/>
+<column colName="WhenLoaded" header="When Loaded"/>
+</tablePane>
+<tableNavigator tablePaneId="NoCheckinGroupTable"  align="left" />
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneRemap">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Remap Values" controlClass="label"/>
+<button caption="Read about this on FUNGDELL" valign="top"
+       onclick="window.open('http://fungdell2:57772/csp/docbook/DocBook.UI.Page.cls?KEY=XREF_remap_attribute','dbmchildWindow')"
+        enclosingClass="basictext"/>
+<spacer height="15"/>
+<tabGroup remember="true" showTabBar="true">
+<tab caption="Books">
+<pane paneName="paneRemapBooks"/>
+</tab>
+<tab caption="SETs">
+<pane paneName="paneRemapSETs"/>
+</tab>
+</tabGroup>
+
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneRemapBooks">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="This tab lists the remap values for the books in this DocBook database."/>
+<tablePane id="remapBookTable" OnCreateResultSet="CreateBookRemapRS"
+valueColumn="DocBookId"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showRowSelector="false"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+enclosingStyle="font-size:10pt;"
+showQuery="false">
+<column colName="DocBookId"    filterType="text" />
+<column colName="Remap"    filterType="text" />
+<column colName="Title"    filterType="text" />
+</tablePane>
+<tableNavigator tablePaneId="remapBookTable"  align="left"/>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneRemapSETs">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="This tab lists the remap values for the SETs in this DocBook database."/>
+<label value="It also shows the contents of each SET."/>
+<hgroup>
+<vgroup valign="top">
+<tablePane id="remapSETTable" OnCreateResultSet="CreateSETRemapRS"
+valueColumn="DocBookId"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showRowSelector="false"
+onselectrow="zenPage.onSelectItem('setremapinfo');"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+enclosingStyle="font-size:10pt;"
+showQuery="false">
+<column colName="DocBookId"    filterType="text" />
+<column colName="Remap"    filterType="text" />
+<column colName="Title"    filterType="text" />
+</tablePane>
+<tableNavigator tablePaneId="remapSETTable"  align="left"/>
+</vgroup>
+<spacer width="20"/>
+<vgroup valign="top"  id="setComponentTableGroup" hidden="true">
+<tablePane id="setComponentTable" OnCreateResultSet="CreateSETComponentRS" caption="Books in the Selected SET"
+showZebra="true"
+useKeys="true"
+pageSize="2000"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+rowSelect="false"
+showRowSelector="false"
+nowrap="false"
+enclosingStyle="font-size:10pt;">
+</tablePane>
+</vgroup>
+</hgroup>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneSearch">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Search" controlClass="label"/>
+<label value="This option lets you perform an exact, non-stemming search. Type the search item in header of Content column. Top 500 hits are shown."/>
+<spacer height="15"/>
+<checkbox id="CASESENSITIVESEARCH" caption="Perform case-sensitive search" onchange="zenPage.doSetPARAM('CASESENSITIVESEARCH');" />
+<spacer height="15"/>
+<tablePane id="searchTable" OnCreateResultSet="CreateSearchRS"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showRowSelector="true"
+showZebra="true"
+useKeys="true"
+pageSize="15"
+maxRows="1000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+enclosingStyle="font-size:10pt;" 
+showQuery="false">
+<column colName="blockid" filterType="text" link="DocBook.UI.Page.cls?KEY=#(%query.blockid)#" width="175"/>
+<column colName="content" hidden="true"/>
+<column colName="shortcontent" header="Content" filterType="text" />
+<column colName="sourcefile" filterType="text" width="175"/>
+<column colName="title" hidden="true"/>
+</tablePane>
+<tableNavigator tablePaneId="searchTable"  align="left"/>
+
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneTaxonomy">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Taxonomy" controlClass="label"/>
+<label value="This table lists taxonomy details defined in this DocBook application (used by buttons array on DocBook main page)."/>
+<spacer height="15"/>
+<button caption="Read about this on FUNGDELL" valign="top"
+       onclick="window.open('http://fungdell2:57772/csp/docbook/DocBook.UI.Page.cls?KEY=XREF_taxonomy','dbmchildWindow')"
+        enclosingClass="basictext"/>
+<tablePane id="taxonomyTable" OnCreateResultSet="CreateTaxonomyRS"
+headerLayout="headersOnTop"
+valueColumn="Filename"
+showRowNumbers="true"
+showRowSelector="false"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+enclosingStyle="font-size:10pt;">
+<column colName="DocBookId"    filterType="text" />
+<column colName="TaxoProduct" header="product"
+       filterType="enum" filterEnum="Cache,Ensemble,HealthShare"/>
+<column colName="TaxoApp"  header="app"
+        filterType="enum" filterEnum="Web,Client/Server,Terminal,Integration"/>
+<column colName="TaxoLang" header="lang"
+        filterType="enum" filterEnum="BASIC,BPL,CPP,CSP,DeepSee,DOTNET,DTL,HTML,ISQL/TSQL,Java,JavaScript,MultiValue,ObjectScript,PERL,PYTHON,SOAP,SQL,XML,ZEN"/>
+<column colName="TaxoLevel" header="level"
+        filterType="enum" filterEnum="Introductory,Intermediate,Advanced"/>
+<column colName="TaxoRole"  header="role"
+        filterType="enum" filterEnum="Development,Administration,Security,Installation,Tools"/>
+<column colName="TaxoBook" header="book"  
+        filterType="enum" filterEnum="Guides,References,Tutorials,Articles"/>
+</tablePane>
+<tableNavigator tablePaneId="taxonomyTable"  align="left"/>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneTOC">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<label value="Table of Contents" controlClass="label"/>
+<label value="This table displays the headings of all books and articles in this DOCBOOK database, as found by an initial scan." />
+<label value="For each book or article, this table displays the headings in the order defined in that book or article." />
+<label value="After you load files, use the button below to redo the scan." />
+
+<vgroup valign="top" enclosingClass="basictext">
+<hgroup>
+<button caption="Scan Database" 
+       onclick="zenPage.doRescan('toc');" 
+       hint="Runs in background; can take a couple of minutes"
+        enclosingClass="basictext" valign="top"/>
+ <spacer width="10"/>
+<button caption="Rerun Query" 
+       onclick="zen('tocTable').executeQuery();" 
+        enclosingClass="basictext" valign="top" hidden="false"/>
+ <spacer width="10"/>
+<button caption="Export to Text" onclick="zenPage.doExportTOCToCSV();"
+hint="Exports all this data to a comma-delimited file" enclosingClass="basictext" valign="top"/>
+ </hgroup>
+</vgroup>
+
+<spacer height="15"/>
+<tablePane id="tocTable" OnCreateResultSet="CreateTOCRS"
+headerLayout="headersOnTop"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"  
+showRowSelector="false"
+showRowNumbers="true"
+nowrap="false"
+enclosingStyle="font-size:10pt;">
+
+<column colName="Document" header="Book or Article"  width="150" 
+filterType="text" />
+
+<column colName="UnitNumbering" header="Sect. #" width="75" />
+
+<column colName="Title" filterType="text" />
+
+<column colName="UnitLevel" header="TOC Level"      
+filterType="query" width="50"
+filterQuery="select distinct UnitLevel from DocBook_ManagerTables.TOC order by UnitLevel" />
+
+<column colName="UnitType" header="Type"            
+filterType="query"  width="100"
+filterQuery="select distinct %EXACT(UnitType) from DocBook_ManagerTables.TOC order by UnitType"/>
+
+<column colName="DocBookId" filterType="text" 
+link="DocBook.UI.Page.cls?KEY=#(%query.DocBookId)#"/>
+
+<column colName="IdIsOK"  header="id Is OK?" 
+filterType="enum" width="75"
+filterEnum="1,0" filterEnumDisplay="yes(1),no(0)" title="test" cellTitle="generated ID=not OK (a link to the ID in one installation does not work in another installation)"/>
+
+<column colName="IdIsGenerated"  header="id Is Generated?" 
+filterType="enum" width="75"
+filterEnum="1,0" filterEnumDisplay="yes(1),no(0)"/>
+                                                           
+<condition colName="IdIsOK" 
+          predicate="EQ"
+          value="0"
+           cellStyle="background: red;color: white;"/>
+</tablePane>
+<tableNavigator tablePaneId="tocTable"  align="left"/>
+</pane>
+]]></Data>
+</XData>
+
+<XData name="paneWideChars">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<pane>
+<vgroup valign="top" enclosingStyle="vertical-align:top">
+<label value="Wide Characters" controlClass="label"/>
+<label value="This table is initially empty because we assume there are no wide characters in a newly installed DOCBOOK database." />
+<label value="After you load files, use the button below to scan for any wide characters."/>
+<spacer height="15"/>
+<vgroup valign="top">
+<hgroup >
+<button caption="Scan for Wide Chars" 
+       onclick="zenPage.doRescan('widechars');" 
+        hint="This option scans the entire database for wide characters (can take a couple of minutes)"
+        valign="top"/>
+ <spacer width="10"/>
+<button caption="Rerun Query" 
+       onclick="zen('widecharTable').executeQuery();" 
+        enclosingClass="basictext" valign="top" hidden="true"/>
+ </hgroup>
+
+</vgroup>
+
+<spacer height="15"/>
+<tablePane id="widecharTable" queryClass="DocBook.ManagerTables.WideChars" 
+queryName="WideCharFindings"
+headerLayout="headersOnTop"
+showZebra="true"
+showRowNumbers="true"
+showRowSelector="false"
+nowrap="false" showQuery="false"
+enclosingStyle="font-size:10pt;">
+<column colName="SourceFile" header="Source File" />
+<column colName="ParentTopic" header="Location" link="DocBook.UI.Page.cls?KEY=#(%query.ParentTopic)#"/>
+<column colName="LocationType" header="Location Type"/>
+<column colName="LocationValue" header="Text at Location (Truncated)"/>
+</tablePane>
+</vgroup>
+</pane>
+]]></Data>
+</XData>
+
+<Method name="setPageSize">
+<Description>
+Called when a user saves settings</Description>
+<FormalSpec>pageSize</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+   //alert (pageSize);
+   if (pageSize==0) {
+       pageSize=20;
+       var longPageSize=2000;
+   } else {
+       var longPageSize=pageSize;
+   }
+   
+   //use this value to modify all tables in UI 
+   zen('mainTable').setProperty('pageSize',longPageSize);
+   zen('componentTable').setProperty('pageSize',longPageSize);
+   zen('SETTable').setProperty('pageSize',longPageSize);
+   zen('setComponentTable').setProperty('pageSize',longPageSize);
+   zen('graphicTable').setProperty('pageSize',pageSize);
+   zen('imageFileTable').setProperty('pageSize',pageSize);
+   zen('widecharTable').setProperty('pageSize',pageSize);
+   zen('linkTable').setProperty('pageSize',pageSize);
+   zen('badListingTable').setProperty('pageSize',pageSize);
+   zen('portalPageTable').setProperty('pageSize',pageSize);
+   zen('interfaceTagsTable').setProperty('pageSize',pageSize);
+   zen('taxonomyTable').setProperty('pageSize',pageSize);
+   zen('tocTable').setProperty('pageSize',pageSize);
+]]></Implementation>
+</Method>
+
+<Method name="onloadHandler">
+<Description>
+This client event, if present, is fired when the page is first loaded </Description>
+<FormalSpec>load</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+
+    zenPage.doUseParamsFromDisk();
+    var paramsFromDisk = zenPage.GetParamsFromDisk();
+    if (paramsFromDisk) {
+        if (paramsFromDisk.SHOWPORTALOPTIONS==false) {
+          zen('PortalOption1').setHidden(true);
+          zen('PortalOption2').setHidden(true);
+        }
+    }
+
+    // find out if we initialized earlier
+    var initialized=zenPage.GetAreWeInitialized();
+    //if we never initialized, then do a bunch of stuff
+    if (initialized==false) {
+        zen('INITIALIZINGmessage').setHidden(false);
+
+        //Initialize a few manager tables; this can be time-consuming
+        zenPage.Initialize();
+
+        //we are probably looking at the Load & View tab, which is the default tab to display
+        //so run all the logic we normally use when displaying that tab
+        //zenPage.showTab('files');
+        zenPage.showPane('paneMain');
+    
+        zen('INITIALIZINGmessage').setHidden(true);
+    }
+    
+
+    //update all non-transient parts of the display
+    zenPage.updateStateInfo();
+    
+    zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+
+<Method name="updateDisplay">
+<Description><![CDATA[
+Utility method invoked by many other methods.
+This method updates the display with info about the state of the database
+and the files currently on the path.
+<p><var>which</var> specifies the main branch to use.
+<p><var>state</var> is either 'progress' or 'done'.
+<p><var>messagedetails</var> can carry any additional string needed in a transient message.]]></Description>
+<FormalSpec>which,state,messagedetails</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    //if (which) {
+    //  alert(which);
+    //}
+
+    //update all non-transient parts of the display
+    zenPage.updateStateInfo();
+    
+    zen('msgDone').setHidden(true);
+    zen('msgProgress').setHidden(true);
+    
+    if (which!=undefined) {
+        if (state=='progress') {
+            zen('msgProgress').setHidden(false);
+        } else if (state='done') {
+            zen('msgDone').setHidden(false);
+        }
+    }
+
+    if (which=='cancelpathedits') {
+        zen('msgProgress').setValue('Canceling edits...');
+        zen('msgDone').setValue('Canceled edits');
+
+    } else if (which=='cancelconfigedits') {
+        zen('msgProgress').setValue('Canceling edits...');
+        zen('msgDone').setValue('Canceled edits');
+
+    } else if (which=='exportAllForPDF')  {
+        zen('msgDone').setValue('(Background job) Exporting files to &lt;install-dir>/DocBookManager directory...' );
+
+    } else if (which=='exportPDFGroup')  {
+        zen('msgDone').setValue('(Background job) Exporting files to &lt;install-dir>/DocBookManager directory...' );
+
+    } else if (which=='exportPDFItem')  {
+        zen('msgDone').setValue('(Background job) Exporting this book or article to &lt;install-dir>/DocBookManager directory...' );
+
+    } else if (which=='generateCLForPDFGroup')  {
+        zen('msgDone').setValue('(Background job) Generating .bat file in &lt;install-dir>/DocBookManager directory...' );
+
+    } else if (which=='loadsources') {
+        zen('msgDone').setValue('Loading sources in background and writing to the log file... ');
+
+     } else if (which=='remove') {
+        zen('msgProgress').setValue('Removing item...');
+        zen('msgDone').setValue('Removed item');
+
+    } else if (which=='reloadparms') {
+        zen('msgProgress').setValue('Reloading parameters from disk...');
+        zen('msgDone').setValue('Done reloading parameters from disk');
+
+    } else if (which=='removeall') {
+        zen('msgProgress').setValue('Removing all content from this database... ');
+        zen('msgDone').setValue('Removed all content from this database');
+
+    } else if (which=='rescanfiles') {
+        zen('msgProgress').setValue('Scanning files and image files on the search path... ');
+        zen('msgDone').setValue('Rescanned the files and image files on the search path');
+
+    } else if (which=='rescanimagefiles') {
+        //zen('msgProgress').setValue('Scanning graphic tags in this database...');
+        //zen('msgDone').setValue('Done scanning graphic tags in this database');
+        zen('msgDone').setValue('(Background job) Rescanning image files and then graphics tags... rerun query to see new results');
+
+    } else if (which=='rescangraphics') {
+        //zen('msgProgress').setValue('Scanning graphic tags in this database...');
+        //zen('msgDone').setValue('Done scanning graphic tags in this database');
+        zen('msgDone').setValue('(Background job) Rescanning graphics tags... rerun query to see new results');
+
+    } else if (which=='rescanlinks') {
+        zen('msgProgress').setValue('Scanning links in this database...');
+        zen('msgDone').setValue('Done scanning links in this database');
+
+    } else if (which=='rescanlistings') {
+        zen('msgProgress').setValue('Scanning listings in this database...');
+        zen('msgDone').setValue('Done scanning listings in this database');
+
+    } else if (which=='rescantoc') {
+        //zen('msgProgress').setValue('Scanning headings in the documents in this database...');
+        zen('msgDone').setValue('(Background job) Rescanning headings.. rerun query to see new results');
+
+    } else if (which=='rescanwidechars') {
+        zen('msgProgress').setValue('Scanning database for wide characters...');
+        zen('msgDone').setValue('Done scanning for wide characters');
+
+    } else if (which=='restoredefaultparams') {
+        zen('msgProgress').setValue('Restoring default hardcoded parameters...');
+        zen('msgDone').setValue('Done restoring default hardcoded parameters');
+
+    } else if (which=='saveparamsfromui') {
+        zen('msgProgress').setValue('Saving changes to parameters...');
+        zen('msgDone').setValue('Done saving changes to parameters');
+
+    } else if ((which=='savepathfromui') || (which=='setpath')) {
+        zen('msgProgress').setValue('Saving search path and rescanning files...');
+        zen('msgDone').setValue('Done saving search path and rescanning files');
+
+    }
+]]></Implementation>
+</Method>
+
+<Method name="updateStateInfo">
+<Description>
+Retrieves info. from server that needs to be reflected (in some form) in the UI.
+Updates UI correspondingly.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    //alert('in updateStateInfo');
+
+    var proxy=zenPage.GetServerInfo();
+    var initialized         =proxy.Initialized;
+
+    var widecharcheck       =proxy.WideCharCheck;
+    var widecharproblems    =proxy.WideCharProblems;
+    var widecharscanstale   =proxy.WideCharScanStale;
+    console.log('widecharscanstale is '+widecharscanstale);
+    
+    var coreversion         =proxy.CoreVersion;
+    var instancename        =proxy.InstanceName;
+    var dbmversion          =proxy.dbmversion;
+    
+    
+    // wide char scan summary info
+    if (widecharcheck==1) {
+        if (widecharproblems>0) {
+            //display the two labels at the top of the page
+            zen('SUMMARYwideCharAlert1').setHidden(false);
+            zen('SUMMARYwideCharAlert2').setHidden(false);
+        } else {
+            //hide the two labels at the top of the page and update counts
+            zen('SUMMARYwideCharAlert1').setHidden(true);
+            zen('SUMMARYwideCharAlert2').setHidden(true);
+        }
+    }
+
+    if ((initialized==1) & (widecharscanstale==true)) {
+       zen('STALEwideCharCount').setHidden(false);
+    } else {
+       zen('STALEwideCharCount').setHidden(true);
+    }
+
+
+    // Core version (Cache/Ensemble build info.) -- shown in the header
+    zen('msgcoreversion').setValue('System version: '+coreversion);
+    zen('msginstancename').setValue('Instance name: '+instancename);
+    zen('msgdbmversion').setValue('DBM version: '+dbmversion);
+]]></Implementation>
+</Method>
+
+<Method name="onSelectItem">
+<FormalSpec>which,detail</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+    zenPage.updateDisplay(); 
+    var paramsFromDisk = zenPage.GetParamsFromDisk();
+
+    if (which=='document') {
+        //enable some buttons
+        zenSetProp('btnViewDocument','disabled', false); 
+        zenSetProp('btnRemoveDocument','disabled', false); 
+        zenSetProp('btnExportDocument','disabled', false);
+        var docbookid=zen('loadedTable').getValue();
+
+    } else if (which=='filename') {
+        //enable some buttons
+        zenSetProp('btnReloadDocument','disabled', false); 
+
+        //get selected item
+        if (detail=='main') {
+            var docbookid=zen('mainTable').getValue(); 
+            var info=zenPage.GetInfoFromDocBookId(docbookid);
+            var filename=info.Filename;
+            var doctype=info.DocType;
+        } else {
+            var filename=zen('componentTable').getValue();
+            var docinfo=zenPage.GetDocInfo(filename);
+            var docbookid=docinfo.DocBookId; 
+            var doctype=docinfo.DocType; 
+        }
+
+        //update INFO field
+        zen('INFOselectedfile').setValue('Selected file: '+filename);
+
+        //set several *page* properties for use by other methods of page
+        zenPage.setProperty('SelectedFilename',filename);
+        zenPage.setProperty('SelectedDocBookId',docbookid);
+        zenPage.setProperty('SelectedDocType',doctype); 
+
+        //display secondary table and execute its query
+        //alert(paramsFromDisk.COMPONENTSVIAFILEMGR);
+        var queryparm = zen('queryparm');
+        queryparm.setProperty('value',docbookid);
+        if (detail=='main') {
+            if (paramsFromDisk) {
+                if (paramsFromDisk.COMPONENTSVIAFILEMGR==0) {
+                    zen('componentTableGroup').setHidden(false);
+                    zen('componentTable').executeQuery();
+                } else {
+                    zen('componentTableGroup').setHidden(true);
+                }
+            } else {
+                zen('componentTableGroup').setHidden(false);
+                zen('componentTable').executeQuery();
+            }
+        }
+        //NB DO NOT deselect row in main table; if you do, the component table query is busted!
+
+    } else if (which=='imagefile') {
+        //get selected item
+        var filename=zen('imageFileTable').getValue();
+        //update INFO field
+        zen('INFOselectedimagefile').setValue('Selected file: '+filename);
+
+    } else if (which=='pdftablerow') {
+        //enable some buttons
+        zenSetProp('btnExportItem','disabled', false);
+   
+    } else if (which=='pdfgroup') {
+        zenSetProp('pdfgroupdetails','hidden',false);
+        zenSetProp('btnSavePDFGroupDetails','disabled', false); 
+        zenSetProp('btnExportPDFGroup','disabled',false);
+        zenSetProp('btnGenerateCLForGroup','disabled',false);
+        var groupid=zen('PDFGroupTable').getValue();
+        zen('INFOpdfgroupid').setValue(groupid);
+        //alert(groupid);
+        var details=zenPage.GetPDFGroupDetailsFromDisk(groupid);
+        zen('INFOpdfgrouporigin').setValue(details.Origin);
+        zen('INFOpdfgroupdefaultcoverversion').setValue(details.DefaultCoverVersion);
+        zen('INFOpdfgroupdefaulttargetperforceversion').setValue(details.DefaultTargetPerforceVersion);
+        zen('INPUTcoverversion').setValue(details.CoverVersionOverride);
+        zen('INPUTperforceversion').setValue(details.PerforceVersionOverride);
+        
+    } else if (which=='portalpage') {
+        //get selected item and retrieve info from disk
+        var classname=zen('portalPageTable').getValue();
+        zen('pgdetailClassname').setValue('Portal page class: '+classname);
+        var details=zenPage.GetPageDetailsFromDisk(classname);
+        if (details) {
+            //set this for all page types
+            var PAGENAME=details.PAGENAME ;
+            zen('pgdetailPagename').setValue(PAGENAME);
+
+            //display CSPURL to give extra help in finding page
+            var CSPURL=details.CSPURL ; 
+            zen('pgdetailCspUrl').setValue(CSPURL);
+
+            var PageType=details.PageType ;
+            if (PageType==1) {
+                var HELPADDRESS=details.HELPADDRESS ;
+                var AnchorGlobalEntry=details.AnchorGlobalEntry ;
+                zen('pgdetailHelpAddress').setValue(HELPADDRESS);
+                zen('pgdetailAnchorTopic').setValue(AnchorGlobalEntry);
+                zen('pgdetailHardcodedDocBookId').setValue('');
+
+            } else if (PageType==2) {
+                var ComputedHelpAddress=details.ComputedHelpAddress ;
+                var AnchorGlobalEntry=details.AnchorGlobalEntry ;
+                zen('pgdetailHelpAddress').setValue(ComputedHelpAddress);
+                zen('pgdetailAnchorTopic').setValue(AnchorGlobalEntry);
+                zen('pgdetailHardcodedDocBookId').setValue('');
+
+            } else if (PageType==3) {
+                var ComputedHelpAddress=details.ComputedHelpAddress ;
+                var AnchorGlobalEntry=details.AnchorGlobalEntry ;
+                zen('pgdetailHelpAddress').setValue(ComputedHelpAddress);
+                zen('pgdetailAnchorTopic').setValue(AnchorGlobalEntry);
+                zen('pgdetailHardcodedDocBookId').setValue('');
+
+            } else if (PageType==4) {
+                var DOCBOOKID=details.DOCBOOKID ;
+                zen('pgdetailHelpAddress').setValue('');
+                zen('pgdetailAnchorTopic').setValue('');
+                zen('pgdetailHardcodedDocBookId').setValue(DOCBOOKID);
+
+            } else if (PageType==5) {
+                var HSHELPKEY=details.HSHELPKEY ;
+                zen('pgdetailHelpAddress').setValue('');
+                zen('pgdetailAnchorTopic').setValue('');
+                zen('pgdetailHardcodedDocBookId').setValue(HSHELPKEY);
+            }
+
+            //get summary info about whether we tried to define Help
+            var HelpAttempted=details.HelpAttempted;
+            var ExpectedDocBookId=details.ExpectedDocBookId ;
+            var HelpFound=details.HelpFound;
+            var HelpFoundComment=details.HelpFoundComment;
+
+            zen('pgdetailExpectedTopicId').setValue(ExpectedDocBookId);
+            zen('pgdetailHelpFoundComment').setValue(HelpFoundComment);
+
+            if (HelpAttempted==0 || HelpFound==0) {
+                zen('pgdetailHelpFoundComment').setProperty('controlClass','alert');
+            } else {
+                zen('pgdetailHelpFoundComment').setProperty('controlClass','');
+            }
+
+            //finally display a comment relevant to this page type (from details)
+            var Comment=details.Comment ;
+            zen('pgdetailComment').setValue(Comment);
+
+        }
+
+
+    } else if (which=='setfile') {
+        //enable some buttons
+        zenSetProp('btnReloadSET','disabled', false); 
+
+        //get selected item
+        var setid=zen('SETTable').getValue();
+
+        // make a trip to the server and get some additional info
+        var filename=zenPage.GetSETFilename(setid);
+
+        //update INFO field
+        zen('INFOselectedsetfile').setValue('Selected file: '+filename);
+
+        //set several *page* properties for use by other methods of page
+        //The Load button uses the SelectedSET page property
+        zenPage.setProperty('SelectedSET',setid);
+
+    } else if (which=='setremapinfo') {
+
+        //get selected item
+        var setid=zen('remapSETTable').getValue();
+        //alert(setid);
+
+        // make a trip to the server and get some additional info
+        var setinfo=zenPage.GetSETInfo(setid);
+        var setbooklist=setinfo.Booklist;
+        var filename=setinfo.Filename;
+        //alert(setbooklist);
+
+        //set several *page* properties for use by other methods of page
+        //The View button uses the SelectedSET page property
+        zenPage.setProperty('SelectedSET',setid);
+        //The secondary query uses the SelectedBookList page property 
+        //This is an alternative approach to passing this value (a comma-separated list)
+        //as a query parameter, which did not work.
+        zenPage.setProperty('SelectedBookList',setbooklist);
+
+        //display secondary table and execute its query
+        zen('setComponentTable').executeQuery();
+        zen('setComponentTableGroup').setHidden(false);
+        
+
+    }
+
+    zenSynchronousMode=keep;
+]]></Implementation>
+</Method>
+
+<Method name="hideComponents">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    zen('componentTableGroup').setHidden(true);
+    zenPage.disableFileButtons();
+]]></Implementation>
+</Method>
+
+<Method name="disableFileButtons">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[    zenSetProp('btnReloadDocument','disabled', true);
+]]></Implementation>
+</Method>
+
+<Method name="disableDocumentButtons">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    zenSetProp('btnViewDocument','disabled', true);
+    zenSetProp('btnRemoveDocument','disabled', true);
+    zenSetProp('btnExportDocument','disabled', true);
+]]></Implementation>
+</Method>
+
+<Method name="viewItem">
+<Description>
+Called by the View button
+This method displays the selected item in the DocBook application.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var docbookid=zen('loadedTable').getValue();
+    var url='DocBook.UI.Page.cls?KEY=' + escape(docbookid);
+    window.open(url,'dbmchildWindow');
+]]></Implementation>
+</Method>
+
+<Method name="doUseParamsFromDisk">
+<Description>
+Called by the onloadHandler callback and by both Cancel buttons on Config page 
+(to cancel manual path edits and changes to configuration parameters--the which argument specifies which).
+This method gets parameters (including SOURCE) from disk and sets values in UI.</Description>
+<FormalSpec>which</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+   
+    // At this point, other client methods would use updateDisplay() 
+    // to display a progress message. *this* method is too fast to need that
+    
+    var paramsFromDisk = zenPage.GetParamsFromDisk();
+    
+    if (paramsFromDisk) { 
+        zen('SOURCE').setValue(paramsFromDisk.SOURCE);
+        zen('COMPONENTSVIAFILEMGR').setValue(paramsFromDisk.COMPONENTSVIAFILEMGR);
+        zen('DBMBUILDDIR').setValue(paramsFromDisk.DBMBUILDDIR);
+        zen('IGNORECOLORERROR').setValue(paramsFromDisk.IGNORECOLORERROR);
+        zen('INCLREMARK').setValue(paramsFromDisk.INCLREMARK);
+        zen('PAGESIZE').setValue(paramsFromDisk.PAGESIZE);
+        zen('SHOWALL').setValue(paramsFromDisk.SHOWALL);
+        zen('SHOWPORTALOPTIONS').setValue(paramsFromDisk.SHOWPORTALOPTIONS);
+        zen('WIDECHARCHECK').setValue(paramsFromDisk.WIDECHARCHECK);
+        
+        if (paramsFromDisk.COMPONENTSVIAFILEMGR==1) {
+            zen('ViewFilesCol').setProperty('hidden',false);
+        }
+        
+        if (paramsFromDisk.SHOWLOADCOLUMN==1) {
+            zen('LoadFileCol').setProperty('hidden',false);
+        }
+        
+        zenPage.setPageSize(paramsFromDisk.PAGESIZE);
+        zenPage.updateDisplay(which,'done');
+    }
+    zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+
+<Method name="doLoadAll">
+<Description>
+Called by a button on paneSETs.
+This method prompts for confirmation and then (if ok!) 
+launches a CSP page that clears the DOCBOOK database and then 
+loads the SETs, the component files, and all articles on the current path.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var ok = confirm('Are you sure you want to reload all? This can be time-consuming.');
+    if (ok==true) {
+        window.open('DocBook.Manager.LoadOutput.cls?ID=ALL','dbmchildWindow');
+    
+        //update all non-transient parts of the display
+        zenPage.updateStateInfo();
+    }
+]]></Implementation>
+</Method>
+
+<Method name="doLoadBookOrArticle">
+<Description>
+Called by a button on paneMain.
+This method launches a CSP page that loads the selected item into the DOCBOOK database 
+and displays progress information.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var filename=zenPage.getProperty('SelectedFilename');
+    var docbookid=zenPage.getProperty('SelectedDocBookId');
+    var doctype=zenPage.getProperty('SelectedDocType');
+    if (doctype=='component') {
+        var url='DocBook.Manager.LoadFileOutput.cls?FILE=' + escape(filename);
+    } else {
+        //docbookid=escape(docbookid);
+        var url='DocBook.Manager.LoadOutput.cls?ID=' + escape(docbookid);
+    }
+    window.open(url,'dbmchildWindow');
+
+    //update all non-transient parts of the display
+    zenPage.updateStateInfo();
+    //rerun query
+    zen('loadedTable').executeQuery();
+]]></Implementation>
+</Method>
+
+<Method name="doLoadSET">
+<Description>
+Called by a button on paneSETs.
+This method launches a CSP page that loads the selected set into the DOCBOOK database
+and displays progress information.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var setid=zenPage.getProperty('SelectedSET');
+    var url='DocBook.Manager.LoadOutput.cls?ID=' + escape(setid);
+    window.open(url,'dbmchildWindow');
+
+    //update all non-transient parts of the display
+    zenPage.updateStateInfo();
+
+    //rerun query
+    zen('loadedTable').executeQuery();
+]]></Implementation>
+</Method>
+
+<Method name="doRemoveAll">
+<Description>
+This method prompts for confirmation and then (if ok!) 
+removes all content from the DOCBOOK database.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+    var ok = confirm('Are you sure you want to remove everything?');
+    if (ok==true) {
+        zenPage.updateDisplay('removeall','progress'); 
+        zenPage.Remove('all');
+        zen('loadedTable').executeQuery();
+        zenPage.updateDisplay('removeall','done'); 
+    }
+    zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+
+<Method name="doRemoveDocument">
+<Description>
+This method removes the selected item from the DOCBOOK database.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+    zenPage.updateDisplay('remove','progress'); 
+    var docbookid=zen('loadedTable').getValue();
+    //alert(docbookid);
+    zenPage.Remove(docbookid);
+    zen('loadedTable').executeQuery();
+    zenPage.updateDisplay('remove','done'); 
+    zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+
+<Method name="doRescan">
+<Description><![CDATA[
+Perform the requested on-demand scan.
+<var>which</var> can any of the following:
+<ul>
+<li>'files' -- scan the files currently in the path and 
+and update the tables that store information about these files.
+</li>
+<li>'links' -- scan the DOCBOOK database to examine links
+and update the table that stores this information.
+</li>
+<li>'listings' -- scan the DOCBOOK database for syntax errors in &lt;programlisting> elements  
+and update the table that stores this information.
+</li>
+<li>'toc' -- scan the DOCBOOK database to collect the table of contents
+and update the table that stores this information.
+</li> 
+<li>'widechars' -- scan the DOCBOOK database for wide characters
+and update the table that stores this information.
+</li> 
+<ul>]]></Description>
+<FormalSpec>which</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+
+    if (which=='files') {
+        zenPage.updateDisplay('rescanfiles','progress');
+        zenPage.Rescan('files');
+        //no need to rerun queries because no table is visible at the same time as this button
+        zenPage.updateDisplay('rescanfiles','done');
+        
+    } else if (which=='imagefiles') {
+        zenPage.Rescan('imagefiles');
+        zenPage.updateDisplay('rescanimagefiles','done');
+
+    } else if (which=='graphics') {
+        //zenPage.updateDisplay('rescangraphics','progress');
+        zenPage.Rescan('graphics'); //runs in background
+        //rerun query because the data has changed *and* 
+        //we are currently viewing the table
+        //zen('graphicTable').executeQuery();
+        zenPage.updateDisplay('rescangraphics','done');
+    
+    } else if (which=='links') {
+        zenPage.updateDisplay('rescanlinks','progress');
+        zenPage.Rescan('links');
+        //rerun query because the data has changed *and* 
+        //we are currently viewing the table
+        zen('linkTable').executeQuery();
+        zenPage.updateDisplay('rescanlinks','done');
+    
+    } else if (which=='listings') {
+        zenPage.updateDisplay('rescanlistings','progress');
+        zenPage.Rescan('listings');
+        //rerun query because the data has changed *and* 
+        //we are currently viewing the table
+        zen('badListingTable').executeQuery();
+        zenPage.updateDisplay('rescanlistings','done');
+
+    } else if (which=='toc') {
+        //zenPage.updateDisplay('rescantoc','progress');
+        zenPage.Rescan('toc'); //runs in background
+        //rerun query because the data has changed *and* 
+        //we are currently viewing the table
+        //zen('tocTable').executeQuery();
+        zenPage.updateDisplay('rescantoc','done');
+    
+    } else if (which=='widechars') {
+        zenPage.updateDisplay('rescanwidechars','progress');
+        zenPage.Rescan('widechars');
+        //rerun query because the data has changed *and* 
+        //we are currently viewing the table
+        zen('widecharTable').executeQuery();
+        zenPage.updateDisplay('rescanwidechars','done');
+    }
+
+    zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+
+<Method name="doRestoreDefaultParams">
+<Description>
+Called by Restore Default Settings button on Config tab, 
+visible when you view settings (rather than the path).
+This method restores "default" values for settings other than SOURCE.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+
+    zenPage.updateDisplay('restoredefaultparams','progress'); 
+
+    // go to server and reset
+    zenPage.RestoreDefaultParams();
+
+    //get a proxy object that contains the values
+    var paramsFromDisk = zenPage.GetParamsFromDisk();
+    if (paramsFromDisk) {
+        //update the UI
+        zen('COMPONENTSVIAFILEMGR').setValue(paramsFromDisk.COMPONENTSVIAFILEMGR);
+        zen('IGNORECOLORERROR').setValue(paramsFromDisk.IGNORECOLORERROR);
+        zen('INCLREMARK').setValue(paramsFromDisk.INCLREMARK);
+        zen('PAGESIZE').setValue(paramsFromDisk.PAGESIZE);
+        zen('SHOWALL').setValue(paramsFromDisk.SHOWALL);
+        zen('WIDECHARCHECK').setValue(paramsFromDisk.WIDECHARCHECK);
+  }
+    
+  zenPage.updateDisplay('restoredefaultparams','done'); 
+    
+  zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+
+<Method name="doSetPath">
+<Description>
+Called by the Oldest Paths, Default Paths, and Latest Paths buttons on the Config tab,
+visible when you view paths (rather than settings).
+This method updates the SOURCE setting.</Description>
+<FormalSpec>which</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+    zenPage.updateDisplay('setpath','progress');
+
+    // go to server and reset path
+    zenPage.SetPaths(which);
+
+    //get cleaned up SOURCE setting as seen by server and display that
+    var SOURCEfromDisk = zenPage.GetPathFromDisk();
+    if (SOURCEfromDisk) {
+        zen('SOURCE').setValue(SOURCEfromDisk);
+    }
+
+    //rescan the files; can be time-consuming
+    zenPage.Rescan('files');
+
+    //no need to rerun queries because no table is visible on the tab
+    //that has this button; when user clicks a tab that DOES display an 
+    //affected table, we automatically run that query
+
+    zenPage.updateDisplay('setpath','done','Done!');
+ 
+    zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+
+<Method name="doSaveParamsFromUI">
+<Description>
+Called by Save Changes button on Config tab, 
+visible when you view settings (rather than the path).
+This method saves values for settings other than SOURCE.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+
+    zenPage.updateDisplay('saveparamsfromui','progress');
+
+    //create a proxy object to carry the values
+    var proxyObject = new zenProxy();
+    proxyObject.COMPONENTSVIAFILEMGR =   zen('COMPONENTSVIAFILEMGR').getValue();
+    proxyObject.DBMBUILDDIR =            zen('DBMBUILDDIR').getValue();
+    proxyObject.IGNORECOLORERROR =       zen('IGNORECOLORERROR').getValue();
+    proxyObject.INCLREMARK =             zen('INCLREMARK').getValue();
+    proxyObject.PAGESIZE =               zen('PAGESIZE').getValue();
+    proxyObject.SHOWALL =                zen('SHOWALL').getValue();
+    proxyObject.SHOWPORTALOPTIONS =      zen('SHOWPORTALOPTIONS').getValue();
+    proxyObject.WIDECHARCHECK =          zen('WIDECHARCHECK').getValue();
+    
+    zenPage.SaveParamsFromUI(proxyObject);
+
+    zenPage.setPageSize(proxyObject.PAGESIZE);
+    zenPage.updateDisplay('saveparamsfromui','done');
+
+    zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+
+<Method name="doSavePathFromUI">
+<Description>
+Called by the Save Manual Edits button on the Config tab,
+visible when you view paths (rather than settings).
+This method updates the SOURCE setting.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+
+    zenPage.updateDisplay('savepathfromui','progress');
+
+    var SOURCE = zen('SOURCE').getValue();
+    zenPage.SavePathFromUI(SOURCE);
+
+    //get cleaned up SOURCE setting as seen by server
+    var SOURCEfromDisk = zenPage.GetPathFromDisk();
+    if (SOURCEfromDisk) {
+        zen('SOURCE').setValue(SOURCEfromDisk);
+    }
+
+    //rescan the files; can be time-consuming
+    zenPage.Rescan('files');
+
+    //no need to rerun queries because no table is visible on the tab
+    //that has this button; when user clicks a tab that DOES display an 
+    //affected table, we automatically run that query
+
+    zenPage.updateDisplay('savepathfromui','done');
+
+    zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+
+<Method name="doShowScanTimes">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    //go to the server and get the time stamps for all the manager tables
+    var proxy=zenPage.GetScanTimeStamps();
+    //update the UI
+    zen('timeload').setValue(proxy.Load);
+    zen('timefiles').setValue(proxy.Files);
+    zen('timesetfiles').setValue(proxy.SETFiles);
+    zen('timeimagefiles').setValue(proxy.ImageFiles);
+    zen('timepagehelp').setValue(proxy.Pages);
+    zen('timeinterfacetags').setValue(proxy.InterfaceTags);
+    zen('timelinks').setValue(proxy.Links);
+    zen('timelistings').setValue(proxy.Listings);
+    zen('timegraphics').setValue(proxy.Graphics);
+    zen('timewidechars').setValue(proxy.WideChars);
+    zen('timetaxonomy').setValue(proxy.Taxonomy);
+    zen('timetoc').setValue(proxy.TOC);
+    zen('timesysteminit').setValue(proxy.SystemInit);
+]]></Implementation>
+</Method>
+
+<Method name="doPurgeLog">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var ok = confirm('Are you sure you want to purge the log?');
+    if (ok!==true) {
+        return;
+    }
+    zenPage.PurgeLog();
+    zen('logTable').executeQuery();
+]]></Implementation>
+</Method>
+
+<Method name="doGetPARAM">
+<FormalSpec>param</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    if (param='CASESENSITIVESEARCH') {
+        var returnval=zenPage.GetPARAM(param);
+        zen(param).setValue(returnval);
+    }
+]]></Implementation>
+</Method>
+
+<Method name="doSetPARAM">
+<FormalSpec>param,value</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    if (param='CASESENSITIVESEARCH') {
+        var valuetouse = zen('CASESENSITIVESEARCH').getValue();
+        if (valuetouse==true) {
+            zenPage.SetPARAM('CASESENSITIVESEARCH',1);
+        } else {
+            zenPage.SetPARAM('CASESENSITIVESEARCH',0);
+        }
+        zen('searchTable').executeQuery();
+    }
+]]></Implementation>
+</Method>
+
+<Method name="doExportItem">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var docbookid=zen('PDFTable').getValue();
+    zenPage.ExportItem(docbookid); //runs in the background
+    zenPage.updateDisplay('exportPDFItem','done');
+]]></Implementation>
+</Method>
+
+<Method name="doExportPDFGroup">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var pdfgroup=zen('PDFGroupTable').getValue();
+    zenPage.ExportGroup(pdfgroup); //runs in the background
+    zenPage.updateDisplay('exportPDFGroup','done');
+]]></Implementation>
+</Method>
+
+<Method name="doGenerateCLBatForGroup">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var pdfgroup=zen('PDFGroupTable').getValue();
+    zenPage.GenerateCLBatForGroup(pdfgroup); //runs in the background
+    zenPage.updateDisplay('generateCLForPDFGroup','done');
+]]></Implementation>
+</Method>
+
+<Method name="doExportAll">
+<FormalSpec>which</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    zenPage.ExportItem(which); //runs in the background
+    zenPage.updateDisplay('exportAllForPDF','done');
+]]></Implementation>
+</Method>
+
+<Method name="doRebuildPDFToolsTable">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+
+    zenPage.RebuildPDFToolsTable();
+    zen('PDFTable').executeQuery();
+    zen('ObsoletePDFTable').executeQuery();
+
+    zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+
+<Method name="doSavePDFGroupDetails">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var proxyObject = new zenProxy();
+    proxyObject.pdfgroupid      = zen('INFOpdfgroupid').getValue();
+    proxyObject.coverversion    = zen('INPUTcoverversion').getValue();
+    proxyObject.perforceversion = zen('INPUTperforceversion').getValue();
+    zenPage.SavePDFGroupDetails(proxyObject);
+    zen('PDFGroupTable').executeQuery();
+    zen('PDFGroupTable').executeQuery();
+]]></Implementation>
+</Method>
+
+<Method name="doReloadSavedParms">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    zenPage.ReloadSavedParms();
+    zenPage.doUseParamsFromDisk();
+    zenPage.updateDisplay('reloadparms','done');
+]]></Implementation>
+</Method>
+
+<Method name="doLoadAllSources">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    zenPage.LoadAllSources();
+    zenPage.updateDisplay('loadsources','inprogress');
+]]></Implementation>
+</Method>
+
+<Method name="doExportTOCToCSV">
+<Description>
+Called by buttons on the Export tab.</Description>
+<FormalSpec>which</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+    var keep=zenSynchronousMode;
+    zenSynchronousMode = true;
+
+    zenPage.updateDisplay('export', 'progress');
+
+    //export and get the filename
+    var exportfilename=zenPage.ExportTOCToCSV(which);
+
+    zenPage.updateDisplay('export','done',exportfilename);
+
+    zenSynchronousMode = keep;
+]]></Implementation>
+</Method>
+</Class>
+</Export>

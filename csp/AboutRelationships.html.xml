@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="AboutRelationships.html" application="/csp/docbook/" default="1"><![CDATA[
+<HTML>
+
+<HEAD>
+<TITLE>About Relationships</TITLE>
+
+<STYLE type="text/css">
+	BODY 			{ color: black; background: white; font-family: Helvetica,Arial,sans-serif; }
+	TABLE.TitleBanner 	{ color: white; background: #287780; font-size: 24pt;
+				  font-family="Verdana,Arial,Helvetica,sans-serif"; }
+
+	Div.Section		{ color: black; background: #CBE6EB; font-size: 12pt;
+				  font-family="Verdana,Arial,Helvetica,sans-serif"; font-weight: bold;
+				  padding-top: 5; padding-bottom: 5;
+				  margin-top: 10; margin-bottom: 5; }
+
+	DIV.Text		{ margin-left: 5; padding-left: 5; padding-top: 5; padding-bottom: 5; margin-bottom: 10; }
+
+	DIV.Code		{ color: black; background: #E5E5E5; font-family: courier,monospace;
+				  text-align: left; margin-left: 10; margin-right: 10;
+				  padding-left: 5; padding-top: 5; padding-bottom: 5; }
+
+
+	TD.Term			{ font-weight: bold; }
+	TD.Text			{  }
+
+	li			{ margin-left: 5; padding-left: 5; padding-top: 5; padding-bottom: 5; margin-bottom: 5; }
+
+</STYLE>
+
+</HEAD>
+
+<BODY>
+
+<TABLE CLASS=TitleBanner bgcolor=#287780 CELLPADDING=0 CELLSPACING=0 COLS=2 WIDTH=100% BORDER=0>
+    <TR>
+        <TD width="120"><img src=/apps/documatic/%25CSP.StreamServer.cls?FILE=/apps/documatic/images/ClassLogo.jpg width=100 height=77></TD>
+        <TD width="100%"><FONT face="Arial, Helvetica, sans-serif" color="#FFFFFF" size="+3">
+	About Relationships</FONT></TD>
+    </TR>
+</TABLE>
+
+<DIV CLASS=Text>
+A relationship is a special type of property that defines an association
+between two objects of a specific type. For example, a <b>Company</b>
+class may define a relationship with an <b>Employee</b> class:</DIV>
+</DIV>
+<DIV ALIGN=center>
+<TABLE>
+<TR>
+	<TD><TABLE border=1 cellpadding=4 bgcolor=yellow><TR><TD><B>Company</B></TD></TR></TABLE></TD>
+	<TD width="50"><TABLE cols=1 width="100%"><TR><TD align=left valign=bottom><font size=-1>1</font></TD></TR><TR height=5><TD><HR></TD></TR><TR><TD align=right valign=top><font size=-1>*</font></TD></TR></TABLE></TD>
+	<TD><TABLE border=1 cellpadding=4  bgcolor=yellow><TR><TD><B>Employee</B></TD></TR></TABLE></TD>
+</TR>
+</TABLE>
+</DIV>
+
+<DIV CLASS=Text>
+In this case, there may be zero or more <b>Employee</b> objects
+associated with each <b>Company</b> object.
+</DIV>
+
+<DIV CLASS=Text>
+<I>Cach&eacute;</I> relationships have the following characteristics:
+<ul>
+<li>Relationships are <b><i>binary</i></b>, that is a relationship must be
+defined between two, and only two, classes (which may be the same class; a class
+may have a relationship with itself).
+<li>Relationships can only be defined between two <b><i>persistent</i></b> classes.
+<li>Relationships must be <b><i>bi-directional</i></b>, that is both sides of a
+relationship must be defined.
+<li>Currently, only two types of relationship are supported:
+<b><i>one-to-many</i></b> (independent) and <b><i>parent-to-children</i></b> (dependent).
+One-to-one and many-to-many relationships are not supported at this time.
+<li>Relationships automatically provide referential integrity; unlike a
+reference (or object-valued) property, the value of relationship is
+constrained to be correct (<I>i.e.</I>, there are no dangling
+references).
+<li>Relationships automatically manage their in-memory and on-disk behavior.
+<li>Relationships provide superior scaling and concurrency over object collections.
+<li>Relationships are visible to SQL as foreign keys.
+</ul>
+</DIV>
+
+<DIV CLASS=Section><B>Defining a Relationship</B></DIV>
+<DIV CLASS=Text>
+A relationship is defined a special type of property. There are three
+keywords or modifiers required for a relationship definition:
+</DIV>
+<DIV CLASS=Text>
+<TABLE CELLSPACING=5>
+<TR>
+<TD VALIGN=TOP><B>TYPE</B></TD>
+<TD>
+The type (class name) of the related class. This must be a persistent
+class.
+</TD>
+</TR>
+<TR>
+<TD VALIGN=TOP><B>INVERSE</B></TD>
+<TD>
+The name of the corresponding relationship property in the related class (the
+&quot;other side&quot; of the relationship).
+</TD>
+</TR>
+<TR>
+<TD VALIGN=TOP><B>CARDINALITY</B></TD>
+<TD>
+The cardinality of this side of the relationship. This is either ONE,
+MANY, PARENT, or CHILDREN.
+</TD>
+</TR>
+</TABLE>
+</DIV>
+<DIV CLASS=Text>
+Other property keywords such as <b>DESCRIPTION</b>, <b>FINAL</b>, <b>REQUIRED</b>,
+<b>SQLFIELDNAME</b> and <b>PRIVATE</b> are optional. Some property keywords, such
+as <b>MULTIDIMENSIONAL</b>, do not apply.
+</DIV>
+<DIV CLASS=Text>
+The value of <b>CARDINALITY</b> defines how the relationship &quot;appears&quot;
+from this side as well as whether it is an independent or dependent relationship.
+</DIV>
+<DIV CLASS=Text>
+For example, suppose we have a <B>Book</B> object that is related to MANY
+<B>Chapter</B> objects:
+</DIV>
+<DIV ALIGN=center>
+<TABLE>
+<TR>
+	<TD><TABLE border=1 cellpadding=4 bgcolor=yellow><TR><TD align=center><B>Book</B></TD></TR><TR><TD>Chapters : Chapter (MANY)</TD></TR></TABLE></TD>
+	<TD width="50"><TABLE cols=1 width="100%"><TR><TD align=left valign=bottom><font size=-1>1</font></TD></TR><TR height=5><TD><HR></TD></TR><TR><TD align=right valign=top><font size=-1>*</font></TD></TR></TABLE></TD>
+	<TD><TABLE border=1 cellpadding=4 bgcolor=yellow><TR><TD align=center><B>Chapter</B></TD></TR><TR><TD>TheBook : Book (ONE)</TD></TR></TABLE></TD>
+</TR>
+</TABLE>
+</DIV>
+<DIV CLASS=Text>
+The relationship <I>Book.Chapters</I> has cardinality of MANY. Each <B>Chapter</B>
+is related to ONE <B>Book</B> so the <I>Chapter.Book</I> relationship has cardinality of ONE.
+</DIV>
+<DIV CLASS=Text>
+In the case of a dependent relationship, such as an <B>Invoice</B> object
+with dependent <B>LineItem</B> objects,
+</DIV>
+<DIV ALIGN=center>
+<TABLE>
+<TR>
+	<TD><TABLE border=1 cellpadding=4 bgcolor=yellow><TR><TD align=center><B>Invoice</B></TD></TR><TR><TD>Items : LineItem (CHILDREN)</TD></TR></TABLE></TD>
+	<TD width="50"><TABLE cols=1 width="100%"><TR><TD align=left valign=bottom><font size=-1>1</font></TD></TR><TR height=5><TD><HR></TD></TR><TR><TD align=right valign=top><font size=-1>*</font></TD></TR></TABLE></TD>
+	<TD><TABLE border=1 cellpadding=4 bgcolor=yellow><TR><TD align=center><B>LineItem</B></TD></TR><TR><TD>TheInvoice : Invoice (PARENT)</TD></TR></TABLE></TD>
+</TR>
+</TABLE>
+</DIV>
+<DIV CLASS=Text> the relationship <I>Invoice.Items</I> has cardinality of CHILDREN because
+<I>Items</I> is a collection of children from the point of view of <B>Invoice</B>.
+<I>LineItem.TheInvoice</I> has cardinality of PARENT because <I>TheInvoice</I>
+refers to the parent of this <B>LineItem</B>.
+</DIV>
+<DIV CLASS=Text>
+The cardinality value of a relationship must correspond to the cardinality value of the
+inverse relationship as defined in the following table:
+</DIV>
+<DIV CLASS=Text Align=CENTER>
+<TABLE cellpadding=4 border=1>
+<tr bgcolor=#DDDDDD>
+<th><b>Relationship Cardinality</b></th>
+<th><b>Inverse Relationship Cardinality</b></th>
+</tr>
+<tr><td>ONE</td><td>MANY</td></tr>
+<tr><td>MANY</td><td>ONE</td></tr>
+<tr><td>PARENT</td><td>CHILDREN</td></tr>
+<tr><td>CHILDREN</td><td>PARENT</td></tr>
+</TABLE>
+</DIV>
+
+<DIV CLASS=Text>
+In the Object
+Architect you can define a relationship by:
+<ol>
+<li>creating a new property,
+<li>setting its type to the persistent class you wish to associate with,
+<li>clicking the relationship checkbox,
+<li>entering the name of the inverse property in the associated class,
+<li>and, selecting the type of relationship.
+</DIV>
+<DIV CLASS=Text>
+When you define a relationship, the Object Architect will automatically
+create the inverse relationship in the associated class.
+</DIV>
+<DIV CLASS=Text>
+You can also define a relationship using CDL. The syntax is:
+</DIV>
+<DIV CLASS=Code><PRE>
+<b>relationship</b> &lt;relationship> { type = &lt;related_class&gt;
+		[ &lt;type_parameters&gt; ] ; INVERSE = &lt;inverse_relationship&gt; ;
+		CARDINALITY = ONE | PARENT | MANY | CHILDREN ;
+		&lt;other property keywords&gt; }
+</PRE></DIV>
+<DIV CLASS=Text>
+<b>TYPE</b>, <b>INVERSE</b> and <b>CARDINALITY</b> are required.
+&lt;related_class&gt; must be a persistent class.
+&lt;inverse_relationship&gt; must be the name of a relationship in
+&lt;related_class&gt; whose &lt;related_class&gt; is the class containing &lt;relationship&gt;
+and &lt;inverse_relationship&gt; is &lt;relationship&gt;.
+</DIV>
+
+<DIV CLASS=Text>
+For example, here is the CDL for two related classes, <b>Company</b> and
+<b>Employee</b>:
+</DIV>
+
+<DIV CLASS=Code><PRE>
+class Company {
+	super = %Persistent;
+	persistent;
+
+	attribute Name { type = %String; }
+
+	// a Company has MANY Employees
+	relationship Employees { type = Employee; inverse = TheCompany; cardinality = MANY;}
+}
+
+class Employee {
+	super = %Persistent;
+	persistent;
+
+	attribute Name { type = %String; }
+	attribute Title { type = %String; }
+
+	// an Employee has ONE Company
+	relationship TheCompany { type = Company; inverse = Employees; cardinality = ONE;}
+}
+
+</PRE></DIV>
+
+<DIV CLASS=Section><B>Dependent Relationships</B></DIV>
+<DIV CLASS=Text>
+A dependent relationship, defined by having cardinality of PARENT on
+one side and CHILDREN on the other, has the following additional
+characteristics:
+<ul>
+<li>The existence of the child objects is dependent on the parent; if
+a parent object is deleted then all of its children are automatically
+deleted.
+<li>Once associated with a particular parent object, a child object can
+never be associated with a different parent. This is because the persistent ID
+value of the child object is based in part on the parent's persistent
+ID.
+<li>As much as possible, instances of child objects are clustered with
+parent objects on disk making disk access as optimal as possible (few
+page accesses are required to retreive the children for a parent).
+<li>A dependent relationship is projected to SQL as a parent-child
+table.
+</ul>
+</DIV>
+
+<DIV CLASS=Text>
+For example, here is the CDL for two related dependent classes, <b>Invoice</b> and
+<b>LineItem</b>:
+</DIV>
+
+<DIV CLASS=Code><PRE>
+class Invoice {
+	super = %Persistent;
+	persistent;
+
+	attribute CustomerName { type = %String; }
+
+	// an Invoice has CHILDREN that are LineItems
+	relationship Items { type = LineItem; inverse = TheInvoice; cardinality = CHILDREN;}
+}
+
+class LineItem {
+	super = %Persistent;
+	persistent;
+
+	attribute Product { type = %String; }
+	attribute Quantity { type = %Integer; }
+
+	// a LineItem has a PARENT that is an Invoice
+	relationship TheInvoice { type = Invoice; inverse = Items; cardinality = PARENT;}
+}
+
+</PRE></DIV>
+
+<DIV CLASS=Section><B>In-memory Behavior of Relationships</B></DIV>
+<DIV CLASS=Text>
+Programmatically, relationships behave as properties. Single-valued relationships
+(cardinality of <b>ONE</b> or <b>PARENT</b>) behave like atomic (non-collection)
+reference attributes. Multi-valued relationships (cardinality of <b>MANY</b> or <b>CHILDREN</b>)
+are instances of the <b>%RelationshipObject</b> class which has a collection-like interface.
+</DIV>
+<DIV CLASS=Text>
+For example, you could use the <B>Company</B> and <B>Employee</B>
+objects defined above in the following way:
+</DIV>
+<DIV CLASS=Code><PRE>
+
+// create a new instance of Company
+Set company = ##class(Company).%New()
+Set company.Name = "Chiaroscuro LLC"
+
+// create a new instance of Employee
+Set emp = ##class(Employee).%New()
+Set emp.Name = "Weiss,Melanie"
+Set emp.Title = "CEO"
+
+// Now associate Employee with Company
+Set emp.TheCompany = company
+
+// Save the Company (this will save emp as well)
+Do company.%Save()
+
+// Close the objects we have New'd
+Do company.%Close()
+Do employee.%Close()
+
+</PRE></DIV>
+<DIV CLASS=Text>
+Relationships are fully bi-directional in memory; any operation on one side
+is immediately visible on the other side. We could have
+performed the association from the other side:
+</DIV>
+<DIV CLASS=Code><PRE>
+Do company.Employees.Insert(emp)
+
+Write emp.TheCompany.Name  // this will print out "Chiaroscuro LLC"
+</PRE></DIV>
+
+<DIV CLASS=Text>
+We can load relationships from disk and use them as we would any other
+property. When you refer to a related object from the ONE side, the
+related object is automatically swizzled into memory in the same way as
+a reference (object-valued) property.
+</DIV>
+<DIV CLASS=Text>
+When you refer to a related object from the MANY side, the related
+objects are not swizzled immediately. Instead a transient
+<B>%RelationshipObject</B> collection object is created. As
+soon as any methods are called on this collection, it builds a list
+containing the ID values of the objects within the relationship. It is
+only when you refer to one of the objects within this collection that
+the actual related object is swizzled into memory.
+</DIV>
+<DIV CLASS=Text>
+Here is an example that displays all <b>Employee</b> objects related to
+a specific <B>Company</B>:
+</DIV>
+<DIV CLASS=Code><PRE>
+
+// open an instance of Company
+Set company = ##class(Company).%OpenId(id)
+
+// iterate over the employees; print their names
+Set key = ""
+
+Do {
+	Set employee = company.Employees.GetNext(.key)
+	If (employee '= "") {
+		Write employee.Name,!
+	}
+} while (key '= "")
+
+Do company.%Close()
+
+</PRE></DIV>
+<DIV CLASS=Text>
+In this example, closing <var>company</var> will remove the
+<b>Company</b> object and all of its related <b>Employee</b> objects
+from memory. Note, however, that every <b>Employee</b> object
+contained in the relationship will be swizzled into memory by the time
+the loop completes. If you are concerned about this&#151;perhaps there are
+thousands of <b>Employee</b> objects&#151;then we can modify the loop to
+&quot;unswizzle&quot; the <b>Employee</b> objects as we go by calling
+the <b>%UnSwizzleAt</b> method:
+</DIV>
+<DIV CLASS=Code><PRE>
+Do {
+	Set employee = company.Employees.GetNext(.key)
+	If (employee '= "") {
+		Write employee.Name,!
+		Do company.Employees.%UnSwizzleAt(key) // remove employee from memory
+	}
+} while (key '= "")
+</PRE></DIV>
+
+<DIV CLASS=Section><B>Persistent Behavior of Relationships</B></DIV>
+<DIV CLASS=Text>
+Only single-valued relationships have a persistent state. The state of multi-valued
+relationships is determined in memory by methods (Execute, Fetch, Close) of the
+single-valued relationship. The persistent state of a single-valued
+relationship is the same as a simple reference. No additional structures
+(indices) are created automatically. However, to improve the performance of
+Execute, Fetch, and Close an index is recommended if the size of the extent is
+large (When defining a relationship, the Object Architect will ask you if you want such an index).
+</DIV>
+<DIV CLASS=Text>
+Relationships, when made persistent, also maintain referential integrity by enforcing
+constraints and invoking referential actions. When a relationship is saved, the
+target of its reference is checked for existence. If it does not exist an error
+is returned and the save operation fails. When an object is deleted and there
+are objects related to it, the related objects are deleted (parent/child
+cardinality) or the delete operation fails (one/many cardinality).
+</DIV>
+<DIV CLASS=Text>
+As with IDENTIFIEDBY classes, a class containing a relationship with <B>PARENT</B>
+cardinality can store instances subordinate to the parent instance.
+With IDENTIFIEDBY this storage structure required explicit declaration
+in the class' storage definition: <code><nobr>datalocation = {%%PARENT}(&quot;someliteral&quot;)</nobr></code>.
+With parent/child relationships this storage structure is provided by default.
+The literal subscript is the name of the relationship in the parent
+class. In the <B>Invoice</B>/<B>LineItem</B> example above the compiled datalocation for
+<B>LineItem</B> would be <code><nobr>^ooInvoiceD(&quot;Items&quot;)</nobr></code>. Of course, this datalocation can be
+defined explicitly, either to make the storage independent or to simply change
+the literal subscript.
+</DIV>
+<DIV CLASS=Text>
+Relationships are affected by a deep save in much the same way as simple references. The
+major difference is the list of terminated relationships that is maintained
+in the multi-valued relationship. Objects in that list are also deep-saved.
+For example, consider these actions on the <B>Company</B> and <B>Employee</B> classes as shown
+in the previous examples.
+</DIV>
+<DIV CLASS=Code><PRE>
+Set company1 = ##class(Company).%OpenId(10)
+Set company2 = ##class(Company).%OpenId(12)
+Set emp = company1.Employees.GetAt(1) ; Assume that there is at least one Employee related to company1
+Set emp.TheCompany = company2
+Set sc = customer1.%Save()
+</PRE></DIV>
+<DIV CLASS=Text>
+The call to %Save() will result in <I>company1</I>, <I>emp</I>, and <I>company2</I>
+being saved. Even though <I>company1</I> is no longer related to order,
+order will be saved because it is still referenced by the list of terminated
+relationships in <I>company1</I>. Also, <I>company2</I> will be saved because it is
+currently related to <I>emp</I>.
+</DIV>
+
+<DIV CLASS=Section><B>Using Relationships with SQL</B></DIV>
+<DIV CLASS=Text>
+The SQL projection of a relationship depends on its cardinality value:
+The single-valued side (ONE or PARENT) is projected as a simple
+designative reference field. For example, the <B>Employee</b> table will
+have a field called <I>TheCompany</I> whose value is the ID of the
+related <B>Company</B>:
+<DIV CLASS=Code><PRE>
+
+	// display Employees ordered by Name
+	// Get company name using reference field
+
+	SELECT ID,Name,Title,TheCompany->Name
+	FROM Employee
+	ORDER BY Name
+
+</PRE></DIV>
+
+The multi-valued side is not projected as a field (Multi-valued relationships are
+state-less on disk and SQL does not deal with in-memory objects).
+Instead, you must perform a simple join based on the multi-valued side's ID value
+and the single-valued side's reference field:
+
+<DIV CLASS=Code><PRE>
+
+	// Display all Employees by Company
+
+	SELECT c.Name, e.Name
+	FROM Company c, Employee e
+	WHERE e.TheCompany = c.ID
+	ORDER By 1,2
+
+</PRE></DIV>
+
+<DIV CLASS=Text>
+A single-valued relationship with cardinality of ONE is projected to SQL
+as a FOREIGNKEY with NOACTION specified for UPDATE and DELETE.
+</DIV>
+<DIV CLASS=Text>
+If the cardinality of the single-valued relationship is PARENT then the table
+projected from the class containing the relationship is &quot;adopted&quot; as a child
+table by the table projected from the type class of the single-valued
+relationship.
+</DIV>
+
+</BODY>
+</HTML>
+]]></CSP>
+</Export>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="copyright.html" application="/csp/docbook/" default="1"><![CDATA[
+<HTML>
+
+<HEAD>
+<LINK rel=stylesheet href="DocBookHTML.css" type=text/css>
+<TITLE>Copyright</TITLE></HEAD>
+
+<BODY>
+
+<TABLE CLASS="Banner" BGCOLOR="#287780" CELLPADDING="0" CELLSPACING="0" WIDTH="100%" BORDER="0">
+<TR VALIGN="TOP">
+<TD><DIV CLASS="ChapterTitle" ALIGN="LEFT">Cach&eacute; Documentation Copyright Information</DIV></TD>
+</TR></TABLE>
+<BR>
+<HR>
+<BR>
+
+<DIV CLASS="para">Copyright &#169; InterSystems Corporation.</DIV>
+<DIV CLASS="para">All Rights Reserved.</DIV>
+
+<DIV CLASS="para">NOTICE: PROPRIETARY &#151; CONFIDENTIAL</DIV>
+
+<DIV CLASS="para">
+This document contains trade secret and confidential information which is the property of
+InterSystems Corporation, One Memorial Drive, Cambridge, MA 02142, or its affiliates, and is
+ furnished for the sole purpose of the operation and maintenance of the products of InterSystems
+Corporation. No part of this publication is to be used for any other purpose, and this publication
+is not to be reproduced, copied, disclosed, transmitted, stored in a retrieval system or translated
+into any human or computer language, in any form, by any means, in whole or in part, without the express
+prior written consent of InterSystems Corporation.
+</DIV>
+
+<DIV CLASS="para">
+The copying, use and disposition of this document and the software programs described herein
+is prohibited except to the limited extent set forth in the standard software license agreement(s)
+of InterSystems Corporation covering such programs and related documentation. InterSystems Corporation
+ makes no representations and warranties concerning such software programs other than those set forth
+in such standard software license agreement(s). In addition, the liability of InterSystems Corporation
+ for any losses or damages relating to or arising out of the use of such software programs is limited
+in the manner set forth in such standard software license agreement(s).
+</DIV>
+
+<DIV CLASS="para">
+THE FOREGOING IS A GENERAL SUMMARY OF THE RESTRICTIONS AND LIMITATIONS IMPOSED BY INTERSYSTEMS
+CORPORATION ON THE USE OF, AND LIABILITY ARISING FROM, ITS COMPUTER SOFTWARE. FOR COMPLETE INFORMATION
+REFERENCE SHOULD BE MADE TO THE STANDARD SOFTWARE LICENSE AGREEMENT(S) OF INTERSYSTEMS CORPORATION,
+COPIES OF WHICH WILL BE MADE AVAILABLE UPON REQUEST.
+</DIV>
+
+<DIV CLASS="para">
+InterSystems Corporation disclaims responsibility for errors which may appear in this
+document, and it reserves the right, in its sole discretion and without notice, to make
+substitutions and modifications in the products and practices described in this document.
+</DIV>
+
+<DIV CLASS="para">
+Cach&eacute; and Ensemble are registered trademarks of InterSystems Corporation.
+</DIV>
+
+<DIV CLASS="para">
+InterSystems, InterSystems Cach&eacute;,  Cach&eacute;  SQL, Cach&eacute; ObjectScript, and
+Cach&eacute; Objects are trademarks of InterSystems Corporation.
+</DIV>
+
+<DIV CLASS="para">
+All other brand or product names used herein are trademarks or registered trademarks of their
+respective companies or organizations.
+</DIV>
+
+<DIV CLASS="para">
+For Support questions about any InterSystems products, contact the InterSystems Worldwide Support Center:
+</DIV>
+
+<DIV CLASS="para"><strong>Phone:<br></strong>
+US: +1 617 621-0700<br>
+Europe: +44 (0) 1753 830-077<br>
+<strong>Fax:</strong>   <br>
+US: +1 617 374-9391<br>
+Europe: +44 (0) 1753 861-311
+</DIV>
+
+<DIV CLASS="para">
+
+</DIV>
+
+</body>
+</html>
+
+
+]]></CSP>
+</Export>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.bookinfo">
+<Description>
+The instantiation of a book information block.  
+This is a no-op as far as editing goes but is here because it can contain
+sub-elements all of whose data must be ignored.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.containerNull</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

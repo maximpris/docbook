@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="execute.csp" application="/csp/docbook/" default="1"><![CDATA[
+<html>
+<head>
+<title>DocBook Sample Program Output</title>
+
+<style type="text/css">
+body {
+	color: black;
+	font-size: 12pt;
+	margin: 0px;
+	font-family: Lucida sans unicode,Arial,Helvetica,sans-serif;
+	overflow: hidden;
+	background: #C0C0C0;
+	background-image: url(/csp/broker/images/grad-halfgray-10x500.png);
+	background-repeat: repeat-x;
+}
+
+h1 {
+	text-align: center;
+	font-size: 12pt;
+	font-weight: normal;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 2px; 
+	margin-top: 0px;
+	padding-left: 0px; 
+	padding-top: 4px; 
+	padding-bottom: 4px;
+	font-family: Lucida sans unicode,Arial,Helvetica,sans-serif;
+	font-size: 1.2em;
+	border-bottom: 1px solid darkblue;
+	color: black;
+	background: #404040;
+	background-image: url(/csp/broker/images/grad-gray-10x100.png);
+	background-repeat: repeat-x;
+}
+
+div.OUTPUT	{
+	background: white;
+	color: black;
+	border: 1px solid black;
+	font-family: courier new, courier,monospace;
+	width: 400px;
+	height: 248px;
+	overflow-y:auto;
+	text-align: left;
+	margin-right: 0px; 
+	line-height: 125%;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 10px; 
+	padding-left: 10px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+}
+			
+table.SQL {
+	border: black solid 1px;
+	font-size: 10pt; 
+	background: white;
+}
+
+table.SQL th {
+	border-right: gray solid 1px;
+	border-bottom: black solid 1px;
+	font-size: 12pt;
+	padding-right:2px; padding-left:2px;
+	background: #404040;
+	background-image: url(/csp/broker/images/grad-gray-10x100.png);
+	background-repeat: repeat-x;
+}
+
+table.SQL td {
+	border-right: gray solid 1px;
+	border-bottom: black solid 1px; 
+	padding-right: 2px;
+	padding-left: 2px;
+}
+
+table.SQL tr.DarkRow {
+	background: #FFFFFF;
+}
+table.SQL tr.LightRow {
+	background: #DDEEEE;
+}
+
+#header {
+	position: relative;
+}
+
+#body {
+	background: none;
+	padding: 5px;
+	height: 200px;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+/* this must have 0 padding or sizing logic will fail */
+#footer {
+	position: absolute;
+	bottom: 0;
+
+	color: black;
+	background: #404040;
+	background-image: url(/csp/broker/images/grad-gray-10x100.png);
+	background-repeat: repeat-x;
+	width: 100%;
+	padding: 0px;
+	border-top: 1px solid darkblue;
+}
+
+/* nested group lets us define some padding */
+#buttonHolder {
+	text-align: right;
+	padding: 5px;
+	padding-right: 40px;
+	margin: 0px;
+	background: none;
+}
+#btnClose {
+	width: 6.0em;
+}
+
+</style>
+
+<script language="JavaScript">
+function closeExecuteWindow()
+{
+	if (opener) {
+		opener.cspExecWindow = null;
+	}
+	window.close();
+	return true;
+}
+
+function adjustSize()
+{
+	var header = self.document.getElementById('header');
+	var body = self.document.getElementById('body');
+	var footer = self.document.getElementById('footer');
+
+	if (header && body && footer) {
+		var winHeight = document.body.clientHeight;
+		var winWidth = document.body.clientWidth;
+	
+		var hgt = winHeight - (parseInt(header.offsetHeight) + parseInt(footer.offsetHeight));
+		hgt = (hgt < 16) ? 16 : hgt - 16;
+
+		var wid = winWidth - 40;
+		body.style.height = hgt + "px";
+		body.style.width = wid + "px";
+	}
+}
+
+</script>
+
+</head>
+<body onload="adjustSize();" onresize="adjustSize();">
+<script language="CACHE" runat="SERVER">
+	Do %response.Flush()
+
+	Set key = $G(%request.Data("KEY",1))
+	Set listing = ##class(DocBook.programlisting).OpenKey(key)
+	If (listing = "") {
+		Write "Invalid Programlisting Key: (", (..EscapeHTML(key)), ")"
+	}
+	Else {
+		Set code = listing.content
+		Set lang = $ZCVT($P(listing.lang,":",1),"U")
+		
+		If (lang = "COS") {
+			Set title = "Output of Sample ObjectScript Code:"
+		}
+		ElseIf (lang = "BAS") {
+			Set title = "Output of Sample Basic Code:"
+		}
+		ElseIf (lang = "CSP") {
+			Set title = "Output of CSP Example:"
+		}
+		ElseIf (lang = "SQL") {
+			Set title = "Output of Sample Query:"
+		}
+		Else {
+			Set title = lang _ " is Currently Unsupported for Examples"
+		}
+		
+		&html<<div id="header"><h1>#(title)#</h1></div>>
+		&html<<div id="body"><center>>
+		Do ##class(DocBook.Utils).ExecuteSample(code,lang)
+		&html<</center></div>>
+	}	
+</script>
+<div id="footer">
+<div id="buttonHolder">
+<input id="btnclose" type="button" value="Close" onclick="closeExecuteWindow();">
+</div>
+</div>
+
+</body>
+</html>
+]]></CSP>
+</Export>

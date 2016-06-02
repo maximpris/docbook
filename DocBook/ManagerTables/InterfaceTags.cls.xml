@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.InterfaceTags">
+<Description><![CDATA[
+This class stores one record for each <interface> tag in the DocBook database.
+For general comments, see <class>DocBook.ManagerTables.Utils</class>. ]]></Description>
+<IncludeCode>%occSAX,DocBookMac</IncludeCode>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="InterfaceRef">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="ParentTopic">
+<Description>
+Parent DocBookId. Displayed in table</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="SourceFile">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="URL">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="TagWorks">
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Method name="Rebuild">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.InterfaceTags:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: Interface tag (Links to Portal) scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of interface tags (Links to Portal)...",verbose)
+    do ..%KillExtent()
+    do ..CheckInterface(verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE scanning interface tags (Links to Portal)",verbose)
+    set ^DocBookManager("LastInterfaceTagScan")=$zdt($h,3)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="GetTimeStamp">
+<Description>
+Returns time stamp of last time we scanned the interface tags in this database</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastInterfaceTagScan"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Method name="CheckInterface">
+<Description>
+Looks for interfaces and makes sure each has a valid portal page reference</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set tgt = "^%qMgtPortal.Index"
+    if ##class(DocBook.ManagerTables.Utils).GlobalMissing(tgt,1) { quit }
+    
+    // search text for interfaces
+    &sql(DECLARE InterfaceCursor CURSOR FOR 
+            SELECT ID, blockid, content, sourceFile
+            INTO  :id ,:key, :text, :src
+            FROM DocBook.block
+            WHERE content [ '<interface') 
+
+    &sql(OPEN InterfaceCursor)
+    
+    set counter = 0
+    &sql(FETCH InterfaceCursor)
+    
+    While (SQLCODE = 0) 
+    {
+        set offset = 1
+        set bgnpos = $FIND(text, "<interface", offset)
+        While (bgnpos > 0)
+        {
+            set record=..%New()
+            set bgnpos = $FIND(text, ">", bgnpos)
+            if (bgnpos = 0)
+            {
+                set counter = counter + 1
+                //w !, "Malformed interface begin tag: ", src
+                Quit
+            }
+            set endpos = $FIND(text, "</interface>", bgnpos)
+            if (endpos = 0)
+            {
+                set counter = counter + 1
+                //w !, "Missing interface end tag: ", src
+                Quit
+            }
+            set ref = $EXTRACT(text, bgnpos, (endpos - $LENGTH("</interface>") - 1))
+            set canonref = ##class(DocBook.PortalUtils).Normalize(ref)
+            set displayref = ##class(DocBook.PortalUtils).Display(canonref)
+            set refurl = ##class(DocBook.PortalUtils).GetPortalURL(canonref)
+            set record.InterfaceRef=ref
+            set record.ParentTopic=key
+            set record.SourceFile=src
+            
+            
+            Set cvtext = ##class(DocBook.Renderer).XFormEntity(ref)
+            Set cvtext = ##class(DocBook.PortalUtils).Normalize(cvtext)
+            Set url = ##class(DocBook.PortalUtils).GetPortalURL(cvtext)
+            set record.URL=url
+            if (url'="") {
+                set record.TagWorks=1
+            }
+        
+            set status= record.%Save()
+            if $$$ISERR(status) {
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.SourceFile_" "_record.ParentTopic_" "_record.InterfaceRef,verbose)
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+            }
+        
+            if (refurl = "")
+            {
+                set counter = counter + 1
+            }
+            
+            set offset = endpos         
+            set bgnpos = $FIND(text, "<interface", offset)
+        } ; end while
+
+        &sql(FETCH InterfaceCursor)
+    }
+
+    &sql(CLOSE InterfaceCursor)
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.Mana74DA.InterfaceTagsD</DataLocation>
+<DefaultData>InterfaceTagsDefaultData</DefaultData>
+<IdLocation>^DocBook.Mana74DA.InterfaceTagsD</IdLocation>
+<IndexLocation>^DocBook.Mana74DA.InterfaceTagsI</IndexLocation>
+<StreamLocation>^DocBook.Mana74DA.InterfaceTagsS</StreamLocation>
+<Data name="InterfaceTagsDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>InterfaceRef</Value>
+</Value>
+<Value name="3">
+<Value>ParentTopic</Value>
+</Value>
+<Value name="4">
+<Value>SourceFile</Value>
+</Value>
+<Value name="5">
+<Value>URL</Value>
+</Value>
+<Value name="6">
+<Value>TagWorks</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

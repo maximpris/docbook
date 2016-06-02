@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="docbook.js" application="/csp/docbook/" default="1"><![CDATA[
+/*
+    docbook.js
+    Copyright (c) 2001 InterSystems Corp. ALL RIGHTS RESERVED.
+*/
+
+/*
+function showHelpWin()
+{
+    var url = 'help.csp';
+    var hgt,wid,top,left;
+    wid = 400;
+    hgt = 600;
+    left = (screen.width - wid) / 2;
+    top = (screen.height - hgt) / 2;
+    self.cspHelpWindow = window.open(url,'DocBookHelp','top='+top+',left='+left+',width='+wid+',height='+hgt+',status,scrollbars,resizable');
+    self.cspHelpWindow.focus();
+}
+*/
+    
+/*
+function showOptionsWin()
+{
+    var url = 'options.csp';
+    var hgt,wid,top,left;
+    wid = 500;
+    hgt = 300;
+    left = (screen.width - wid) / 2;
+    top = (screen.height - hgt) / 2;
+    self.cspOptionsWindow = window.open(url,'DocBookOptions','top='+top+',left='+left+',width='+wid+',height='+hgt+',status,scrollbars,resizable');
+    self.cspOptionsWindow.focus();
+}
+*/
+
+// someone made a choice in the Goto listbox
+function gotoChoice(choice)
+{
+    if (choice == "") {
+        return false;
+    }
+
+    if (choice.charAt(0) == '#') {
+        self.document.location.hash = choice.substr(1,choice.length-1);
+    }
+    else {
+        self.document.location = 'DocBook.UI.Page.cls?KEY=' + choice;
+    }
+    return true;
+}
+
+function executeExample(key)
+{
+    var values = '?KEY=' + escape(key);
+    var url = 'execute.csp' + values;
+
+    var hgt,wid,top,left;
+    wid = 500;
+    hgt = 500
+    left = (screen.width - wid) / 2;
+    top = (screen.height - hgt) / 2;
+
+    self.cspExecWindow = window.open(url,'DocBookExec','top='+top+',left='+left+',width='+wid+',height='+hgt+',scrollbars,scrollbars,resizable');
+    self.cspExecWindow.focus();
+}
+
+function showFrames(key)
+{
+    var link;
+
+    if (key == '' || key == 0) {
+        link = '';
+    }
+    else {
+        if (key == 'Home') { key = 'GSA_using_portal' }
+        link = '?KEY=' + escape(key);
+    }
+
+
+    if (parent == self) {
+        // not in a frame
+        self.document.location = 'DocBook.UI.FrameSet.cls' + link;
+    }
+    else {
+        // turn off frames
+        parent.document.location = 'DocBook.UI.Page.cls' + link;
+    }
+}
+
+]]></CSP>
+</Export>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.article">
+<Description>
+This class represents an article.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.component</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Index name="ARoleIdx">
+<Properties>role,title</Properties>
+</Index>
+
+<Index name="ATitleIdx">
+<Properties>title</Properties>
+</Index>
+
+<Index name="ATimeIdx">
+<Properties>sourcetime</Properties>
+</Index>
+
+<Method name="GetBannerInfo">
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+
+	Set info.title = ..title
+	Set info.booktitle = $$$T("Technical Articles")
+
+	Set info.isArticle = 1
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

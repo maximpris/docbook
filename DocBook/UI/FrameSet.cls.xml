@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.FrameSet">
+<Description>
+FrameSet page for showing DocBook within a FrameSet.</Description>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%CSP.Page</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Method name="OnPage">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    
+    Set bookKey = $G(%request.Data("KEY",1))
+    Set key = ""
+    Set:bookKey'="" key = "KEY="_bookKey
+    
+    &html<<html>
+    <head>
+    <title>Cach&eacute; DocBook</title>
+    </head>
+    <frameset rows="*" cols="20%,*">
+        <frame name="TOCFrame" src="DocBook.UI.IndexFrame.cls?#((..EscapeHTML(key)))#" border="1">
+        <frame name="PageFrame" src="DocBook.UI.Page.cls?FRAME=PAGE&#((..EscapeHTML(key)))#">
+    </frameset>
+    </html>>
+
+    Quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+</Export>

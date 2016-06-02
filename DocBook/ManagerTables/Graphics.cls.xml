@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.Graphics">
+<Description><![CDATA[
+This class stores one record for each <graphic> or <inlinegraphic> found in the database. 
+For general comments, see <class>DocBook.ManagerTables.Utils</class>.
+This is a fairly large table and so has several indices.  ]]></Description>
+<IncludeCode>%occSAX,DocBookMac</IncludeCode>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="SourceFile">
+<Description>
+This is the name of the file from which this content was taken.
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100"/>
+</Property>
+
+<Index name="SourceFileIdx">
+<Properties>SourceFile</Properties>
+</Index>
+
+<Property name="ParentTopic">
+<Description>
+Parent DocBookId. Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="ParentTopicIdx">
+<Properties>ParentTopic</Properties>
+</Index>
+
+<Property name="Fileref">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="FilerefIdx">
+<Properties>Fileref</Properties>
+</Index>
+
+<Property name="GraphicTag">
+<Description>
+Either "graphic" or "inlinegraphic".
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+</Property>
+
+<Index name="GraphicTagIdx">
+<Properties>GraphicTag</Properties>
+</Index>
+
+<Property name="Problem">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Index name="ProblemIdx">
+<Properties>Problem</Properties>
+</Index>
+
+<Property name="FileOnPath">
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Index name="FileOnPathIdx">
+<Properties>FileOnPath</Properties>
+</Index>
+
+<Property name="NameHasSpaces">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Index name="NameHasSpacesIdx">
+<Properties>NameHasSpaces</Properties>
+</Index>
+
+<Property name="NameHasUppercase">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Index name="NameHasUppercaseIdx">
+<Properties>NameHasUppercase</Properties>
+</Index>
+
+<Method name="Rebuild">
+<Description>
+verbose can be 0, 1, or 2</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+     lock ^DocBook.CacheBuild.Graphics:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: Graphics tag scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+   //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of graphic tags...",verbose)
+    do ..%KillExtent()
+    do ..FindGraphics(verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE scanning graphics tags",verbose)
+    set ^DocBookManager("LastGraphicCheck")=$zdt($h,3)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="Initialized">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    if $D(^DocBookManager("LastGraphicCheck")) {
+        set return=1 
+    } else {
+        set return=0 
+    }
+    quit return
+]]></Implementation>
+</Method>
+
+<Method name="GetTimeStamp">
+<Description>
+Returns time stamp of last time we scanned the links in this database</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastGraphicCheck"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Method name="ScanIsStale">
+<Description>
+Returns true if the graphics scan info is possibly stale 
+(that is, if the user has loaded files or removed items AFTER the last 
+link scan). Otherwise returns false.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    set filets=##class(DocBook.Manager.LoadUtils).GetLoadDeleteTimeStamp()
+    set graphicts=..GetTimeStamp()
+  
+    set elapsed=$system.SQL.DATEDIFF("second",filets,graphicts)
+  
+    if (elapsed<0) {
+       set stale=1
+    } else {
+       set stale=0 
+    }
+    quit stale
+]]></Implementation>
+</Method>
+
+<Method name="FindGraphics">
+<Description>
+iterate through all the blocks and find the graphics
+verbose can be 0, 1, or 2</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+  
+    set sql = "SELECT ID, sourceFile as src, container->blockid AS parentblockid, content FROM DocBook.block WHERE (content [ '<graphic' OR content [ '<inlinegraphic')"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set id=rset.%Get("ID")
+        set text=rset.%Get("content")
+        set src=rset.%Get("src")
+        set parentblockid=rset.%Get("parentblockid")
+        do ..CheckGraphicsInBlock(src,parentblockid,text,verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="CheckGraphicsInBlock">
+<Description>
+Check the graphics in a block of text; create entries in the graphics table.
+verbose can be 0, 1, or 2</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>source:%String,parentblockid:%String,txt:%String,verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    //write !, ">>>verbose is ",verbose
+    set tokens = ##class(%CSP.TokenStream).%New()
+    do tokens.OpenFromString(txt)
+
+    While (tokens.NextToken()) {
+        if (verbose=2) {
+            write !!,"   Tag:", tokens.Tag
+            write !,"   Text:", tokens.Text
+            write !,"   Type:", tokens.Type
+        }
+        
+        set fileref = ""
+        set attrs = ""
+        do tokens.GetAttrs(.attrs)
+        set fileref = $G(attrs("fileref","value"))
+        
+        if ((tokens.Tag = "graphic") || (tokens.Tag = "inlinegraphic")) {
+            set record=..%New()
+            set record.SourceFile=source
+            set record.GraphicTag=tokens.Tag
+            set record.Fileref=fileref
+            set record.ParentTopic=parentblockid
+            set record.FileOnPath=..GetFileExists(fileref)
+
+            set lowercase=$$$LOWER(fileref)
+            if (fileref'=lowercase) {
+                set record.NameHasUppercase=1
+            }
+            set record.NameHasSpaces=fileref [ " "
+            
+            if (record.NameHasSpaces || record.NameHasUppercase || 'record.FileOnPath) {
+                 set record.Problem=1
+            }
+
+            set status= record.%Save()
+            if $$$ISERR(status) {
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.SourceFile_" "_record.ParentTopic_" "_record.Fileref,verbose)
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+            }
+        }
+        
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetFileExists">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>imagefileref:%String</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    if (imagefileref [ "images\") {
+        set shortfilename=$PIECE(imagefileref,"images\",2)
+    } elseif (imagefileref [ "images/") {
+        set shortfilename=$PIECE(imagefileref,"images/",2)
+    } else {
+        set shortfilename=imagefileref
+    }
+
+    &sql(select Filename, ShortFilename from DocBook_ManagerTables.ImageFiles WHERE ShortFilename=:shortfilename )
+    if (SQLCODE=0) {
+       set ok=1
+    } else {
+       set ok=0 
+    }
+    quit ok
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ManagerTa74DA.GraphicsD</DataLocation>
+<DefaultData>GraphicsDefaultData</DefaultData>
+<IdLocation>^DocBook.ManagerTa74DA.GraphicsD</IdLocation>
+<IndexLocation>^DocBook.ManagerTa74DA.GraphicsI</IndexLocation>
+<StreamLocation>^DocBook.ManagerTa74DA.GraphicsS</StreamLocation>
+<ExtentSize>3027</ExtentSize>
+<Data name="GraphicsDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>SourceFile</Value>
+</Value>
+<Value name="3">
+<Value>ParentTopic</Value>
+</Value>
+<Value name="4">
+<Value>Fileref</Value>
+</Value>
+<Value name="5">
+<Value>GraphicTag</Value>
+</Value>
+<Value name="6">
+<Value>Problem</Value>
+</Value>
+<Value name="7">
+<Value>FileOnPath</Value>
+</Value>
+<Value name="8">
+<Value>NameHasSpaces</Value>
+</Value>
+<Value name="9">
+<Value>NameHasUppercase</Value>
+</Value>
+</Data>
+<Property name="%%CLASSNAME">
+<Selectivity>0.0424%</Selectivity>
+<OutlierSelectivity>.995758:</OutlierSelectivity>
+</Property>
+<Property name="FileOnPath">
+<Selectivity>0.0424%</Selectivity>
+<OutlierSelectivity>.995758:1</OutlierSelectivity>
+</Property>
+<Property name="Fileref">
+<Selectivity>0.1138%</Selectivity>
+</Property>
+<Property name="GraphicTag">
+<Selectivity>49.9998%</Selectivity>
+</Property>
+<Property name="NameHasSpaces">
+<Selectivity>0.0424%</Selectivity>
+<OutlierSelectivity>.995758:0</OutlierSelectivity>
+</Property>
+<Property name="NameHasUppercase">
+<Selectivity>0.0337%</Selectivity>
+<OutlierSelectivity>.993939:0</OutlierSelectivity>
+</Property>
+<Property name="ParentTopic">
+<Selectivity>0.0853%</Selectivity>
+</Property>
+<Property name="Problem">
+<Selectivity>0.0337%</Selectivity>
+<OutlierSelectivity>.993939:0</OutlierSelectivity>
+</Property>
+<Property name="SourceFile">
+<Selectivity>2.1094%</Selectivity>
+</Property>
+<SQLMap name="FileOnPathIdx">
+<BlockCount>-16</BlockCount>
+</SQLMap>
+<SQLMap name="FilerefIdx">
+<BlockCount>-48</BlockCount>
+</SQLMap>
+<SQLMap name="GraphicTagIdx">
+<BlockCount>-20</BlockCount>
+</SQLMap>
+<SQLMap name="IDKEY">
+<BlockCount>-160</BlockCount>
+</SQLMap>
+<SQLMap name="NameHasSpacesIdx">
+<BlockCount>-24</BlockCount>
+</SQLMap>
+<SQLMap name="NameHasUppercaseIdx">
+<BlockCount>-20</BlockCount>
+</SQLMap>
+<SQLMap name="ParentTopicIdx">
+<BlockCount>-40</BlockCount>
+</SQLMap>
+<SQLMap name="ProblemIdx">
+<BlockCount>-16</BlockCount>
+</SQLMap>
+<SQLMap name="SourceFileIdx">
+<BlockCount>-24</BlockCount>
+</SQLMap>
+</Storage>
+</Class>
+</Export>

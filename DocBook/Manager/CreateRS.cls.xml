@@ -1,0 +1,1189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.CreateRS">
+<Description><![CDATA[
+Contains all the methods used by <class>DocBook.Manager.Home</class> to generate
+result sets used in the UI tables. ]]></Description>
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%RegisteredObject</Super>
+<TimeCreated>63112,67199.299637</TimeCreated>
+
+<Property name="SelectedBookList">
+<Description>
+Use this property to communicate with the secondary query on paneSETs. This property is repeated 
+in the actual page class, where it is set. We need it here in *this* class so that we can
+compile this class. This is not the preferred way of passing information to a tablePane query!</Description>
+<Type>%String</Type>
+</Property>
+
+<Method name="CreateAttributeRS">
+<Description>
+This method returns the result set needed for the Attributes option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select DocBookId,Title,tagArch,tagRevision,tagRole,tagStatus,tagXreflabel "
+            _ " from DocBook_ManagerTables.DBContents "
+
+    set tWHERE = "Type !='set'"
+    set filtered=1
+
+    if ($GET(pInfo.filters("DocBookId"))'="") {
+        set filtered=1
+        set filterinfo=$$$UPPER(pInfo.filters("DocBookId"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "DocBookId %STARTSWITH '" _ filterinfo _ "'"
+    }
+    if ($GET(pInfo.filters("tagArch"))'="") {
+        set filtered=1
+        set filterinfo=pInfo.filters("tagArch")
+        if (filterinfo="NULL") {
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                        "tagArch IS NULL"
+        } else {
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                        "tagArch = '" _ filterinfo _ "'"
+         }
+    }
+    if ($GET(pInfo.filters("tagRole"))'="") {
+        set filtered=1
+        set filterinfo=pInfo.filters("tagRole")
+        if (filterinfo="NULL") {
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                        "tagRole IS NULL"
+        } else {
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "tagRole = '" _ filterinfo _ "'"
+        }
+    }
+    if ($GET(pInfo.filters("tagStatus"))'="") {
+        set filtered=1
+        set filterinfo=pInfo.filters("tagStatus")
+        if (filterinfo="NULL") {
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                        "tagStatus IS NULL"
+        } else {
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "tagStatus = '" _ filterinfo _ "'"
+        }
+    }
+    if ($GET(pInfo.filters("tagRevision"))'="") {
+        set filtered=1
+        set filterinfo=pInfo.filters("tagRevision")
+        if (filterinfo="NULL") {
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                        "tagRevision IS NULL"
+        } else {
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "tagRevision = '" _ filterinfo _ "'"
+        }
+    }
+    if ($GET(pInfo.filters("tagXreflabel"))'="") {
+        set filtered=1
+        set filterinfo=pInfo.filters("tagXreflabel")
+        if (filterinfo="NULL") {
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                        "tagXreflabel IS NULL"
+        } else {
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "tagXreflabel = '" _ filterinfo _ "'"
+        }
+    }
+
+    if ($GET(pInfo.filters("Title"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("Title"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "%SQLUPPER(title) [ '" _ filterdata _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateBadListingRS">
+<Description>
+This method returns the result set needed for the Program Listings option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select SourceFile,ParentTopic,ShortContent,Lang,HasProblem,BadSyntax,HasTab,LongLine "
+             _"from DocBook_ManagerTables.Listings "
+
+    set tWHERE = ""
+    set filtered=0
+    if ($GET(pInfo.filters("SourceFile"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "SourceFile %STARTSWITH '" _ pInfo.filters("SourceFile") _ "'"
+    }
+    if ($GET(pInfo.filters("ParentTopic"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "ParentTopic %STARTSWITH '" _ pInfo.filters("ParentTopic") _ "'"
+    }
+    if ($GET(pInfo.filters("Lang"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "Lang %STARTSWITH '" _ pInfo.filters("Lang") _ "'"
+    }
+    if ($GET(pInfo.filters("BadSyntax"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "BadSyntax = '" _ pInfo.filters("BadSyntax") _ "'"
+    }
+    if ($GET(pInfo.filters("HasProblem"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "HasProblem = '" _ pInfo.filters("HasProblem") _ "'"
+    }
+    if ($GET(pInfo.filters("HasTab"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "HasTab = '" _ pInfo.filters("HasTab") _ "'"
+    }
+    if ($GET(pInfo.filters("LongLine"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "LongLine = '" _ pInfo.filters("LongLine") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateExtraSourceRS">
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select 'Load' as Load,DocBookId,TopLevel,Filename from DocBook_ManagerTables.Files "
+    
+    set filtered=1
+    set tWHERE = "Extra=1 "
+
+    // Look at filters
+    if ($GET(pInfo.filters("DocBookId"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ " AND DocBookId %STARTSWITH '" _ pInfo.filters("DocBookId") _ "'"
+    }
+    if ($GET(pInfo.filters("TopLevel"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ " AND TopLevel = '" _ pInfo.filters("TopLevel") _ "'"
+    }
+    if ($GET(pInfo.filters("Product"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ " AND PDFGroup->OriginProduct %STARTSWITH '" _ pInfo.filters("Product") _ "'"
+    }
+    if ($GET(pInfo.filters("Branch"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ " AND PDFGroup->OriginBranch %STARTSWITH '" _ pInfo.filters("Branch") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+    
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateComponentRS">
+<Description><![CDATA[
+This method returns the secondary result set needed for the Build & Load option]]></Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select 'Load' as Load,Filename,ShortFilename "
+             _"from DocBook_ManagerTables.Files WHERE DocBookId %STARTSWITH ?"
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateGraphicRS">
+<Description>
+This method returns the result set needed for the Graphics option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select SourceFile,ParentTopic,GraphicTag,Fileref,Problem,FileOnPath,"
+             _"NameHasSpaces,NameHasUppercase "
+             _"from DocBook_ManagerTables.Graphics "
+
+    set tWHERE = ""
+    set filtered=0
+    if ($GET(pInfo.filters("SourceFile"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "SourceFile %STARTSWITH '" _ pInfo.filters("SourceFile") _ "'"
+    }
+    if ($GET(pInfo.filters("ParentTopic"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "ParentTopic %STARTSWITH '" _ pInfo.filters("ParentTopic") _ "'"
+    }
+    if ($GET(pInfo.filters("GraphicTag"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "GraphicTag %STARTSWITH '" _ pInfo.filters("GraphicTag") _ "'"
+    }
+    if ($GET(pInfo.filters("Fileref"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "Fileref %STARTSWITH '" _ pInfo.filters("Fileref") _ "'"
+    }
+    if ($GET(pInfo.filters("Problem"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "Problem %STARTSWITH '" _ pInfo.filters("Problem") _ "'"
+    }
+    if ($GET(pInfo.filters("FileOnPath"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "FileOnPath %STARTSWITH '" _ pInfo.filters("FileOnPath") _ "'"
+    }
+    if ($GET(pInfo.filters("NameHasSpaces"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "NameHasSpaces %STARTSWITH '" _ pInfo.filters("NameHasSpaces") _ "'"
+    }
+    if ($GET(pInfo.filters("NameHasUppercase"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "NameHasUppercase %STARTSWITH '" _ pInfo.filters("NameHasUppercase") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateImageFileRS">
+<Description>
+This method returns the result set needed for the Image Files option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select PDFGroup->OriginProduct As Product,PDFGroup->OriginBranch As Branch,"
+             _"ShortFilename,Problem,IsWriteable,NameHasSpaces,NameHasUppercase,Filename "
+             _"from DocBook_ManagerTables.ImageFiles "
+
+    set tWHERE = ""
+    set filtered=0
+    if ($GET(pInfo.filters("Product"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "Product %STARTSWITH '" _ pInfo.filters("Product") _ "'"
+    }
+    if ($GET(pInfo.filters("ShortBranch"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "ShortBranch %STARTSWITH '" _ pInfo.filters("ShortBranch") _ "'"
+    }
+    if ($GET(pInfo.filters("ShortFilename"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "ShortFilename %STARTSWITH '" _ pInfo.filters("ShortFilename") _ "'"
+    }
+    if ($GET(pInfo.filters("Problem"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "Problem = '" _ pInfo.filters("Problem") _ "'"
+    }
+    if ($GET(pInfo.filters("IsWriteable"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "IsWriteable = '" _ pInfo.filters("IsWriteable") _ "'"
+    }
+
+    if ($GET(pInfo.filters("NameHasSpaces"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "NameHasSpaces = '" _ pInfo.filters("NameHasSpaces") _ "'"
+    }
+
+    if ($GET(pInfo.filters("NameHasUppercase"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "NameHasUppercase = '" _ pInfo.filters("NameHasUppercase") _ "'"
+    }
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateInterfaceRS">
+<Description>
+This method returns the result set needed for the Links to Portal option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select SourceFile,ParentTopic,InterfaceRef,TagWorks,URL "
+             _"from DocBook_ManagerTables.InterfaceTags "
+
+    set tWHERE = ""
+    set filtered=0
+    if ($GET(pInfo.filters("SourceFile"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "SourceFile %STARTSWITH '" _ pInfo.filters("SourceFile") _ "'"
+    }
+    
+    if ($GET(pInfo.filters("ParentTopic"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "DocBookId %STARTSWITH '" _ pInfo.filters("ParentTopic") _ "'"
+    }
+
+    if ($GET(pInfo.filters("InterfaceRef"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "InterfaceRef %STARTSWITH '" _ pInfo.filters("InterfaceRef") _ "'"
+    }
+
+    if ($GET(pInfo.filters("TagWorks"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "TagWorks = '" _ pInfo.filters("TagWorks") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateLinkRS">
+<Description>
+This method returns the result set needed for the Links option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select SourceFile,ParentTopic,ShortContent,LinkTag,LinkTarget,LinkType,LinkToBook "
+             _"from DocBook_ManagerTables.Links "
+
+    set tWHERE = ""
+    set filtered=0
+    if ($GET(pInfo.filters("SourceFile"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "SourceFile %STARTSWITH '" _ pInfo.filters("SourceFile") _ "'"
+    }
+    if ($GET(pInfo.filters("ParentTopic"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "ParentTopic %STARTSWITH '" _ pInfo.filters("ParentTopic") _ "'"
+    }
+    if ($GET(pInfo.filters("LinkTarget"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "LinkTarget %STARTSWITH '" _ pInfo.filters("LinkTarget") _ "'"
+    }
+    if ($GET(pInfo.filters("LinkTag"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "LinkTag %STARTSWITH '" _ pInfo.filters("LinkTag") _ "'"
+    }
+    if ($GET(pInfo.filters("LinkType"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "LinkType %STARTSWITH '" _ pInfo.filters("LinkType") _ "'"
+    }
+    if ($GET(pInfo.filters("LinkToBook"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "LinkToBook = '" _ pInfo.filters("LinkToBook") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateLoadedRS">
+<Description>
+This method returns the result set of the currently loaded documents</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "SELECT Type,DocBookId, Title, origin, PDFGroup->OriginProduct, PDFGroup->OriginBranch,whenloaded "
+             _"FROM DocBook_ManagerTables.DBContents "
+    
+    set tWHERE = ""
+    set filtered=0
+
+    // Look at filters
+    if ($GET(pInfo.filters("Type"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("Type"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "Type = '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("DocBookId"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("DocBookId"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "DocBookId %STARTSWITH '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("OriginBranch"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("OriginBranch"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "PDFGroup->originbranch = '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("OriginProduct"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("OriginProduct"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "PDFGroup->originproduct = '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("Title"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("Title"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "%SQLUPPER(title) [ '" _ filterdata _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+    set sql = sql _ " ORDER BY whenloaded DESC"
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateLogRS">
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "SELECT LogGroup,LogItem,LogTime FROM DocBook_ManagerTables.Log "
+
+    set tWHERE = ""
+    set filtered=0
+
+    if ($GET(pInfo.filters("LogGroup"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("LogGroup"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "LogGroup = '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("LogItem"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("LogItem"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "%SQLUPPER(LogItem) [ '" _ filterdata _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+    set sql=sql_" order by ID desc"
+
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateMainRS">
+<Description><![CDATA[
+This method returns the main result set needed for the Build & Load option]]></Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select 'Load' as Load,DocBookId,'View Files' as ViewFiles,"
+             _"PDFGroup->OriginProduct As Product,PDFGroup->OriginBranch As Branch,"
+             _"Filename from DocBook_ManagerTables.Files "
+    
+    set filtered=1
+    set tWHERE = "Extra=0 "
+
+    // filter out components by default (but not if SHOWALL is true)
+    if '##class(DocBook.Manager.ConfigUtils).GetParam("SHOWALL") {
+        set tWHERE = tWHERE _ " AND Type!='component' "
+    }
+
+    // Look at filters
+    if ($GET(pInfo.filters("DocBookId"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ " AND DocBookId %STARTSWITH '" _ pInfo.filters("DocBookId") _ "'"
+    }
+    if ($GET(pInfo.filters("Product"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ " AND PDFGroup->OriginProduct %STARTSWITH '" _ pInfo.filters("Product") _ "'"
+    }
+    if ($GET(pInfo.filters("Branch"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ " AND PDFGroup->OriginBranch %STARTSWITH '" _ pInfo.filters("Branch") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+    
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateNoCheckinGroupRS">
+<Description>
+This method returns the second result set for panePDFTools</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "SELECT DocBookId, Title, Origin, PDFGroup->OriginBranch as Branch, "
+             _"PDFGroup->OriginProduct as Product, WhenLoaded "
+             _"FROM DocBook_ManagerTables.DBContents "
+    
+    set tWHERE = "pdfcategory>0 AND PDFGroup->NeverCheckIn=1"
+    set filtered=1
+
+    // Look at filters
+
+    if ($GET(pInfo.filters("DocBookId"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("DocBookId"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "DocBookId %STARTSWITH '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("Title"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("Title"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "%SQLUPPER(title) [ '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("Branch"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("Branch"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "PDFGroup->OriginBranch = '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("Product"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("Product"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "PDFGroup->OriginProduct = '" _ filterdata _ "'"
+    }
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateObsoletePDFRS">
+<Description>
+This method returns the secondary result set for panePDFTools</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "SELECT DocBookId,PDFGroup,FullFilename FROM DocBook_ManagerTables.ObsoletePDFs "
+    
+    set tWHERE = ""
+    set filtered=0
+
+    if ($GET(pInfo.filters("PDFGroup"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("PDFGroup"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "PDFGroup = '" _ filterdata _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreatePageRS">
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select PageType,PageClass,PAGENAME,ExpectedDocBookId,HelpBroken,"
+             _"HelpAttempted,HelpFound from DocBook_ManagerTables.Pages "
+
+    set tWHERE = ""
+    set filtered=0
+    if ($GET(pInfo.filters("PageType"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "PageType = '" _ pInfo.filters("PageType") _ "'"
+    }
+
+    if ($GET(pInfo.filters("PageClass"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "PageClass %STARTSWITH '" _ pInfo.filters("PageClass") _ "'"
+    }
+    if ($GET(pInfo.filters("PAGENAME"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "PAGENAME %STARTSWITH '" _ pInfo.filters("PAGENAME") _ "'"
+    }
+    if ($GET(pInfo.filters("ExpectedDocBookId"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "ExpectedDocBookId %STARTSWITH '" _ pInfo.filters("ExpectedDocBookId") _ "'"
+    }
+    if ($GET(pInfo.filters("HelpAttempted"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "HelpAttempted = '" _ pInfo.filters("HelpAttempted") _ "'"
+    }
+    if ($GET(pInfo.filters("HelpFound"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "HelpFound = '" _ pInfo.filters("HelpFound") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+    set sql = sql _ " ORDER BY pagetype"
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreatePDFRS">
+<Description>
+This method returns the second result set for panePDFTools</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "SELECT DocBookId, Title,PDFGroup,PDFCategory,Origin,PDFGroup->TargetPDFArea as TargetPDFArea,"
+             _"FullPDFAction,InstallPDFAction " 
+             _"FROM DocBook_ManagerTables.DBContents "
+    
+    //set tWHERE = "Type!='set' AND PDFGroup->NeverCheckIn=0 AND PDFCategory IS NOT NULL"
+    set tWHERE = "PDFCategory >=2"
+    set filtered=1
+
+    // Look at filters
+    if ($GET(pInfo.filters("Type"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("Type"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "Type = '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("DocBookId"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("DocBookId"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "DocBookId %STARTSWITH '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("PDFCategory"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("PDFCategory"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "PDFCategory = '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("PDFGroup"))'="") {
+        set filtered=1
+        set filterdata=pInfo.filters("PDFGroup")
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "PDFGroup = '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("Title"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("Title"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "%SQLUPPER(title) [ '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("FullPDFAction"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("FullPDFAction"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "%SQLUPPER(FullPDFAction) [ '" _ filterdata _ "'"
+    }
+
+    if ($GET(pInfo.filters("InstallPDFAction"))'="") {
+        set filtered=1
+        set filterdata=$$$UPPER(pInfo.filters("InstallPDFAction"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                    "%SQLUPPER(InstallPDFAction) [ '" _ filterdata _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreatePDFGroupRS">
+<Description>
+This method returns the result set needed for the PDF groups option on panePDFTools</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "SELECT 'Load' as Load,ID,Origin,Locale,CoverVersion, CoverVersionIsDefault,TargetPDFArea "
+             _"FROM DocBook_ManagerTables.PDFGroups ORDER BY ID"
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateBookRemapRS">
+<Description>
+This method returns the result set needed for the Remap option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "SELECT DocBookId, Remap, Title FROM DocBook_ManagerTables.DBContents"
+
+    set tWHERE = "type = 'book'"
+    set filtered=1
+    
+    if ($GET(pInfo.filters("DocBookId"))'="") {
+        set filtered=1
+        set filterinfo=$$$UPPER(pInfo.filters("DocBookId"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "DocBookId %STARTSWITH '" _ filterinfo _ "'"
+    }
+
+    if ($GET(pInfo.filters("Remap"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "Remap %STARTSWITH '" _ pInfo.filters("Remap") _ "'"
+    }
+
+    if ($GET(pInfo.filters("Title"))'="") {
+        set filtered=1
+        set filterinfo=$$$UPPER(pInfo.filters("Title"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "%SQLUPPER(Title) [ '" _ filterinfo _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+    //finally, tack on the ordering
+    set sql = sql _ " ORDER BY type DESC, Remap DESC" 
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateSETRemapRS">
+<Description>
+This method returns the result set needed for the Remap option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "SELECT DocBookId, Remap, Title FROM DocBook_ManagerTables.DBContents"
+
+    set tWHERE = "type = 'set'"
+    set filtered=1
+    
+    if ($GET(pInfo.filters("DocBookId"))'="") {
+        set filtered=1
+        set filterinfo=$$$UPPER(pInfo.filters("DocBookId"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "DocBookId %STARTSWITH '" _ filterinfo _ "'"
+    }
+
+    if ($GET(pInfo.filters("Remap"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "Remap %STARTSWITH '" _ pInfo.filters("Remap") _ "'"
+    }
+
+    if ($GET(pInfo.filters("Title"))'="") {
+        set filtered=1
+        set filterinfo=$$$UPPER(pInfo.filters("Title"))
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "%SQLUPPER(Title) [ '" _ filterinfo _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+    //finally, tack on the ordering
+    set sql = sql _ " ORDER BY type DESC, Remap DESC" 
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateSearchRS">
+<Description>
+This method returns the result set needed for the Search option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+   
+    set status = $$$OK
+    set sql = "SELECT TOP 500 $EXTRACT(NVL(title,'')||NVL(content,''),1,200) as shortcontent, "
+             _"blockid, sourcefile, title, content FROM DocBook.block "
+
+    set tWHERE = "(content is not null or title is not null)"
+    set filtered=1
+    set CASESENSITIVESEARCH=##class(DocBook.Manager.ConfigUtils).GetParam("CASESENSITIVESEARCH")
+
+    if ($GET(pInfo.filters("shortcontent"))'="") {
+        set filtered=1
+        if CASESENSITIVESEARCH {
+            set searchtext=pInfo.filters("shortcontent")
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "(content [ '" _ searchtext _ "' OR title [ '" _ searchtext_"')"
+        } else {
+            set searchtext=$$$UPPER(pInfo.filters("shortcontent"))
+            set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "(%SQLUPPER(content) [ '" _ searchtext _ "' OR %SQLUPPER(title) [ '" _ searchtext_"')"
+        }
+    }
+    if ($GET(pInfo.filters("blockid"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "blockid %STARTSWITH '" _ pInfo.filters("blockid") _ "'"
+    }
+    if ($GET(pInfo.filters("sourcefile"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "sourcefile %STARTSWITH '" _ pInfo.filters("sourcefile") _ "'"
+    }
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateSETComponentRS">
+<Description>
+This method returns the secondary result set needed for the SETs option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select DocBookId,Remap,Title from DocBook_ManagerTables.Files WHERE DocBookId IN "_..SelectedBookList_" ORDER BY Remap"
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateSETRS">
+<Description>
+This method returns the result set needed for the SETs option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select DocBookId,BookList,PDFGroup->OriginProduct As Product,PDFGroup->OriginBranch As Branch,Filename from DocBook_ManagerTables.SETFiles "
+
+    set tWHERE = ""
+    set filtered=0
+    if ($GET(pInfo.filters("DocBookId"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "DocBookId %STARTSWITH '" _ pInfo.filters("DocBookId") _ "'"
+    }
+    if ($GET(pInfo.filters("BookList"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "BookList %STARTSWITH '" _ pInfo.filters("BookList") _ "'"
+    }
+
+    if ($GET(pInfo.filters("Product"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "PDFGroup->OriginProduct %STARTSWITH '" _ pInfo.filters("Product") _ "'"
+    }
+    if ($GET(pInfo.filters("Branch"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "PDFGroup->OriginBranch %STARTSWITH '" _ pInfo.filters("Branch") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+    //finally, tack on the ordering
+    set sql = sql _ " ORDER BY Remap" 
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateTaxonomyRS">
+<Description>
+This method returns the result set needed for the Taxonomy option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+   
+    set status = $$$OK
+    set sql = "select DocBookId,TaxoProduct,TaxoApp,TaxoLang,TaxoLevel,TaxoRole,TaxoBook FROM DocBook_ManagerTables.Taxonomy "
+
+    set tWHERE = ""
+    set filtered=0
+    if ($GET(pInfo.filters("DocBookId"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "DocBookId %STARTSWITH '" _ pInfo.filters("DocBookId") _ "'"
+    }
+    if ($GET(pInfo.filters("TaxoProduct"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "TaxoProduct [ '" _ pInfo.filters("TaxoProduct") _ "'"
+    }
+    if ($GET(pInfo.filters("TaxoApp"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "TaxoApp [  '" _ pInfo.filters("TaxoApp") _ "'"
+    }
+    if ($GET(pInfo.filters("TaxoLang"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "TaxoLang [ '" _ pInfo.filters("TaxoLang") _ "'"
+    }
+    if ($GET(pInfo.filters("TaxoLevel"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "TaxoLevel [ '" _ pInfo.filters("TaxoLevel") _ "'"
+    }
+    if ($GET(pInfo.filters("TaxoRole"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "TaxoRole [ '" _ pInfo.filters("TaxoRole") _ "'"
+    }
+    if ($GET(pInfo.filters("TaxoBook"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "TaxoBook [ '" _ pInfo.filters("TaxoBook") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateTOCRS">
+<Description>
+This method returns the result set needed for the Table of Contents option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+   
+    set status = $$$OK
+    set sql = "select Document, UnitNumbering, Title, UnitLevel, " 
+            _ "UnitType, DocBookId, IdIsOK, IdIsGenerated from DocBook_ManagerTables.TOC "
+
+    set tWHERE = ""
+    set filtered=0
+    if ($GET(pInfo.filters("DocBookId"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "%SQLUPPER(DocBookId) [ '" _ $$$UPPER(pInfo.filters("DocBookId")) _ "'"
+    }
+    if ($GET(pInfo.filters("Document"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "Document %STARTSWITH '" _ pInfo.filters("Document") _ "'"
+    }
+    if ($GET(pInfo.filters("Title"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "Title [ '" _ pInfo.filters("Title") _ "'"
+    }
+    if ($GET(pInfo.filters("UnitLevel"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "UnitLevel <=  '" _ pInfo.filters("UnitLevel") _ "'"
+    }
+    if ($GET(pInfo.filters("UnitType"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "UnitType %STARTSWITH '" _ pInfo.filters("UnitType") _ "'"
+    }
+    if ($GET(pInfo.filters("IdIsOK"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "IdIsOK = '" _ pInfo.filters("IdIsOK") _ "'"
+    }
+    if ($GET(pInfo.filters("IdIsGenerated"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "IdIsGenerated = '" _ pInfo.filters("IdIsGenerated") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+
+<Method name="CreateRunItListingRS">
+<Description>
+This method returns the result set needed for the Program Listings option</Description>
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "select SourceFile,ParentTopic,Content,Lang "
+             _"from DocBook_ManagerTables.Listings "
+
+    set tWHERE = " %SQLUPPER(lang) [ 'RUN' "
+    set filtered=1
+
+    if ($GET(pInfo.filters("Content"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "Content [ '" _ pInfo.filters("Content") _ "'"
+    }
+    if ($GET(pInfo.filters("SourceFile"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "SourceFile %STARTSWITH '" _ pInfo.filters("SourceFile") _ "'"
+    }
+    if ($GET(pInfo.filters("ParentTopic"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "ParentTopic %STARTSWITH '" _ pInfo.filters("ParentTopic") _ "'"
+    }
+    if ($GET(pInfo.filters("Lang"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "Lang %STARTSWITH '" _ pInfo.filters("Lang") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+</Class>
+</Export>

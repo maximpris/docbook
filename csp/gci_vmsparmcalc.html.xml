@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="gci_vmsparmcalc.html" application="/csp/docbook/" default="1"><![CDATA[
+<HTML>
+<HEAD>
+<TITLE>InterSystems OpenVMS Parameter Calculator</TITLE>
+<LINK REL="stylesheet" TYPE="text/css" HREF="docbookhtml.css" TITLE="Standard Style" >
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<SCRIPT LANGUAGE=JavaScript SRC="docbook.js"> </SCRIPT>
+<STYLE>
+	  .menuItem { font-family: sans-serif; font-size:8pt; width:100; padding-left:20; background-Color: menu;color:black;
+	  				border-color: black; border-width: 1px; border-style: solid; }
+	  .highlightItem { font-family: sans-serif; font-size: 8pt; width: 100; padding-left: 20; background-Color: highlight; color: white; }
+	</STYLE>
+<SCRIPT LANGUAGE=JavaScript>
+function calculate()
+{
+
+	var form1 = self.document.form1;
+	var form2 = self.document.form2;
+	if (form1.cluster[0].checked == true) {
+		form2.numglbbuf.value = Math.round(parseFloat(form1.numproc.value) * parseFloat(form1.glbbufperjob.value) * 1.2);
+	} else {
+		form2.numglbbuf.value = Math.round(parseFloat(form1.numproc.value) * parseFloat(form1.glbbufperjob.value));
+	}
+	form2.glbbuf.value = Math.round((form2.numglbbuf.value*8192)/(1024*1024));
+
+	var offset = form1.rtnbufpool.value
+	offset = offset.toUpperCase()
+	// if user entered "MB" following the number then use the number as is
+	if ((offset.lastIndexOf ("MB") > 0) && (offset.lastIndexOf ("MB") < offset.length )) {
+		form2.rtnbuf.value = parseFloat(form1.rtnbufpool.value);
+	} else {
+	// else calculate the number of buffer to MB
+		form1.rtnbufpool.value = parseFloat(form1.rtnbufpool.value);
+		form2.rtnbuf.value = Math.round((parseFloat(form1.rtnbufpool.value)*32)/1024);
+	}
+	// add 15mb for gmheap in standard installation
+	form2.resmem.value = Math.round(((form2.numglbbuf.value*8192)+(form2.numglbbuf.value*352))/(1024*1024))+Math.round(form2.rtnbuf.value)+15+1;
+	form2.balsetcnt.value = Math.round(form1.numproc.value)+100;
+	form2.maxproccnt.value = Math.round(form2.balsetcnt.value)+2;
+	form2.gblsec.value = 50;
+
+	form2.cachefixed.value = 65536;
+	var a = (Math.round(form2.glbbuf.value)+Math.round(form2.rtnbuf.value))*1024*1024
+	form2.gblpages.value = (Math.round(a)+(form2.cachefixed.value*512))/512;
+	form2.gblpagfil.value = Math.round(form2.gblpages.value*(512/8192))
+	form2.sysmwcnt.value =  Math.round((Math.round(form2.gblpages.value)+127)/128)
+
+	// For additional Cluster
+	if (form1.cluster[0].checked == true) {
+ 		form2.balsetcnt2.value = Math.round(form1.numproc.value) + 100;
+		form2.maxproccnt2.value = Math.round(form2.balsetcnt2.value) + 2;
+		form2.gblsec2.value = 50;
+		form2.resmem2.value = form2.glbbuf.value;
+		form2.gblpages2.value = form2.gblpages.value;
+		form2.gblpagfil2.value = form2.gblpagfil.value;
+		form2.sysmwcnt2.value = form2.sysmwcnt.value;
+		form2.lockid.value = form2.numglbbuf.value * 2;
+		form2.lockid2.value = form2.numglbbuf.value * 1.2;
+		form2.resh.value = form2.numglbbuf.value * 4;
+		form2.resh2.value = form2.resh.value;
+	}
+}
+function setdefault()
+{
+	var form1 = self.document.form1;
+	if (form1.cluster[0].checked == true) {
+		form1.numproc.value = 700;
+		form1.rtnbufpool.value = 50;
+		form1.glbbufperjob.value = 175;
+	} else {
+		form1.numproc.value = 700;
+		form1.rtnbufpool.value = 50;
+		form1.glbbufperjob.value = 125;
+	}
+}
+</SCRIPT>
+</HEAD>
+
+<BODY BGCOLOR="WHITE" TEXT="BLACK">
+<DIV ALIGN="CENTER">
+
+<a name="top">
+</a>
+<table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 10pt;">
+<tr>
+<td nowrap bgcolor="#FFFAE7" valign="bottom" align="left" >
+<a href="http://www.intersystems.com">
+<img src="/csp/sys/images/logo-topl-intersystems.gif" alt="InterSystems" align="left" width="205" height="78" border="none">
+</a>
+<br clear="left">
+<nobr>&nbsp;
+</nobr>
+</td>
+<td nowrap bgcolor="#FFFAE7" valign="top" align="left">
+<div class="wizardltlabel" style="margin-top:8px;">
+<span style="font-size:11pt; padding-right:5px;">InterSystems Online Documentation</span>
+</div>
+<div style="color: darkblue; margin-top:4px; font-weight: bold; font-size:15pt;">
+Cach&eacute; OpenVMS Parameter Calculator
+</div>
+</td>
+<td nowrap width="308" height="78" bgcolor="#FFFAE7" valign="bottom" align="left" style='background-repeat: repeat-y; background-image: url("../../csp/sys/images/opposite-pic-intersys.jpg");'>&nbsp;</td>
+<td width="2%" bgcolor="#388CCC">&nbsp;</td>
+<td bgcolor="#388CCC" valign="bottom">
+</td>
+<td bgcolor="#388CCC">&nbsp;</td>
+</tr>
+<tr>
+<td colspan="8" bgcolor="#D36D00">
+<img src="/csp/sys/images/spacer.gif" width="100%" height="2" alt="-" border="0">
+</td>
+</tr>
+<tr>
+<td class="LocatorBar" colspan="10">&nbsp;</td>
+</tr>
+</table>
+
+<BR>
+<DIV CLASS="para1"ALIGN="LEFT">
+This tool is an interactive HTML document that provides calculations for the OpenVMS
+parameters required by Cach&eacute;. The default values provide reasonable numbers for
+a medium sized installation. InterSystems experts are available to provide you
+with additional help in configuring and tuning Cach&eacute; for your site.</DIV>
+<BR>
+<FORM NAME="form1">
+  <TABLE WIDTH="554" BORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR BGCOLOR="SILVER">
+      <TD WIDTH="283"><B><FONT FACE="Verdana,Arial,sans-serif">Step 1. Clustered System?</B> </TD>
+      <TD WIDTH="271">
+        <INPUT TYPE="radio" NAME="cluster" VALUE="0" onClick='document.form2.reset();setdefault();'>
+        Yes
+        <INPUT TYPE="radio" NAME="cluster" VALUE="1" CHECKED onClick='document.form2.reset();setdefault()'>
+        No </TD>
+    </TR>
+  </TABLE>
+  <BR>
+  <TABLE WIDTH="554" BORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR BGCOLOR="SILVER">
+      <TD WIDTH="554"><B><FONT FACE="Verdana,Arial,sans-serif">Step 2. Enter numbers for these fields:</B> </TD>
+   </TR>
+  </TABLE>
+  <BR>
+  <TABLE WIDTH="554" BORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR>
+      <TH WIDTH="205">Description</TH>
+      <TH WIDTH="127">Field</TH>
+      <TH WIDTH="222">Comment</TH>
+    </TR>
+    <TR>
+      <TD WIDTH="205">Number of Processes:</TD>
+      <TD WIDTH="127" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="numproc" SIZE="10" VALUE="700">
+      </TD>
+      <TD WIDTH="222">Enter number of processes per cluster for clustered system</TD>
+    </TR>
+  <TR>
+      <TD WIDTH="205">Routine Buffer Pool:</TD>
+      <TD WIDTH="127" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="rtnbufpool" SIZE="10" VALUE="50">
+      </TD>
+      <TD WIDTH="222">Enter number of routine buffers (each buffer is 32KB) or the number of MB and followed by the letters "MB"</TD>
+    </TR>
+    <TR>
+      <TD WIDTH="205">Global Buffers per Process:</TD>
+      <TD WIDTH="127" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="glbbufperjob" SIZE="10" VALUE="125">
+      </TD>
+      <TD WIDTH="222" ALIGN="LEFT">Default provided is a rule of thumb and can
+        be overwritten</TD>
+    </TR>
+  </TABLE>
+  <BR>
+  <TABLE WIDTH="554" BORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR BGCOLOR="SILVER">
+      <TD WIDTH="205"><B><FONT FACE="Verdana,Arial,sans-serif">Step 3. Press a button</B> </TD>
+     <TD WIDTH="127" ALIGN="CENTER">
+        <INPUT TYPE="button" NAME="Cal" VALUE="Calculate" onClick='calculate();'>
+      </TD>
+	  <TD WIDTH="222" ALIGN="CENTER"><INPUT TYPE="button" NAME="reset" VALUE="Reset" onClick='setdefault();document.form2.reset();'>
+      </TD>
+   </TR>
+  </TABLE>
+  <BR>
+</FORM>
+<FORM NAME="form2">
+  <TABLE WIDTH="552" BORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR ALIGN="CENTER">
+      <TD COLSPAN="3"><FONT SIZE=5><B>
+        Calculation Result</FONT></B><br><font size=2>(Read only)</font>
+      </TD>
+    </TR>
+    <TR ALIGN="CENTER">
+      <TH WIDTH="210">Parameter</TH>
+      <TH WIDTH="155"> Single Node or<BR>
+        Cluster Master</TH>
+      <TH WIDTH="155">Additional Nodes</TH>
+    </TR>
+    <TR>
+      <TD WIDTH="210">Number of Global Buffers</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="numglbbuf" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155">&nbsp; </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="210">Memory for Database Cache (MB)</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="glbbuf" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155">&nbsp; </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="210">Memory for Routine Cache (MB)</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="rtnbuf" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155">&nbsp; </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="210">Balsetcnt</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="balsetcnt" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="balsetcnt2" SIZE="10" READONLY>
+      </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="210">MaxProcesscnt</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="maxproccnt" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="maxproccnt2" SIZE="10" READONLY>
+      </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="210">GBLPages (pagelets)</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="gblpages" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="gblpages2" SIZE="10" READONLY>
+      </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="210">GBLPAGFIL (pages)</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="gblpagfil" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="gblpagfil2" SIZE="10" READONLY>
+      </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="210">GBLSections</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="gblsec" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="gblsec2" SIZE="10" READONLY>
+      </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="210">Resident Memory (MB)</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="resmem" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="resmem2" SIZE="10" READONLY>
+      </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="210">SYSMWCNT</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="sysmwcnt" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="sysmwcnt2" SIZE="10" READONLY>
+      </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="205">Cache Fixed SHMEM req (pagelets)</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="cachefixed" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155" ALIGN="CENTER">&nbsp;</TD>
+    </TR>
+
+    <TR>
+      <TD COLSPAN="3" ALIGN="CENTER">&nbsp;</TD>
+    </TR>
+    <TR>
+      <TD WIDTH="210">LOCKIDTBL</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="lockid" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="lockid2" SIZE="10" READONLY>
+      </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="210">RESHASHTBL</TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="resh" SIZE="10" READONLY>
+      </TD>
+      <TD WIDTH="155" ALIGN="CENTER">
+        <INPUT TYPE="text" NAME="resh2" SIZE="10" READONLY>
+      </TD>
+    </TR>
+
+    <TR>
+      <TD COLSPAN="3" ALIGN="CENTER"> </TD>
+  </TABLE>
+</FORM>
+  <TABLE WIDTH="496" BORDER="1" CELLSPACING="0" CELLPADDING="5">
+    <TR ALIGN="CENTER" VALIGN="MIDDLE">
+      <TD COLSPAN="2">
+        <H3>Process Parameters (PQL_M* or UAF)</H3>
+      </TD>
+    </TR>
+    <TR>
+      <TD WIDTH="219" ALIGN="RIGHT">ASTLM</TD>
+      <TD WIDTH="246" ALIGN="RIGHT">300</TD>
+    </TR>
+    <TR>
+      <TD WIDTH="219" ALIGN="RIGHT">BIOLM</TD>
+      <TD WIDTH="246" ALIGN="RIGHT">300</TD>
+    </TR>
+    <TR>
+      <TD WIDTH="219" ALIGN="RIGHT">BYTLM</TD>
+      <TD WIDTH="246" ALIGN="RIGHT">300000</TD>
+    </TR>
+    <TR>
+      <TD WIDTH="219" ALIGN="RIGHT">DIOLM</TD>
+      <TD WIDTH="246" ALIGN="RIGHT">300</TD>
+    </TR>
+    <TR>
+      <TD WIDTH="219" ALIGN="RIGHT">FILLM</TD>
+      <TD WIDTH="246" ALIGN="RIGHT">255 or higher</TD>
+    </TR>
+    <TR>
+      <TD WIDTH="219" ALIGN="RIGHT">PGFLQUOTA</TD>
+      <TD WIDTH="246" ALIGN="RIGHT">300000</TD>
+    </TR>
+    <TR>
+      <TD WIDTH="219" ALIGN="RIGHT">TQELM</TD>
+      <TD WIDTH="246" ALIGN="RIGHT">300</TD>
+    </TR>
+    <TR>
+      <TD WIDTH="219" ALIGN="RIGHT">WSQUOTA</TD>
+      <TD WIDTH="246" ALIGN="RIGHT">2048/3192</TD>
+    </TR>
+    <TR>
+      <TD WIDTH="219" ALIGN="RIGHT">WSEXTENT</TD>
+      <TD WIDTH="246" ALIGN="RIGHT">8192/16384</TD>
+    </TR>
+    <TR>
+      <TD WIDTH="219" ALIGN="RIGHT">ENQLM</TD>
+      <TD WIDTH="246" ALIGN="RIGHT">3000</TD>
+    </TR>
+    <TR ALIGN="LEFT">
+      <TD COLSPAN="2">* The PQL parameters are set to minimums</TD>
+    </TR>
+  </TABLE>
+</DIV>
+<BR>
+<DIV class="para">
+Reference the
+<A CLASS="Link" HREF="DocBook.UI.Page.cls?KEY=GCI_vmsparms#GCI_vmsparms_analyze">
+Analyzing the Calculation Results</A> section of <A TITLE="quote"><SPAN CLASS="quote">&#147;Calculating
+System Parameters for OpenVMS&#148;</SPAN></A> to read an explanation of the values returned by
+this calculator.</DIV>
+<BR>
+<HR>
+<TABLE WIDTH="100%"><TR><TD>
+<FONT size="2">Copyright &#169 2001, InterSystems Corporation. All Rights Reserved.</FONT></TD>
+<TD ALIGN="RIGHT"><FONT SIZE="2">Last updated: <B>2006-12-27 15:09:00</B></FONT></TD>
+<TD ALIGN="RIGHT"><FONT SIZE="2">Source: <B>GCI_vmsparmcalc.html</B></FONT></TD>
+</TR></TABLE>
+</BODY>
+</HTML>
+]]></CSP>
+</Export>

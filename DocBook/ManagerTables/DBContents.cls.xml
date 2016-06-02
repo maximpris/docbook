@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.DBContents">
+<Description><![CDATA[
+This class stores one record for each SET, book, or article in this database.
+For general comments, see <class>DocBook.ManagerTables.Utils</class>. ]]></Description>
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="DocBookId">
+<Description><![CDATA[
+id of <set> <book> or <chapter> etc.
+Displayed in table; used as filter.]]></Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="DocBookIdIdx">
+<IdKey>1</IdKey>
+<Properties>DocBookId</Properties>
+</Index>
+
+<Property name="Type">
+<Description>
+Can be "set","book","article", or "all"</Description>
+<Type>%String</Type>
+</Property>
+
+<Index name="TypeIdx">
+<Properties>Type</Properties>
+</Index>
+
+<Property name="RawTitle">
+<Description>
+Raw Title of this DocBook id.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="Title">
+<Description>
+Title of this DocBook id.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="RawSubtitle">
+<Description>
+Raw Subtitle of this DocBook id, if any</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="5000"/>
+</Property>
+
+<Property name="Subtitle">
+<Description>
+Subtitle of this DocBook id, if any</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="5000"/>
+</Property>
+
+<Property name="Remap">
+<Description>
+remap value of this DocBook id, if any.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="tagArch">
+<Description>
+arch attribute of this DocBook id, if any, from tagattrs</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="tagRevision">
+<Description>
+revision attribute of this DocBook id, if any, from tagattrs</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="tagRole">
+<Description>
+role attribute of this DocBook id, if any, from tagattrs</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="tagStatus">
+<Description>
+status attribute of this DocBook id, if any, from tagattrs</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="tagXreflabel">
+<Description>
+xreflabel attribute of this DocBook id, if any, from tagattrs</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="Origin">
+<Description>
+Tells us which file provided the contents for this item.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="WhenLoaded">
+<Type>%TimeStamp</Type>
+</Property>
+
+<Property name="ParentSET">
+<Description>
+This applies only to books</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="ParentRemap">
+<Description>
+This applies only to books</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="PDFCategory">
+<Description>
+This property can be 0 (no PDFs), 1 (PDFs but no target Perforce directories),
+2 (PDFs with a target /full/pdfs directory),
+or 3 (PDFs with a target /full/pdfs directory AND a target /install/pdfs directory)</Description>
+<Type>%Integer</Type>
+</Property>
+
+<Property name="PDFGroup">
+<Type>PDFGroups</Type>
+</Property>
+
+<Property name="FullPDFAction">
+<Description>
+This property says what we should do with the PDF file to go into pdfarea/full/pdfs</Description>
+<Type>%String</Type>
+<Parameter name="VALUELIST" value=",update,add,delete"/>
+</Property>
+
+<Property name="InstallPDFAction">
+<Description>
+This property says what we should do with the PDF file to go into pdfarea/install/pdfs</Description>
+<Type>%String</Type>
+<Parameter name="VALUELIST" value=",update,add,delete"/>
+</Property>
+
+<Method name="Rebuild">
+<Description>
+For this method, verbose is 0, 1, or 2.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.DBContents:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: DBContents scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of database contents...",verbose)
+    do ..%KillExtent()
+    
+    do ..ProcessTable("DocBook.db_set",verbose)
+    do ..ProcessTable("DocBook.book",verbose)
+    do ..ProcessTable("DocBook.article",verbose)
+
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE rebuilding cache of database contents",verbose)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="ProcessTable">
+<Description>
+For use by Rebuild() internals.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>tablename:%String,verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    if ((tablename="DocBook.db_set") || (tablename="DocBook.book") || (tablename="DocBook.article")) {
+        set sql = "SELECT blockid FROM "_tablename
+    } else {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","No table specified for ProcessTable",verbose)
+        quit
+    }
+
+    set stmt = ##class(%SQL.Statement).%New()
+    set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+
+    set result = stmt.%Execute() 
+    while (result.%Next()) {
+        set DocBookId=result.%Get("blockid")
+        do ..ProcessRecordFromLoadedContent(DocBookId,verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ProcessRecordFromLoadedContent">
+<Description>
+For use by Rebuild() internals.
+This method creates or opens a record in this table (DocBook_ManagerTables.DBContents) and
+updates it with information from the db_set, book, or article table.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String,verbose:%Boolean=0</FormalSpec>
+<ReturnType>DocBook.ManagerTables.DBContents</ReturnType>
+<Implementation><![CDATA[
+    if (verbose>1) {
+        write !, "DBContents: In ProcessRecordFromLoadedContent() for ",DocBookId
+    }
+    set record=..%OpenId(DocBookId) 
+    if '$ISOBJECT(record) {
+        set record=..%New()
+        set record.DocBookId=DocBookId
+    }
+
+    set type=##class(DocBook.Manager.Utils).GetTypeFromId(DocBookId)
+    set record.Type=type
+    
+    if (type="set") {
+        &sql(SELECT title, subtitle,remap, tagattrs 
+             INTO :title, :subtitle, :remap, :tagattrs
+             FROM DocBook.db_set 
+             WHERE blockid=:DocBookId)
+
+    } elseif (type="book") {
+        &sql(SELECT title, subtitle,remap, tagattrs,container->blockid, container->remap 
+             INTO :title, :subtitle, :remap, :tagattrs, :parentSET, :parentRemap
+             FROM DocBook.book 
+             WHERE blockid=:DocBookId)
+
+    } elseif (type="article") {
+        &sql(SELECT title, subtitle,remap, tagattrs 
+             INTO :title, :subtitle, :remap, :tagattrs
+             FROM DocBook.article 
+             WHERE blockid=:DocBookId)
+
+  /*
+        &sql(SELECT title, subtitle,remap, tagattrs 
+             INTO :title, :subtitle, :remap, :tagattrs
+             FROM DocBook.article 
+             WHERE blockid=:DocBookId
+             UNION 
+             SELECT title, subtitle,remap, tagattrs 
+             INTO :title, :subtitle, :remap, :tagattrs
+             FROM DocBook.book 
+             UNION 
+             SELECT title, subtitle,remap, tagattrs 
+             INTO :title, :subtitle, :remap, :tagattrs
+             FROM DocBook.db_set )
+             */
+
+    } else {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","No type specified for ProcessRecordFromLoadedContent()",verbose)
+        quit
+    }
+    
+    if (SQLCODE'=0) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error running embedded SQL in ProcessRecordFromLoadedContent()",verbose)
+        quit
+    }
+
+
+    set record.RawTitle=title
+    set record.Title=$ZCVT(title,"I","HTML")
+    set record.RawSubtitle=subtitle
+    set record.Subtitle=$ZCVT(subtitle,"I","HTML")
+    set record.Remap=remap
+    if (type="book") {
+        set record.ParentSET=parentSET
+        set record.ParentRemap=parentRemap
+    }
+
+    //process tagattrs now
+    //the next bit is copied from DocBook.DocBookParser
+    kill array
+    For i = 1:5:$LL(tagattrs) {
+        If ($LG(tagattrs,i+1) '= "") {
+            Set array($LG(tagattrs,i+1)) = $LG(tagattrs,i+4)
+        }
+    }
+    set record.tagArch=$G(array("arch"),"")
+    set record.tagRevision=$G(array("revision"),"")
+    set record.tagRole=$G(array("role"),"")
+    set record.tagStatus=$G(array("status"),"")
+    set record.tagXreflabel=$G(array("xreflabel"),"")
+
+    if (record.Type="set") {
+        set record.PDFCategory=-1
+    } elseif (record.tagRole="tutorial") {
+        set record.PDFCategory=0
+    } elseif (record.tagArch="internal") {
+        set record.PDFCategory=1 
+    } elseif (record.tagStatus'="static") {
+        set record.PDFCategory=2
+    } else {
+        set record.PDFCategory=3
+    }
+
+    set status=record.%Save()
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error updating record in DocBook.ManagerTables.DBContents: "_DocBookId,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+    }
+    quit record
+]]></Implementation>
+</Method>
+
+<Method name="UpdateAfterLoadingFile">
+<Description>
+Update a record in this cache. Use this after loading a set, book, or article file.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String="",origin:%String="",verbose:%Integer=0,isExtra:%Boolean=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    if (DocBookId="") { quit $$$ERROR($$$GeneralError,"No DocBookId specified for Update() in DBContents")}
+
+    //the next step either creates or updates a record and makes it 
+    //current with whatever we have loaded in the database for that item
+    set record= ..ProcessRecordFromLoadedContent(DocBookId,verbose)
+    //if we have no record now, something has gone wrong, so skip out
+    if '$ISOBJECT(record) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error processing DBContents record for DocBookID "_DocBookId,verbose)
+        quit $$$ERROR($$$GeneralError,"Error processing DBContents record for DocBookID "_DocBookId)
+    }
+    
+    set record.WhenLoaded=$ZDATETIME($h,3)
+    set record.Origin=origin
+    set record.PDFGroup=##class(DocBook.ManagerTables.PDFGroups).GetPDFGroup(origin,isExtra,verbose)
+
+    //based on what we got back, let's adjust PDFCategory if needed
+    if ((record.PDFGroup.NeverCheckIn=1) && (record.PDFCategory>0) ) {
+        set record.PDFCategory=1
+    }
+
+    set status=record.%Save()
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error updating record in DocBook.ManagerTables.DBContents: "_DocBookId,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+    }
+    quit status
+]]></Implementation>
+</Method>
+
+<Method name="Remove">
+<Description>
+Remove a record in this cache. Use this after removing a set, book, or article. Special case:
+DocBookId="all" (case-insensitive) removes everything.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String="",verbose:%Integer=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    if (DocBookId="") { quit $$$ERROR($$$GeneralError,"No DocBookId specified for Remove() in DBContents")}
+    if ($$$UPPER(DocBookId)="ALL") {
+        set status=..%KillExtent()
+    } else {
+        set status=..%DeleteId(DocBookId)
+    }
+
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error removing record from DocBook.ManagerTables.DBContents: "_DocBookId,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+    }
+    quit status
+]]></Implementation>
+</Method>
+
+<Method name="ScanPDFDirs">
+<Description>
+First we iterate through the files indicated in this table
+and we check to see if each exists or not; we use this to set the 
+Perforce action as either "update" or "add" for that file.
+Then we build a different table that lists any obsolete PDF files that we'll need to remove</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Scanning PDF directories...",verbose)
+
+    set sql="SELECT DocBookId, Origin, PDFGroup->TargetPDFArea FROM DocBook_ManagerTables.DBContents "
+        _"WHERE pdfcategory>=2 order by pdfcategory "
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+  
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set orig=rset.%Get("Origin")
+        if (orig="") continue
+        set docbookid=rset.%Get("DocBookId")
+        set record=..%OpenId(docbookid)
+
+        set dir=rset.%Get("TargetPDFArea")
+        set fulldir=##class(DocBook.Manager.Utils).AppendToPath(dir,"/full/pdfs")
+        set fullfile=##class(DocBook.Manager.Utils).AppendToPath(fulldir,docbookid_".pdf")
+        set exists=##class(%File).Exists(fullfile)
+        if exists {
+            set record.FullPDFAction="update"
+        } else {
+            set record.FullPDFAction="add"
+        }
+        
+        // if this item is "static" also check /install/pdfs
+        if (record.PDFCategory=3) {
+            set installdir=##class(DocBook.Manager.Utils).AppendToPath(dir,"/install/pdfs")
+            set installfile=##class(DocBook.Manager.Utils).AppendToPath(installdir,docbookid_".pdf")
+            set exists=##class(%File).Exists(installfile)
+            if exists {
+                set record.InstallPDFAction="update"
+            } else {
+                set record.InstallPDFAction="add"
+            }
+        }
+
+        set status=record.%Save()
+        if $$$ISERR(status) {
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.DocBookId,verbose)
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        }
+    }
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE scanning PDF directories.",verbose)
+]]></Implementation>
+</Method>
+
+<Method name="GetBookList">
+<Description>
+Returns a list of strings, each of which consists of DocBookId^RawTitle^RawSubtitle</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>SetId:%String="",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<ReturnType>%ListOfDataTypes</ReturnType>
+<Implementation><![CDATA[
+    set list=##class(%ListOfDataTypes).%New()
+    if (SetId=""){ 
+        quit list
+    }
+    set sql="SELECT DocBookId,RawTitle,RawSubtitle FROM DocBook_ManagerTables.DBContents WHERE parentset = '"_SetId_"'"
+    if static {
+        set sql=sql_" AND PDFCategory=3"
+    } else {
+        set sql=sql_" AND ((PDFCategory=2) OR (PDFCategory=3))" 
+    }
+    set sql=sql_" ORDER BY remap"
+
+    if verbose {
+        write !, "SQL for books in SET: ",sql
+    }
+    
+    set stmt=##class(%SQL.Statement).%New()
+    set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory",$system.Status.GetErrorText(status),verbose)
+        quit list
+    }
+
+    set result=stmt.%Execute()
+    while result.%Next() {
+        set listitem=result.%Get("DocBookId")_"^"_result.%Get("RawTitle")_"^"_result.%Get("RawSubtitle")
+        if (verbose>1) {
+            write !, "   book:",result.%Get("Title")
+        }
+        do list.Insert(listitem)
+    }
+    quit list
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.Manager74DA.DBContentsD</DataLocation>
+<DefaultData>DBContentsDefaultData</DefaultData>
+<IdLocation>^DocBook.Manager74DA.DBContentsD</IdLocation>
+<IndexLocation>^DocBook.Manager74DA.DBContentsI</IndexLocation>
+<StreamLocation>^DocBook.Manager74DA.DBContentsS</StreamLocation>
+<Data name="DBContentsDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>Type</Value>
+</Value>
+<Value name="3">
+<Value>RawTitle</Value>
+</Value>
+<Value name="4">
+<Value>Title</Value>
+</Value>
+<Value name="5">
+<Value>RawSubtitle</Value>
+</Value>
+<Value name="6">
+<Value>Subtitle</Value>
+</Value>
+<Value name="7">
+<Value>Remap</Value>
+</Value>
+<Value name="8">
+<Value>tagArch</Value>
+</Value>
+<Value name="9">
+<Value>tagRevision</Value>
+</Value>
+<Value name="10">
+<Value>tagRole</Value>
+</Value>
+<Value name="11">
+<Value>tagStatus</Value>
+</Value>
+<Value name="12">
+<Value>tagXreflabel</Value>
+</Value>
+<Value name="13">
+<Value>Origin</Value>
+</Value>
+<Value name="14">
+<Value>WhenLoaded</Value>
+</Value>
+<Value name="15">
+<Value>ParentSET</Value>
+</Value>
+<Value name="16">
+<Value>ParentRemap</Value>
+</Value>
+<Value name="17">
+<Value>PDFCategory</Value>
+</Value>
+<Value name="18">
+<Value>PDFGroup</Value>
+</Value>
+<Value name="19">
+<Value>FullPDFAction</Value>
+</Value>
+<Value name="20">
+<Value>InstallPDFAction</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

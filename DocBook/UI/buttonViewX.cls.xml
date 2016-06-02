@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.buttonViewX">
+<Description>
+This is just like buttonView except that it uses the group id 
+value to break up the buttons into discrete chunks.  This
+implictly requires that the chunks be defined in the list together.</Description>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%ZEN.Component.buttonView</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<XData name="Style">
+<Description>
+This Style block contains component-specific CSS style definitions.</Description>
+<Data><![CDATA[
+<style type="text/css">
+
+/* @doc="Table used to group buttons." */
+.bvwTable {
+	border: 1px solid black;
+	font-family: lucida sans unicode, verdana, sans-serif;
+	table-layout: fixed;
+	width: 100%;
+	background: #D0D0D0;
+	font-size: 0.8em;
+}
+
+/* @doc="Item within buttonView." */
+.bvwItem {
+	border: 1px solid black;
+	width: 110px;
+	overflow: hidden;
+	background: #404040;
+	background-image: url(images/grad-gray-10x100.png);
+	background-repeat: repeat-x;
+}
+
+/* @doc="Selected item within buttonView." */
+.bvwItemSelected {
+	border: 1px solid black;
+	background: #000040;
+	background-image: url(images/grad-blue-10x30.png);
+	background-repeat: repeat-x;
+	width: 110px;
+	overflow: hidden;
+}
+
+/* @doc="Reset button within buttonView." */
+.bvwItemReset {
+	border: 1px solid black;
+	background: #404000;
+	background-image: url(images/grad-yellow-10x100.png);
+	background-repeat: repeat-x;
+	width: 110px;
+	overflow: hidden;
+	font-weight: bold;
+}
+
+/* @doc="Disabled item within buttonView." */
+.bvwItemDisabled, .bvwItemDisabledAlways {
+	border: 1px solid gray;
+	width: 110px;
+	overflow: hidden;
+	background: #404040;
+	background-image: url(images/grad-gray-10x100.png);
+	background-repeat: repeat-x;
+}
+
+.bvwTable a {
+	text-align: center;
+	display: block;
+	padding-top: 0px;
+	padding-bottom: 2px;
+	padding-left: 4px;
+	padding-right: 4px;
+}
+
+.bvwItem a, .bvwItemReset a {
+	color: black;
+}
+
+.bvwItemSelected a {
+	color: white;
+}
+
+.bvwItemDisabled a, .bvwItemDisabledAlways a {
+	color: #808080;
+}
+
+.bvwTable a:link, .bvwTable a:visited {
+	text-decoration: none; 
+}
+
+.bvwItem a:hover,.bvwItemReset a:hover {
+	background: #FFEEAA;
+	color: darkblue;
+	height: 100%;
+}
+
+.bvwItemSelected a:hover {
+	color: #FFEEAA;
+}
+
+.bvwXLabel {
+	color: black;
+	font-weight: bold;
+	font-size: 1.2em;
+	text-align: center;
+	padding-top: 10px;
+}
+
+</style>
+]]></Data>
+</XData>
+
+<Method name="%DrawHTML">
+<Description>
+The %DrawHTML method draws the initial HTML for this component.</Description>
+<Implementation><![CDATA[
+	Set tInfo($I(tInfo)) = $LB("",$$$Text("Reset","%ZEN"),-1,$$$Text("Clear the current selections","%ZEN"))
+	Set tSC = ..%GetButtonInfo(.tInfo)
+	If $$$ISERR(tSC) {
+		Do ##class(%ZEN.Utils).%DisplayErrorHTML($this,tSC)
+		Quit
+	}
+
+	// count the number in each group
+	Set tGrpCnt = ""
+	Set tKey = $O(tInfo(""))
+	While (tKey '= "")
+	{
+		Set tElem = tInfo(tKey)
+		Set GrpID = $LG(tElem,1)
+		Set:(GrpID = "*") GrpID = ""
+		Set:(GrpID '= "") tGrpCnt(GrpID) = $GET(tGrpCnt(GrpID), 0) + 1
+		Set tKey = $O(tInfo(tKey))
+	}
+
+	// compress the list into an indexed array	
+	Set tArray = ""
+	Set tCnt = 0
+	Set tKey = $O(tInfo(""))
+	While (tKey '= "") 
+	{
+		Set tElem = tInfo(tKey)
+		Set GrpID = $LG(tElem,1)
+		Set:(GrpID = "*") GrpID = ""
+		If ((GrpID = "") || ($GET(tGrpCnt(GrpID), 0) > 0))
+		{
+			Set tCnt = tCnt + 1
+			Set tArray(tCnt) = tElem
+		}
+		Set tKey = $O(tInfo(tKey))
+	}
+
+	Set tItemsPerRow = $GET(^DocBook.Config("BUTTONCOLS"), ..columns)
+	Set:(+tItemsPerRow < 1) tItemsPerRow = 2
+	Set n = 0
+	Set rowpos = 0
+	Set curgrp = ""
+	
+	Set GrpTitle("app") = $$$T("Application Type")
+	Set GrpTitle("book") = $$$T("Document Type")
+	Set GrpTitle("lang") = $$$T("Language")
+	Set GrpTitle("level") = $$$T("Level of Detail")
+	Set GrpTitle("product") = $$$T("Product")
+	Set GrpTitle("role") = $$$T("Area of Interest")
+
+	&html<<table border="0" cellspacing="0" cellpadding="0" cols="1" >>
+	&html<<tr><td>>
+	&html<<table class="bvwTable" cellspacing="4" border="0" cellpadding="0" cols="#(tItemsPerRow)#">>
+	If ('($GET(^DocBook.Config("OMITBUTTONCAPTIONS"), 0)))
+	{
+		Set dispGeneral = $$$T("General")
+		&html<<caption class="bvwXLabel">#(dispGeneral)#</caption>>
+	}
+	While (n < tCnt) {
+		Set n = n + 1
+		Set rowpos = rowpos + 1
+		Set tElem = tArray(n)
+		Set tGroup = $LG(tElem,1)
+		Set tName = $LG(tElem,2)
+		Set tValue = $LG(tElem,3)
+		Set tTitle = $LG(tElem,4)
+		Set tDisabled = $LG(tElem,5,0) // 1:disabled (always),0:enabled
+		Set tCls = $Case(tDisabled,1:"bvwItemDisabledAlways",:$S(n=1:"bvwItemDisabled",1:"bvwItem"))
+		Set:tTitle'="" tTitle="title="""_tTitle_""""
+		
+		Set grp = tGroup
+		Set:(grp="*") grp = ""
+		If (curgrp '= grp)
+		{
+			If (n > 1)
+			{
+				&html<</table></td></tr>>
+				//&html<<hr color="#FFFAE7" width="50%" size="1">>
+				&html<<tr><td><table class="bvwTable" cellspacing="4" border="0" cellpadding="0" cols="#(tItemsPerRow)#">>
+			}
+			Set GrpDisplay = $GET(GrpTitle(tGroup), "???")
+			If ('($GET(^DocBook.Config("OMITBUTTONCAPTIONS"), 0)))
+			{
+				&html<<caption class="bvwXLabel">#(GrpDisplay)#</caption>>
+			}
+			Set curgrp = tGroup
+			Set rowpos = 1
+		}
+		
+		If (rowpos = 1)
+		{
+			&html<<tr>>
+		}
+		&html<<td class="#(tCls)#" id="#(..%MakeId("item_"_n))#" bvwGroup="#(tGroup)#" bvwValue="#(tValue)#"><a href="#" onclick="zenPage.getComponent(#(..index)#).itemClicked(#(n)#); return false;" #(tTitle)#>#(tName)#</a></td>>
+
+		Set rowpos = rowpos#tItemsPerRow
+		If (n = tCnt)||(rowpos = 0) {
+			&html<</tr>>
+		}
+	}
+	&html<</table></td></tr></table>>
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="DocBook_StartPage.css" application="/csp/docbook/" default="1"><![CDATA[
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,300);
+
+@font-face {
+    font-family: "DINProLight";
+    
+    src:  url('fonts/DINPro-Light.woff') format('woff'), url('fonts/DINPro-Light.otf') format("opentype");
+    font-style: normal;
+        font-weight: normal;
+}
+body.start-page {
+    background: #f5f5f5!important;
+    font-family: 'Open Sans'!important;
+    margin:0!important;
+    padding: 20px 40px;
+}
+
+.start-page  {
+	background:none!important;
+	border: none!important;
+}
+
+.start-page hr{
+	display:none;
+}
+
+.start-page .TOCdiv {
+    padding-top: 5px;
+    padding-left: 0px;
+    padding-bottom: 5px;
+    padding-right: 40px;
+    border-top: none;
+}
+
+.start-page .TOCChapter:hover,
+.start-page .TOCChapter:focus{
+    background:none;
+color: #236aa7 !important;
+text-decoration:none;
+
+}
+
+.start-page  .TOCChapter,
+.start-page  h3{
+
+	display:block;
+	margin-bottom:5px;
+	letter-spacing: -.01em;
+	font-size:25px;
+	font-family: "DINProLight", 'Open Sans';
+    color: #337ab7 !important;
+    text-decoration: none;
+}
+
+.start-page  .TOCdesc {
+    margin: 7px 2px 14px 2px;
+	font-family: 'Open Sans'!important;
+	color:#666;
+line-height:28px;
+}
+
+.start-page .Title a,.Title a:visited  {
+color: #fff!important;
+}
+
+.start-page .chapter-name,
+.start-page h2{
+    font-size: 30px;
+    line-height: 44px;
+    letter-spacing: -1px;
+    color: #58595a;
+    font-family: "DINProLight", Helvetica, Arial, sans-serif;
+    margin-bottom: 15px;
+    padding-top: 20px;
+    border-top: none;
+    margin-left: 0px;
+    padding-left: 0px;
+font-weight:normal;
+}
+
+.start-page h2:first-child {
+padding-top:0;
+}
+.start-page .TOCChapter,
+.start-page h3{
+
+    font-size: 24px;
+    line-height: 32px;
+    padding: 28px 0px 10px 0px;
+    color: #58595a;
+    font-family: "DINProLight", Helvetica, Arial, sans-serif;
+     color: darkblue;
+    font-size: 1.6em;
+    margin-left: 0px;
+    margin-right: 20px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding-left: 0px;
+    padding-top: 2px;
+    padding-bottom: 5px;
+font-weight:normal;
+}
+.start-page h3 {
+color: #58595a!important;
+}
+.start-page p {
+    margin-left: 0px;
+    font-family: "OpenSans", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 21px;
+    padding: 0px 0px 5px 0px;
+    color: #3a3b3c;
+
+    margin-bottom: 10px;
+
+
+    margin-right: 20px;
+}
+
+.start-page .book{
+top:0;
+padding-top:20px;
+padding-left:50px;
+}
+
+a {
+    color: #337ab7 !important;
+    text-decoration: none;
+}
+
+    a[href]:hover, a[href]:focus {
+        color: #2156a5 !important;
+        text-decoration: underline;
+    }
+
+]]></CSP>
+</Export>

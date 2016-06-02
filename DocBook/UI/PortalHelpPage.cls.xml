@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.PortalHelpPage">
+<Description>
+Server for standard DocBook page.</Description>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.UI.StdPage</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Method name="OnPage">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    If ('$DATA(^DocBook.Anchor))
+    {
+        Do ##class(DocBook.Utils).BuildAnchorIndex()
+    }
+
+    Set info = ##class(BannerInfo).%New()
+
+    Set glo = $zu(67,9,$J)
+    Set elap = $zh
+
+    Set key = $G(%request.Data("KEY",1))
+
+    Set home = 0
+    Set source = ""
+    Set timestamp = ""
+    Set container = ""
+    Set %tutorial = 0
+    Set container = ""
+    
+    Set blockid = ""
+    Set suffix = "_anchor"
+    Set keydisplay = ""
+    
+    If (key '= "") 
+    {
+        Set tries = ##class(DocBook.PortalUtils).Normalize(key)
+        Set keydisplay = ##class(DocBook.PortalUtils).Display(tries)
+        For i = $LENGTH(tries, ",") : -1 : 1
+        {
+            Set try = $PIECE(tries, ",", 1, i)
+            Set subs = ##class(DocBook.PortalUtils).FormatSubscript(try)
+            Set ref = "^DocBook.Anchor" _ "(" _ subs _ ")"
+            Set blockid = $GET(@ref, "")
+            Quit:(blockid '= "")
+        }
+        Set startlabel = blockid
+        // remove final digits
+        While ($ISVALIDNUM($EXTRACT(startlabel, $LENGTH(startlabel))))
+        {
+            Set startlabel = $EXTRACT(startlabel, 1, ($LENGTH(startlabel) - 1))
+        }
+        // check for suffix
+        If ($EXTRACT(startlabel, ($LENGTH(startlabel) - $LENGTH(suffix) + 1), $LENGTH(startlabel)) = suffix)
+        {
+            Set blockid = $EXTRACT(startlabel, 1, ($LENGTH(startlabel) - $LENGTH(suffix)))
+        }
+    }
+        
+    If (key '= "") 
+    {
+        // open container object
+        Set container = ##class(DocBook.container).OpenKey(blockid)
+    }
+
+    If (container = "") 
+    {
+        Do ..Header("Error")
+        &html<<BODY>>
+
+        Set info.title = $$$T("Help not found")
+        Set info.booktitle = $$$T("InterSystems Online Documentation")
+
+        Do ..RenderBanner(info)
+        &html<<BR>>
+        &html<<DIV CLASS="para">>
+        Write $$$T("Help for the portal page "), """", (..EscapeHTML(keydisplay)), """", $$$T(" cannot be located."), !
+        &html<</DIV>>
+        &html<<DIV CLASS="para">>
+        &html<#($$$T("General help on using the Management Portal can be found "))#>
+        &html<<A href="DocBook.UI.PortalHelpPage.cls?KEY=Home">#($$$T("here"))#</A>.>
+        &html<</DIV>>
+        &html<<BR>>
+    }
+    ElseIf ($D(^DocBook.OffLine)) 
+    {
+        Do ..Header($$$T("Help Unavailable"))
+        &html<<BODY>>
+
+        Set info.title = $$$T("Documentation Unavailable")
+        Set info.booktitle = $$$T("InterSystems Online Documentation")
+
+        Do ..RenderBanner(info)
+        &html<<BR>>
+        Write $$$T("The documentation server is currently unavailable."),!
+    }
+    Else 
+    {
+        Do ..Header(container.title,,home)
+        &html<<BODY>>
+    
+        // find banner info
+        Do container.GetBannerInfo(info)
+        Set info.container = container
+
+        Do ..RenderBanner(info,home)
+
+        &html<<BR>>
+
+        // now get container to render itself
+        // No longer emitted
+        // <TABLE WIDTH="100%" COLS="1" BORDER="0" CELLPADDING="0" CELLSPACING="0"><TR><TD>
+        Do container.HTMLRender()
+        // No longer emitted
+        // </TD></TR></TABLE>
+
+        // show time for container
+        Set source = container.sourcefile
+        Set:timestamp="" timestamp = container.sourcetime
+    }
+
+    Do ..Footer(1,timestamp,,source,info, $zu(67,9,$J)-glo,$zh-elap)
+    
+    &html<<SCRIPT LANGUAGE="JavaScript">
+        if (parent != null && parent.TOCFrame != null) {
+            parent.TOCFrame.updateLocation();
+        }
+     </SCRIPT>>
+
+    QUIT $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="OnPreHTTP">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    // Use ^DocBook.Config("EXPIRES") to set expiration date
+    // Use ^DocBook.Config("VARYBYPARAM") to set VaryByParam
+    
+    // Make this page cacheable (for an hour, by default)
+    Set %response.Expires = ##class(DocBook.ConfigUtils).GetEXPIRES()
+
+    // Optional output caching
+    Set present = ##class(DocBook.ConfigUtils).GetVARYBYPARAM()
+    If (present '= "") {
+        Set %response.VaryByParam = present
+    }
+    
+    Quit $$$OK
+
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/dbcentx.mod" application="/csp/docbook/" default="1"><![CDATA[
+<!-- ====================================================================== -->
+<!-- DocBook XML Character Entity Sets V3.1.6
+     Part of the DocBk XML V3.1.6 DTD
+     http://nwalsh.com/docbook/xml/
+
+     See COPYRIGHT for more information
+
+     Please direct all questions and comments about this DTD to
+     Norman Walsh, <ndw@nwalsh.com>.
+                                                                            -->
+<!-- ====================================================================== -->
+
+<!-- Entity sets IGNOREd because they use SDATA entities ... -->
+
+<![%sgml-entity-declarations;[
+
+<!ENTITY % ISOamsa.module "INCLUDE">
+<![%ISOamsa.module;[
+<!ENTITY % ISOamsa PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Arrow Relations//EN" >
+%ISOamsa;
+<!--end of ISOamsa.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOamsb.module "INCLUDE">
+<![%ISOamsb.module;[
+<!ENTITY % ISOamsb PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Binary Operators//EN">
+%ISOamsb;
+<!--end of ISOamsb.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOamsc.module "INCLUDE">
+<![%ISOamsc.module;[
+<!ENTITY % ISOamsc PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Delimiters//EN">
+%ISOamsc;
+<!--end of ISOamsc.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOamsn.module "INCLUDE">
+<![%ISOamsn.module;[
+<!ENTITY % ISOamsn PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Negated Relations//EN">
+%ISOamsn;
+<!--end of ISOamsn.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOamso.module "INCLUDE">
+<![%ISOamso.module;[
+<!ENTITY % ISOamso PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Ordinary//EN">
+%ISOamso;
+<!--end of ISOamso.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOamsr.module "INCLUDE">
+<![%ISOamsr.module;[
+<!ENTITY % ISOamsr PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Relations//EN">
+%ISOamsr;
+<!--end of ISOamsr.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISObox.module "INCLUDE">
+<![%ISObox.module;[
+<!ENTITY % ISObox PUBLIC
+"ISO 8879:1986//ENTITIES Box and Line Drawing//EN">
+%ISObox;
+<!--end of ISObox.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOcyr1.module "INCLUDE">
+<![%ISOcyr1.module;[
+<!ENTITY % ISOcyr1 PUBLIC
+"ISO 8879:1986//ENTITIES Russian Cyrillic//EN">
+%ISOcyr1;
+<!--end of ISOcyr1.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOcyr2.module "INCLUDE">
+<![%ISOcyr2.module;[
+<!ENTITY % ISOcyr2 PUBLIC
+"ISO 8879:1986//ENTITIES Non-Russian Cyrillic//EN">
+%ISOcyr2;
+<!--end of ISOcyr2.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOdia.module "INCLUDE">
+<![%ISOdia.module;[
+<!ENTITY % ISOdia PUBLIC
+"ISO 8879:1986//ENTITIES Diacritical Marks//EN">
+%ISOdia;
+<!--end of ISOdia.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOgrk1.module "INCLUDE">
+<![%ISOgrk1.module;[
+<!ENTITY % ISOgrk1 PUBLIC
+"ISO 8879:1986//ENTITIES Greek Letters//EN">
+%ISOgrk1;
+<!--end of ISOgrk1.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOgrk2.module "INCLUDE">
+<![%ISOgrk2.module;[
+<!ENTITY % ISOgrk2 PUBLIC
+"ISO 8879:1986//ENTITIES Monotoniko Greek//EN">
+%ISOgrk2;
+<!--end of ISOgrk2.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOgrk3.module "INCLUDE">
+<![%ISOgrk3.module;[
+<!ENTITY % ISOgrk3 PUBLIC
+"ISO 8879:1986//ENTITIES Greek Symbols//EN">
+%ISOgrk3;
+<!--end of ISOgrk3.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOgrk4.module "INCLUDE">
+<![%ISOgrk4.module;[
+<!ENTITY % ISOgrk4 PUBLIC
+"ISO 8879:1986//ENTITIES Alternative Greek Symbols//EN">
+%ISOgrk4;
+<!--end of ISOgrk4.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOlat1.module "INCLUDE">
+<![%ISOlat1.module;[
+<!ENTITY % ISOlat1 PUBLIC
+"ISO 8879:1986//ENTITIES Added Latin 1//EN">
+%ISOlat1;
+<!--end of ISOlat1.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOlat2.module "INCLUDE">
+<![%ISOlat2.module;[
+<!ENTITY % ISOlat2 PUBLIC
+"ISO 8879:1986//ENTITIES Added Latin 2//EN">
+%ISOlat2;
+<!--end of ISOlat2.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOnum.module "INCLUDE">
+<![%ISOnum.module;[
+<!ENTITY % ISOnum PUBLIC
+"ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN">
+%ISOnum;
+<!--end of ISOnum.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOpub.module "INCLUDE">
+<![%ISOpub.module;[
+<!ENTITY % ISOpub PUBLIC
+"ISO 8879:1986//ENTITIES Publishing//EN">
+%ISOpub;
+<!--end of ISOpub.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOtech.module "INCLUDE">
+<![%ISOtech.module;[
+<!ENTITY % ISOtech PUBLIC
+"ISO 8879:1986//ENTITIES General Technical//EN">
+%ISOtech;
+<!--end of ISOtech.module-->]]]]><![CDATA[>
+
+]]]]><![CDATA[>
+
+<![%xml-entity-declarations;[
+
+<!ENTITY % ISOamsa.module "INCLUDE">
+<![%ISOamsa.module;[
+<!ENTITY % ISOamsa PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Arrow Relations//EN//XML"
+"../../entities/iso-amsa.ent">
+%ISOamsa;
+<!--end of ISOamsa.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOamsb.module "INCLUDE">
+<![%ISOamsb.module;[
+<!ENTITY % ISOamsb PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Binary Operators//EN//XML"
+"../../entities/iso-amsb.ent">
+%ISOamsb;
+<!--end of ISOamsb.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOamsc.module "INCLUDE">
+<![%ISOamsc.module;[
+<!ENTITY % ISOamsc PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Delimiters//EN//XML"
+"../../entities/iso-amsc.ent">
+%ISOamsc;
+<!--end of ISOamsc.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOamsn.module "INCLUDE">
+<![%ISOamsn.module;[
+<!ENTITY % ISOamsn PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Negated Relations//EN//XML"
+"../../entities/iso-amsn.ent">
+%ISOamsn;
+<!--end of ISOamsn.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOamso.module "INCLUDE">
+<![%ISOamso.module;[
+<!ENTITY % ISOamso PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Ordinary//EN//XML"
+"../../entities/iso-amso.ent">
+%ISOamso;
+<!--end of ISOamso.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOamsr.module "INCLUDE">
+<![%ISOamsr.module;[
+<!ENTITY % ISOamsr PUBLIC
+"ISO 8879:1986//ENTITIES Added Math Symbols: Relations//EN//XML"
+"../../entities/iso-amsr.ent">
+%ISOamsr;
+<!--end of ISOamsr.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISObox.module "INCLUDE">
+<![%ISObox.module;[
+<!ENTITY % ISObox PUBLIC
+"ISO 8879:1986//ENTITIES Box and Line Drawing//EN//XML"
+"../../entities/iso-box.ent">
+%ISObox;
+<!--end of ISObox.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOcyr1.module "INCLUDE">
+<![%ISOcyr1.module;[
+<!ENTITY % ISOcyr1 PUBLIC
+"ISO 8879:1986//ENTITIES Russian Cyrillic//EN//XML"
+"../../entities/iso-cyr1.ent">
+%ISOcyr1;
+<!--end of ISOcyr1.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOcyr2.module "INCLUDE">
+<![%ISOcyr2.module;[
+<!ENTITY % ISOcyr2 PUBLIC
+"ISO 8879:1986//ENTITIES Non-Russian Cyrillic//EN//XML"
+"../../entities/iso-cyr2.ent">
+%ISOcyr2;
+<!--end of ISOcyr2.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOdia.module "INCLUDE">
+<![%ISOdia.module;[
+<!ENTITY % ISOdia PUBLIC
+"ISO 8879:1986//ENTITIES Diacritical Marks//EN//XML"
+"../../entities/iso-dia.ent">
+%ISOdia;
+<!--end of ISOdia.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOgrk1.module "INCLUDE">
+<![%ISOgrk1.module;[
+<!ENTITY % ISOgrk1 PUBLIC
+"ISO 8879:1986//ENTITIES Greek Letters//EN//XML"
+"../../entities/iso-grk1.ent">
+%ISOgrk1;
+<!--end of ISOgrk1.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOgrk2.module "INCLUDE">
+<![%ISOgrk2.module;[
+<!ENTITY % ISOgrk2 PUBLIC
+"ISO 8879:1986//ENTITIES Monotoniko Greek//EN//XML"
+"../../entities/iso-grk2.ent">
+%ISOgrk2;
+<!--end of ISOgrk2.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOgrk3.module "INCLUDE">
+<![%ISOgrk3.module;[
+<!ENTITY % ISOgrk3 PUBLIC
+"ISO 8879:1986//ENTITIES Greek Symbols//EN//XML"
+"../../entities/iso-grk3.ent">
+%ISOgrk3;
+<!--end of ISOgrk3.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOgrk4.module "INCLUDE">
+<![%ISOgrk4.module;[
+<!ENTITY % ISOgrk4 PUBLIC
+"ISO 8879:1986//ENTITIES Alternative Greek Symbols//EN//XML"
+"../../entities/iso-grk4.ent">
+%ISOgrk4;
+<!--end of ISOgrk4.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOlat1.module "INCLUDE">
+<![%ISOlat1.module;[
+<!ENTITY % ISOlat1 PUBLIC
+"ISO 8879:1986//ENTITIES Added Latin 1//EN//XML"
+"../../entities/iso-lat1.ent">
+%ISOlat1;
+<!--end of ISOlat1.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOlat2.module "INCLUDE">
+<![%ISOlat2.module;[
+<!ENTITY % ISOlat2 PUBLIC
+"ISO 8879:1986//ENTITIES Added Latin 2//EN//XML"
+"../../entities/iso-lat2.ent">
+%ISOlat2;
+<!--end of ISOlat2.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOnum.module "INCLUDE">
+<![%ISOnum.module;[
+<!ENTITY % ISOnum PUBLIC
+"ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN//XML"
+"../../entities/iso-num.ent">
+%ISOnum;
+<!--end of ISOnum.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOpub.module "INCLUDE">
+<![%ISOpub.module;[
+<!ENTITY % ISOpub PUBLIC
+"ISO 8879:1986//ENTITIES Publishing//EN//XML"
+"../../entities/iso-pub.ent">
+%ISOpub;
+<!--end of ISOpub.module-->]]]]><![CDATA[>
+
+<!ENTITY % ISOtech.module "INCLUDE">
+<![%ISOtech.module;[
+<!ENTITY % ISOtech PUBLIC
+"ISO 8879:1986//ENTITIES General Technical//EN//XML"
+"../../entities/iso-tech.ent">
+%ISOtech;
+<!--end of ISOtech.module-->]]]]><![CDATA[>
+
+]]]]><![CDATA[>
+
+<!-- End of DocBook XML character entity sets module V3.1.6 ................. -->
+<!-- ...................................................................... -->
+]]></CSP>
+</Export>

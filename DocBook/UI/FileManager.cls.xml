@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.FileManager">
+<Description>
+A file manager page.</Description>
+<ClassType/>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.UI.StdPage</Super>
+<TimeCreated>58696,41768</TimeCreated>
+
+<Method name="OnPage">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    Set info = ##class(BannerInfo).%New()
+    Set info.title = $$$T("File Manager")
+    Set info.booktitle = $$$T("InterSystems Online Documentation")
+    
+    Do ..Header($$$T("File Manager"))
+    
+    &html<<BODY>>
+    
+    Do ..RenderBanner(info)
+    &html<<BR>>
+
+    Set paths = ##class(SearchUtils).BuildSearchList()
+    
+    If (paths.Count() = 0) {
+        &html<<B>#($$$T("Please specify DocBook source location in search path"))#</B>>
+        Goto Done
+    }
+    
+    Set book = $G(%request.Data("BOOK",1))
+    
+    If (book '= "")
+    {
+        If (book = "...")
+        {
+            &html<<DIV><B>#($$$T("Result of check for wide characters"))#</B></DIV>>
+            &html<<DIV CLASS="literallayout">>
+            &html<<PRE CLASS="literallayout">>
+            Do ##class(DocBook.Utils).CheckWideChars()
+            &html<</PRE>>
+            &html<</DIV>>
+        }
+        else
+        {
+        // show contents of book
+            &html<<DIV>#($$$T("Book: "))#>
+            Write "<A TITLE=""" _ $$$T("Load the entire book.") _ """ CLASS=""IndexEntry"" HREF=""javascript:loadBook('",(..EscapeHTML(book)),"')"">",(..EscapeHTML(book)),"</A>",!
+            &html<</DIV>>
+
+            set subdirs = ##class(SearchUtils).ExtendSearchList(paths, book)
+            set items = ##class(SearchUtils).LocateFiles(subdirs, "*.xml")
+            Goto:(items.Count() = 0) Done
+            Do ..ShowBook(items)
+
+        &html<<HR><A HREF="DocBook.UI.FileManager.cls">Main List</A>>
+        }
+    }
+    Else
+    {
+        // Give the current version
+        &html<<DIV>#($ZVERSION)#</DIV>>
+        
+        // Make entry for load everything
+        &html<<HR>>
+        
+        &html<<DIV><B>#($$$T("Reload all documentation sources"))#</B></DIV>>
+        &html<<UL>>
+        Write "<LI CLASS=""IndexEntry"" ><A CLASS=""IndexEntry"" HREF=""javascript:loadSet(",..QuoteJS("*ALLSETS*"),")"">",$$$T("Reload all SETs"),"</A>"
+        &html<</UL>>
+
+        // Make entry for wide character check
+        &html<<HR>>
+        
+        &html<<DIV><B>#($$$T("Check for wide characters"))#</B></DIV>>
+        &html<<UL>>
+        Write "<LI CLASS=""IndexEntry"" ><A CLASS=""IndexEntry"" HREF=""javascript:checkDoc()"">",$$$T("Check Content"),"</A>"
+        &html<</UL>>
+        
+        // show list of sets
+        &html<<HR>>
+        
+        Set items = ##class(SearchUtils).LocateFiles(paths, "SET*.xml")
+        
+        &html<<DIV><B>#($$$T("Sets"))#</B></DIV>>
+        &html<<UL>>
+    
+        for i = 1 : 1 : items.Count()
+        {
+            Set path = items.GetAt(i)
+            Set f = ##class(%File).GetFilename(path)
+            Write "<LI CLASS=""IndexEntry"" >"
+            Write "<A CLASS=""IndexEntry"" HREF=""javascript:loadSet(",..QuoteJS($PIECE(f,".",1)),")"">"
+            Write f
+            Write "</A>"
+            Write "</LI>",!
+        }
+        &html<</UL>>
+        
+        // Get subdirectories for the list of books
+        Set items = ##class(SearchUtils).LocateDirectories(paths, "**")
+        
+        // first sort into temp
+        for i = 1 : 1 : items.Count()
+        {
+            set d = items.GetAt(i)
+            set d = ##class(SearchUtils).GetDirectoryname(d)
+            Set d = $ZCVT(d, "U")
+            Set:((d '= "..") && (d '= ".")) temp(d) = ""
+        }
+        
+        &html<<HR><DIV><B>#($$$T("Books"))#</B></DIV>>
+        &html<<TABLE CELLSPACING="3" CELLPADDING="1" BORDER="1">>
+        
+        Set d = $O(temp(""))
+        While (d'="")
+        {
+            Set dtitle = ..GetTitle((d _ ".xml"))
+            Set:(d = "ARTICLES") dtitle = $$$T("Technical Articles")
+            Write "<TR><TD>"
+            Write "<A TITLE="""
+            Write $$$T("View contents of this book.")
+            Write """ CLASS=""IndexEntry"" HREF=""javascript:showBook('",d,"')"">&nbsp;&nbsp;",d,"&nbsp;&nbsp;</A>"
+            Write "</TD>",!
+            Write "<TD>&nbsp;", dtitle, "&nbsp;</TD>", !
+        
+            Write "<TD>&nbsp;&nbsp;"
+            Write "<A TITLE="""
+            Write $$$T("Load the entire book.")
+            Write """ CLASS=""IndexEntry"" HREF=""javascript:loadBook('",d,"')"">&nbsp;"
+            Write $$$T("Load Book")
+            Write "&nbsp;</A></TD>",!
+            
+            Write "<TD>&nbsp;&nbsp;<A TITLE="""
+            Write $$$T("View contents of the loaded document.")
+            Write """ CLASS=""IndexEntry"" HREF=""javascript:viewBook('",d,"')"">&nbsp;"
+            Write $$$T("View")
+            Write "&nbsp;</A></TD>",!
+            Write "</TR>",!
+            Set d = $O(temp(d))
+        }
+        &html<</TABLE>>
+        
+        &html<<P><HR>>
+        // add the material previously in the Manager page
+        // it was in HTML and not localizable
+        &html<<BR>>
+        &html<<DIV><B>#($$$T("Management Resources"))#</B></DIV>>
+ 
+        Set cnt = 0
+        
+        Set cnt = $INCREMENT(cnt)
+        Set mgr(cnt, "title") = $$$T("Error Log")
+        Set mgr(cnt, "target") = "DocBook.UI.Page.cls"
+        
+        Set cnt = $INCREMENT(cnt)
+        Set mgr(cnt, "title") = $$$T("Check Links")
+        Set mgr(cnt, "target") = "DocBook.UI.LinkChecker.cls"
+        
+        Set cnt = $INCREMENT(cnt)
+        Set mgr(cnt, "title") = $$$T("Check Help Correspondence")
+        Set mgr(cnt, "target") = "DocBook.UI.HelpChecker.cls"
+        
+        Set cnt = $INCREMENT(cnt)
+        Set mgr(cnt, "title") = $$$T("Show Document Taxonomy")
+        Set mgr(cnt, "target") = "DocBook.UI.TaxonomyTable.cls"
+        
+        &html<<P>>
+        &html<<UL>>
+        For i = 1 : 1 : cnt
+        {
+            Set title = mgr(i, "title")
+            Set target = mgr(i, "target")
+            
+            Write "<LI><A HREF=""", target, """>", title, "</A></LI>", !
+        }
+
+        &html<</UL>>
+
+        &html<<P><HR>>
+        // Show search dirs and config parameters
+        &html<<TABLE COLUMNS="2" CELLSPACING="3" CELLPADDING="1" BORDER="1">>
+        &html<<CAPTION ALIGN="TOP"><B>#($$$T("Configuration Settings"))#</B></CAPTION>>
+        &html<<TR>>
+        &html<<TH>>
+        &html<#($$$T("Search directories"))#>
+        &html<<BR>>
+        &html<^DocBook.Config("SOURCE",&lt;N&gt;) = &lt;Dir path&gt;>
+        &html<</TH>>
+        &html<<TH>>
+        &html<#($$$T("Parameter Values"))#>
+        &html<<BR>>
+        &html<^DocBook.Config(&lt;Name&gt;) = &lt;value&gt;>
+        &html<</TH>>
+        &html<</TR>>
+    
+        // show the search directories in use
+        &html<<TR VALIGN="TOP">>
+        &html<<TD>>
+        &html<<UL>>
+        For i = 1 : 1 : paths.Count()
+        {
+            Set path = paths.GetAt(i)
+            Set f = $zconvert(path, "O", "HTML")
+            Write "<LI>",f,"&nbsp;&nbsp;",!
+        }
+        &html<</UL>>
+        &html<<P>>
+        &html<</TD>>
+        
+        Set paramstr = ##class(DocBook.ConfigUtils).CollectConfigParams("~")
+        Set params = ""
+        For i = 1 : 1 : $LENGTH(paramstr, "~")
+        {
+            Set piece = $PIECE(paramstr, "~", i)
+            Set key = $PIECE(piece, " = ", 1)
+            Set params(key) = piece
+        }
+
+        &html<<TD>>        
+        &html<<UL>>
+        Set paramkey = ""
+        Set paramkey = $ORDER(params(paramkey))
+        While (paramkey '= "")
+        {
+            Set p = $zconvert(params(paramkey), "O", "HTML")
+            Write "<LI>",p,"&nbsp;&nbsp;",!
+            Set paramkey = $ORDER(params(paramkey))
+        }
+        &html<</UL>>
+        &html<<P>>
+        &html<</TD>>
+        
+        &html<</TR>>
+        &html<</TABLE>>
+            
+    }
+
+Done    
+    Do ..Footer()
+
+    Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="ShowBook">
+<Description>
+Display files for a given book</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>files:%ArrayOfDataTypes</FormalSpec>
+<Implementation><![CDATA[
+
+    // sort in temp array
+    for i = 1 : 1 : files.Count()
+    {
+        Set path = files.GetAt(i)
+        Set f = ##class(%File).GetFilename(path)
+        If ($ZCONVERT($EXTRACT(f,*-4,*), "L") [ ".xml")
+        {
+            Set f = $EXTRACT(f, 1, *-4)
+        }
+        Set temp(f) = files.GetAt(i)
+    }
+    
+    &html<<TABLE COLS="3" CELLSPACING="3" BORDER="1">>
+    Set f = $O(temp(""))
+    While (f '= "") {
+    
+        Write "<TR><TD>&nbsp;&nbsp;",f,"&nbsp;&nbsp;</TD>",!
+        Write "<TD>&nbsp;&nbsp;<A TITLE="""
+        Write $$$T("Load the file.")
+        Write """ CLASS=""IndexEntry"" HREF=""javascript:loadDoc(",..QuoteJS(temp(f)),")"">&nbsp;"
+        Write $$$T("Load")
+        Write "&nbsp;</A></TD>",!
+        Write "<TD>&nbsp;&nbsp;<A TITLE="""
+        Write $$$T("View contents of the loaded document.")
+        Write """ CLASS=""IndexEntry"" HREF=""javascript:viewBook('",f,"')"">&nbsp;"
+        Write $$$T("View")
+        Write "&nbsp;</A></TD>",!
+        Write "</TR>",!
+        Set f = $O(temp(f))
+    }
+    &html<</TABLE>>
+
+]]></Implementation>
+</Method>
+
+<Method name="GetTitle">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%Library.String</FormalSpec>
+<ReturnType>%Library.String</ReturnType>
+<Implementation><![CDATA[
+    &sql(DECLARE GT1 CURSOR FOR
+         SELECT title INTO :tstring FROM block where sourcefile = :filename)
+         
+    &sql(OPEN GT1)
+    &sql(FETCH GT1)
+    If (SQLCODE '= 0)
+    {
+        If (SQLCODE = 100)
+        {
+            Set retval = $$$T("___Book not loaded in database___")
+        }
+        Else
+        {
+            Set retval = $$$T("___SQL_Error_") _ SQLCODE _ "___"
+        }
+    }
+    Else
+    {
+        Set retval = tstring
+    }
+
+    &sql(CLOSE GT1)  
+
+    Quit retval
+]]></Implementation>
+</Method>
+
+<Method name="ShowScripts">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    &html<<SCRIPT LANGUAGE=JavaScript>
+        function loadSet(set)
+        {
+            self.document.location = 'DocBook.UI.Load.cls?SET=' + escape(set);
+            return true;
+        }
+        
+        function loadBook(book)
+        {
+            self.document.location = 'DocBook.UI.Load.cls?BOOK=' + escape(book);
+            return true;
+        }
+        
+        function viewBook(book)
+        {
+            self.document.location = 'DocBook.UI.Page.cls?KEY=' + escape(book);
+            return true;
+        }
+        
+        function showBook(book)
+        {
+            self.document.location = 'DocBook.UI.FileManager.cls?BOOK=' + escape(book);
+            return true;
+        }
+        
+        function loadDoc(doc)
+        {
+            self.document.location = 'DocBook.UI.Load.cls?DOC=' + escape(doc);
+            return true;
+        }
+        
+        function checkDoc()
+        {
+            self.document.location = 'DocBook.UI.FileManager.cls?BOOK=' + escape("...");
+            return true;
+        }
+        </SCRIPT>>
+
+]]></Implementation>
+</Method>
+</Class>
+</Export>

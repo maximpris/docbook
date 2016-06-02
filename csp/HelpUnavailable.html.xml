@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="HelpUnavailable.html" application="/csp/docbook/" default="1"><![CDATA[
+<!-- Copyright (c) 2005 InterSystems Inc. ALL RIGHTS RESERVED. -->
+
+<html>
+<head>
+<title>Online Help Unavailable</title>
+<link rel="stylesheet" type="text/css" href="../../csp/docbook/docbookhtmlns.css" title="Standard Style" >
+
+<style type="text/css">
+body { color: black;
+       background: white;
+       font-size: 12pt;
+       font-family="Verdana,Arial,Helvetica,sans-serif";
+       font-weight: bold; }
+h1 { color: white; background: #5290EC;
+     text-align: left;
+     font-size: 14pt;
+     font-family=Verdana,Arial,Helvetica,sans-serif; }
+span.header { color: white;
+              font-size: 14pt;
+              font-family=Verdana,Arial,Helvetica,sans-serif; }
+div.message { color: black;
+              background: #FFDDFF;
+              font-family: Verdana,Arial,sans-serif;
+              text-align: center;
+              border-color: black;
+              border-width: 1px;
+              border-style: solid;
+              margin-top: 10px;
+              margin-bottom: 10px;
+              margin-left: 80px;
+              margin-right: 80px;
+              line-height: 125%;
+              padding: 3;
+		}
+</style>
+
+</head>
+<body>
+<h1>
+<table>
+<tr>
+<td align="center" valign="center">
+<img src="tutoriallogo.jpg" width="71" height="74" border="0">
+</td>
+<td align="center" valign="center">
+<span class="header">Online Help Unavailable</span>
+</td>
+<tr>
+</table>
+</h1>
+<div class="message">
+<p>
+There is no help available because the online documentation is inaccessible.
+<p>
+Either
+the documentation was not installed, or
+the database containing it has been dismounted.
+<p>
+</div>
+</body>
+</html>
+
+]]></CSP>
+</Export>

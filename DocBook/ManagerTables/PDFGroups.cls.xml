@@ -1,0 +1,752 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.PDFGroups">
+<Description><![CDATA[
+This class stores one record for each PDF group.
+For general comments, see <class>DocBook.ManagerTables.Utils</class>. ]]></Description>
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="Name">
+<Description>
+This provides information about files in a given area of Perforce -- that information
+generally correlates to information about what we might put on covers and where we might check in
+PDF files--but we can override those options.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="MainIdx">
+<IdKey>1</IdKey>
+<Properties>Name</Properties>
+</Index>
+
+<Property name="LongName">
+<Description>
+Sanitized version of the path</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="Origin">
+<Description>
+Tells us part of Perforce provided the contents for the files in this group.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="OriginProduct">
+<Description>
+"Product" as determined by GetBranchInfo() method</Description>
+<Type>%String</Type>
+</Property>
+
+<Index name="OriginProductIdx">
+<Properties>OriginProduct</Properties>
+</Index>
+
+<Property name="OriginBranch">
+<Description>
+"Branch" as determined by GetBranchInfo() method</Description>
+<Type>%String</Type>
+</Property>
+
+<Index name="OriginBranchIdx">
+<Properties>OriginBranch</Properties>
+</Index>
+
+<Property name="CoverVersion">
+<Description>
+Cover version that we actually use on the PDFs; affects the generate XEPPP_parameters file
+used for this PDF group.</Description>
+<Type>%String</Type>
+<Calculated>1</Calculated>
+<SqlComputeCode>set {CoverVersion}=##class(DocBook.ManagerTables.PDFGroups).GetCoverVersion("actual",{Name})</SqlComputeCode>
+<SqlComputed>1</SqlComputed>
+<Transient>1</Transient>
+</Property>
+
+<Property name="DefaultCoverVersion">
+<Type>%String</Type>
+</Property>
+
+<Property name="CoverVersionIsDefault">
+<Type>%String</Type>
+<Calculated>1</Calculated>
+<SqlComputeCode>set {CoverVersionIsDefault}=##class(DocBook.ManagerTables.PDFGroups).GetCoverVersionIsDefault({Name})</SqlComputeCode>
+<SqlComputed>1</SqlComputed>
+<Transient>1</Transient>
+</Property>
+
+<Property name="DefaultTargetPerforceVersion">
+<Description>
+used to compute TargetFullPDFDir and TargetInstallPDFDir</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="DirPt1">
+<Description>
+Based on origin; used to compute target directory</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="500"/>
+</Property>
+
+<Property name="DirPt2">
+<Description>
+Based on origin; used to compute target directory</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="500"/>
+</Property>
+
+<Property name="TargetPDFArea">
+<Description>
+Target directory where we want to check in the PDFs generated for this group;
+Affects the generated change list .bat file for this group.</Description>
+<Type>%String</Type>
+<Calculated>1</Calculated>
+<SqlComputeCode>set {TargetPDFArea}=##class(DocBook.ManagerTables.PDFGroups).GetTargetPDFArea({Name})</SqlComputeCode>
+<SqlComputed>1</SqlComputed>
+<Transient>1</Transient>
+</Property>
+
+<Property name="Extra">
+<Description>
+Indicates if this file is from EXTRASOURCES</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="NeverCheckIn">
+<Description>
+Indicates if PDF files generated for items in this group have no possible check in location</Description>
+<Type>%Boolean</Type>
+</Property>
+
+<Property name="Locale">
+<Description>
+Locale for which we should produce PDFs. Either en-us or ja-jp. Special processing is needed for ja-jp.</Description>
+<Type>%String</Type>
+</Property>
+
+<Method name="GetPDFGroup">
+<Description>
+origin is a full path</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>origin:%String="",isExtra:%Boolean="",verbose:%Boolean=0</FormalSpec>
+<ReturnType>DocBook.ManagerTables.PDFGroups</ReturnType>
+<Implementation><![CDATA[
+    if (origin="") {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error creating PDF Group--no origin specified",verbose)
+        quit $$$NULLOREF
+    }
+    set originstring=$TRANSLATE(origin,"/","\")
+    if (originstring [ "\src\") {
+        set left=$P(originstring,"\src\",1)
+        set correctedorigin=##class(DocBook.Manager.Utils).AppendToPath(left,"src")
+    } else {
+        set correctedorigin=origin
+    }
+    
+    set munge1=$TR(correctedorigin,":","")
+    set longname=$TR(munge1,"\/","-")
+    
+    &sql(SELECT ID into :ID FROM DocBook_ManagerTables.PDFGroups WHERE LongName=:longname)
+    if (SQLCODE=0) {
+        set pdfgroup=..%OpenId(ID)
+        quit pdfgroup
+    } 
+
+    set record=..%New()
+    set record.LongName=longname
+    set record.Origin=correctedorigin
+
+    //get pieced string of info about this path
+    set info=..GetBranchInfo(correctedorigin)
+    set product=$PIECE(info,"^",1)
+    set branch=$PIECE(info,"^",2)
+    set record.OriginProduct=product
+    set record.OriginBranch=branch
+
+    if (originstring [ "ja-jp") {
+        set record.Locale="ja-jp"
+    } else {
+        set record.Locale="en-us"
+    }
+
+    if (product="") {
+        set record.Name=longname
+    } else {
+        set record.Name=product_branch
+    }
+
+    if ((product="") || (product="none") || (product="internal") || (product="confidential")) {
+        set record.NeverCheckIn=1
+    } else {
+        set record.NeverCheckIn=0
+    }
+
+    if (record.NeverCheckIn=0) {
+        set record.DefaultTargetPerforceVersion=record.OriginBranch
+        set healthshare=$PIECE(info,"^",5)
+        set versioninfo=$ZSTRIP(record.OriginBranch,">","x")
+        set versioninfo=$LISTFROMSTRING(versioninfo,".")
+
+        if (healthshare="nothealthshare") {
+            set DefaultCoverVersion=$LG(versioninfo,1)_"."_$LG(versioninfo,2)
+        } else {
+            //for HealthShare, truncate everything after the period
+            set DefaultCoverVersion=$LG(versioninfo,1)
+        }
+        set record.DefaultCoverVersion="Version "_DefaultCoverVersion
+
+        set record.DirPt1=$PIECE(info,"^",3)
+        set record.DirPt2=$PIECE(info,"^",4)
+
+    } else {
+        set record.DefaultCoverVersion=$system.SQL.YEAR($zdate($h,3))
+    }
+
+    if (isExtra'="") {
+        set record.Extra=isExtra
+    }
+    
+    set status=record.%Save()
+    if $$$ISERR(status) {
+         do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.Name,verbose)
+         do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+    }
+    if (record.Locale="ja-jp") {
+        do ##class(DocBook.Manager.JAJPExtraTools).WritePackageStaticBat(pdfgroup,verbose)
+    }
+    quit record
+]]></Implementation>
+</Method>
+
+<Method name="GetBranchInfo">
+<Description>
+dir is a complete path
+the return value is a pieced string</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>dir:%String="",isExtra:%Boolean=""</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set emptyreturn="^^^^"
+
+    if (dir="") { 
+        quit emptyreturn 
+    }
+
+    set dir=$TR(dir,"/","\")
+    set dirdelim="\"
+    set dirlist=$LISTFROMSTRING(dir,dirdelim)
+
+    // does this path start with the Perforce root
+    set proot=##class(DocBook.Manager.ConfigUtils).GetParam("PERFORCEROOT")
+    set firsttwo=$LI(dirlist,1)_dirdelim_$LI(dirlist,2)
+    set useemptyreturn=0
+    if ($$$LOWER(firsttwo)'=$$$LOWER(proot)) {
+        set branch          ="none"
+        set product         ="none"
+        set directorypt1     =""
+        set directorypt2     =""
+        set healthshare="nothealthshare"
+    }
+    
+    //look at next part of path
+   set thirdpart=$$$LOWER($LG(dirlist,3))
+
+    if (thirdpart="dev") {
+       set branch           =$LG(dirlist,4)
+       set product          =$LG(dirlist,6)
+       set directorypt1     =$LI(dirlist,1)
+                            _dirdelim_$LI(dirlist,2)
+                            _dirdelim_$LG(dirlist,3)
+       set directorypt2     = dirdelim_$LG(dirlist,5)
+                            _dirdelim_$LG(dirlist,6)
+                            _dirdelim_$LG(dirlist,7)
+       set healthshare="nothealthshare"
+
+    } elseif (thirdpart="healthshare") {
+       set branch           =$LG(dirlist,5)
+       set product          =$LG(dirlist,4)
+
+       if product="hscore" {
+           set product=product_"-"_$LG(dirlist,7)
+       }
+
+       set directorypt1     =$LI(dirlist,1)
+                            _dirdelim_$LI(dirlist,2)
+                            _dirdelim_$LG(dirlist,3)
+                            _dirdelim_$LG(dirlist,4)
+       set directorypt2     = dirdelim_$LG(dirlist,6)
+                            _dirdelim_$LG(dirlist,7)
+                            _dirdelim_$LG(dirlist,8)
+       set healthshare="healthshare"
+
+    } elseif (thirdpart="trak") {
+       set branch           =$LG(dirlist,5)
+       set product          =$LG(dirlist,3)
+       set directorypt1     =$LI(dirlist,1)
+                            _dirdelim_$LI(dirlist,2)
+                            _dirdelim_$LG(dirlist,3)
+                            _dirdelim_$LG(dirlist,4)
+       set directorypt2     = dirdelim_$LG(dirlist,6)
+                            _dirdelim_$LG(dirlist,7)
+                            _dirdelim_$LG(dirlist,8)
+       set healthshare="nothealthshare"
+
+
+    } elseif (thirdpart="zenmojo") {
+       set branch           =$LG(dirlist,4)
+       set product          =$LG(dirlist,6)
+       set directorypt1     =$LI(dirlist,1)
+                            _dirdelim_$LI(dirlist,2)
+                            _dirdelim_$LG(dirlist,3)
+       set directorypt2     = dirdelim_$LG(dirlist,5)
+                            _dirdelim_$LG(dirlist,6)
+                            _dirdelim_$LG(dirlist,7)
+       set healthshare="nothealthshare"
+
+    } elseif (thirdpart="projects") {
+       set branch           =$LG(dirlist,4)
+       set product          ="project"
+       set directorypt1     =$LI(dirlist,1)
+                            _dirdelim_$LI(dirlist,2)
+                            _dirdelim_$LG(dirlist,3)
+       set directorypt2     = dirdelim_$LG(dirlist,5)
+                            _dirdelim_$LG(dirlist,6)
+                            _dirdelim_$LG(dirlist,7)
+       set healthshare="nothealthshare"
+
+    } else {
+       set branch           ="none"
+       set product          ="none"
+       set directorypt1     =""
+       set directorypt2     =""
+       set healthshare="nothealthshare"
+       set useemptyreturn=1
+    }
+
+    if useemptyreturn {
+        quit emptyreturn
+    } else {
+        quit product_"^"_branch_"^"_directorypt1_"^"_directorypt2_"^"_healthshare
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetPDFGroups">
+<Description>
+Return a %List of the names of all PDF groups in this table</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[
+    //if we do have multiple PDF groups, get them all and iterate through them
+    set sql="SELECT Name FROM DocBook_ManagerTables.PDFGroups ORDER BY Extra,Name"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit $LISTFROMSTRING("")
+    }
+    set rset=stmt.%Execute()
+    
+    set stringlist=""
+    while rset.%Next() {
+        set stringlist=stringlist_","_rset.%Get("Name")
+    }
+    set stringlist=$ZSTRIP(stringlist,"<",",")
+    quit $LISTFROMSTRING(stringlist,",")
+]]></Implementation>
+</Method>
+
+<Method name="GetPDFDirList">
+<Description>
+Return a list of all PDF directories listed in this table</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[
+    set sql="SELECT TargetPDFArea AS DIR FROM DocBook_ManagerTables.PDFGroups"
+
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+    
+    set rset=stmt.%Execute()
+    set liststring=""
+    while rset.%Next() {
+        set dir=rset.%Get("DIR")
+        if (dir'="") {
+            set dir1=##class(DocBook.Manager.Utils).AppendToPath(dir,"full\pdfs")
+            set liststring=liststring_","_dir1
+            set dir2=##class(DocBook.Manager.Utils).AppendToPath(dir,"install\pdfs")
+            set liststring=liststring_","_dir2
+        }
+    }
+    set return=$ZSTRIP(liststring,"<",",")
+    set return=$LISTFROMSTRING(return)
+    quit return
+]]></Implementation>
+</Method>
+
+<Method name="HaveGroup">
+<Description>
+Returns true or false depending on whether we have the given PDF group </Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String=""</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    &sql(SELECT Count(*) into :Count FROM DocBook_ManagerTables.PDFGroups WHERE Name=:pdfgroup)
+    if (SQLCODE=0) {
+        if (Count>0) { 
+            quit 1
+        } else {
+            quit 0
+        }
+    } else {
+        quit 0
+    }
+]]></Implementation>
+</Method>
+
+<Method name="HaveStatic">
+<Description>
+Returns true or false depending on whether we any static documents for the given PDF group </Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String=""</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    &sql(SELECT MAX(PDFCategory) into :MaxCat FROM DocBook_ManagerTables.DBContents where PDFGroup=:pdfgroup)
+    if (SQLCODE=0) {
+        if (MaxCat>2) { 
+            quit 1
+        } else {
+            quit 0
+        }
+    } else {
+        quit 0
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetSETsinPDFGroup">
+<Description>
+Returns a list of strings for the SETs in the given PDF group
+each list item has the form docbookid^rawtitle^rawsubtitle</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String="",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<ReturnType>%ListOfDataTypes</ReturnType>
+<Implementation><![CDATA[
+    set list=##class(%ListOfDataTypes).%New()
+    set sql="SELECT distinct %EXACT(ParentSET) as ParentSET FROM DocBook_ManagerTables.DBContents "
+           _"WHERE PDFGroup = '"_pdfgroup_"'"
+        
+    if static {
+        set sql=sql_" AND PDFCategory=3"
+    } else {
+        set sql=sql_" AND ((PDFCategory=2) OR (PDFCategory=3))" 
+    }
+    set sql=sql_" ORDER BY parentremap"
+
+    if (verbose>1) {
+        write !, "SQL to get list of SETs: ",sql, !
+    }
+
+    set stmt=##class(%SQL.Statement).%New()
+    set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory",$system.Status.GetErrorText(status),verbose)
+        quit list
+    }
+
+    set result=stmt.%Execute()
+    while result.%Next() {
+        set item=result.%Get("ParentSET")
+        if (item="") continue
+        //write !, item
+        set checkitem=##class(DocBook.ManagerTables.DBContents).%OpenId(item)
+        if $ISOBJECT(checkitem) {
+            set title=checkitem.RawTitle
+            set subtitle=checkitem.RawSubtitle
+        } else {
+            set title=""
+            set subtitle=""
+        }
+        
+        if (verbose>1) {
+            write !, item
+            write !, title
+            write !, subtitle
+        }
+        set newentry=item_"^"_title_"^"_subtitle
+        do list.Insert(newentry)
+    }
+    quit list
+]]></Implementation>
+</Method>
+
+<Method name="GetArticlesInPDFGroup">
+<Description>
+Returns a list of strings for the articles in the given PDF group
+each list item has the form docbookid^rawtitle^rawsubtitle</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String="",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<ReturnType>%ListOfDataTypes</ReturnType>
+<Implementation><![CDATA[
+    set list=##class(%ListOfDataTypes).%New()
+    set sql="SELECT DocBookId FROM DocBook_ManagerTables.DBContents "
+           _"WHERE PDFGroup = '"_pdfgroup_"' AND Type='article' "
+        
+    if static {
+        set sql=sql_" AND PDFCategory=3"
+    } else {
+        set sql=sql_" AND PDFCategory=2"
+    }
+
+    if (verbose>1) {
+        write !, "SQL to get list of articles: ",sql, !
+    }
+
+    set stmt=##class(%SQL.Statement).%New()
+    set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory",$system.Status.GetErrorText(status),verbose)
+        quit list
+    }
+
+    set result=stmt.%Execute()
+    while result.%Next() {
+        set item=result.%Get("DocBookId")
+        if (item="") continue
+        //write !, item
+        set checkitem=##class(DocBook.ManagerTables.DBContents).%OpenId(item)
+        if $ISOBJECT(checkitem) {
+            set title=checkitem.RawTitle
+            set subtitle=checkitem.RawSubtitle
+        } else {
+            set title=""
+            set subtitle=""
+        }
+        
+        if (verbose>1) {
+            write !, item
+            write !, title
+            write !, subtitle
+        }
+        set newentry=item_"^"_title_"^"_subtitle
+        do list.Insert(newentry)
+    }
+    quit list
+]]></Implementation>
+</Method>
+
+<Method name="GetCoverVersionIsDefault">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    set record=..%OpenId(pdfgroup)
+    if '$ISOBJECT(record) {
+        quit 0
+    } 
+    
+    set test=(record.CoverVersion=record.DefaultCoverVersion)
+    quit test
+]]></Implementation>
+</Method>
+
+<Method name="GetCoverVersion">
+<Description>
+which is "actual", "override", or "default"</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>which:%String="actual",pdfgroup:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set record=..%OpenId(pdfgroup)
+    if '$ISOBJECT(record) {
+        quit ""
+    }
+
+    if (which="default") {
+        quit record.DefaultCoverVersion
+
+    } elseif (which="override") {
+        if $DATA(^DocBook.PDFGroups(pdfgroup,"CoverVersion")) {
+            quit ^DocBook.PDFGroups(pdfgroup,"CoverVersion")
+        } else {
+            quit ""
+        }
+
+    } elseif (which="actual") {
+        if $DATA(^DocBook.PDFGroups(pdfgroup,"CoverVersion")) {
+            quit ^DocBook.PDFGroups(pdfgroup,"CoverVersion")
+        } else {
+            quit record.DefaultCoverVersion
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetPerforceVersion">
+<Description>
+which is "actual", "override", or "default"</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>which:%String="actual",pdfgroup:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set record=..%OpenId(pdfgroup)
+    if '$ISOBJECT(record) {
+        quit returnval=""
+    }
+
+    if (which="default") {
+        quit record.DefaultCoverVersion
+
+    } elseif (which="override") {
+        if $DATA(^DocBook.PDFGroups(pdfgroup,"TargetPerforceVersion")) {
+            quit ^DocBook.PDFGroups(pdfgroup,"TargetPerforceVersion")
+        } else {
+            quit ""
+        }
+
+    } elseif (which="actual") {
+        if $DATA(^DocBook.PDFGroups(pdfgroup,"TargetPerforceVersion")) {
+            quit ^DocBook.PDFGroups(pdfgroup,"TargetPerforceVersion")
+        } else {
+            quit record.DefaultTargetPerforceVersion
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetTargetPerforceVersion">
+<Description>
+this method is responsible for getting the version we will actually use in the Perforce change lists</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set record=..%OpenId(pdfgroup)
+    if '$ISOBJECT(record) {
+        set returnval=""
+    } else {
+        if ($DATA(^DocBook.PDFGroups(pdfgroup,"TargetPerforceVersion")) 
+        && (^DocBook.PDFGroups(pdfgroup,"TargetPerforceVersion") '="")) {
+            set returnval=^DocBook.PDFGroups(pdfgroup,"TargetPerforceVersion")
+        } else {
+            set returnval=record.DefaultTargetPerforceVersion
+        }
+    }
+    quit returnval
+]]></Implementation>
+</Method>
+
+<Method name="GetTargetPDFArea">
+<Description>
+Gets the actual target area where we will check in the PDFs</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String=""</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set record=..%OpenId(pdfgroup)
+    if '$ISOBJECT(record) {
+        quit ""
+    }
+
+    set perforceversion=..GetPerforceVersion("actual",pdfgroup)
+    if (perforceversion'=""){
+        set path=##class(DocBook.Manager.Utils).AppendToPath(record.DirPt1,perforceversion)
+        set path=##class(DocBook.Manager.Utils).AppendToPath(path,record.DirPt2)
+    } else {
+        set path=""
+    }
+    quit path
+]]></Implementation>
+</Method>
+
+<Method name="SetCoverVersionOverride">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String="",version:%String=""</FormalSpec>
+<Implementation><![CDATA[
+    if (pdfgroup="") quit
+    set testversion=$ZSTRIP(version,"<>"," ")
+    if (testversion="") {
+        kill ^DocBook.PDFGroups(pdfgroup,"CoverVersion")
+    } else {
+        set ^DocBook.PDFGroups(pdfgroup,"CoverVersion")=testversion
+    }
+]]></Implementation>
+</Method>
+
+<Method name="SetPerforceVersionOverride">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String="",version:%String=""</FormalSpec>
+<Implementation><![CDATA[
+    if (pdfgroup="") quit
+    set testversion=$ZSTRIP(version,"<>"," ")
+    if (testversion="") {
+        kill ^DocBook.PDFGroups(pdfgroup,"TargetPerforceVersion")
+    } else {
+        set ^DocBook.PDFGroups(pdfgroup,"TargetPerforceVersion")=testversion
+    }
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ManagerT74DA.PDFGroupsD</DataLocation>
+<DefaultData>PDFGroupsDefaultData</DefaultData>
+<IdLocation>^DocBook.ManagerT74DA.PDFGroupsD</IdLocation>
+<IndexLocation>^DocBook.ManagerT74DA.PDFGroupsI</IndexLocation>
+<StreamLocation>^DocBook.ManagerT74DA.PDFGroupsS</StreamLocation>
+<Data name="PDFGroupsDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>LongName</Value>
+</Value>
+<Value name="3">
+<Value>Origin</Value>
+</Value>
+<Value name="4">
+<Value>OriginProduct</Value>
+</Value>
+<Value name="5">
+<Value>OriginBranch</Value>
+</Value>
+<Value name="6">
+<Value>DefaultCoverVersion</Value>
+</Value>
+<Value name="7">
+<Value>DefaultTargetPerforceVersion</Value>
+</Value>
+<Value name="8">
+<Value>DirPt1</Value>
+</Value>
+<Value name="9">
+<Value>DirPt2</Value>
+</Value>
+<Value name="10">
+<Value>Extra</Value>
+</Value>
+<Value name="11">
+<Value>NeverCheckIn</Value>
+</Value>
+<Value name="12">
+<Value>Locale</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

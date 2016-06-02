@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.itemizedlist">
+<Description>
+Represents a bulleted list.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.container</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Method name="HTMLRenderPostChildren">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	Write "</ul>",!
+
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRenderPreChildren">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	Write "<ul>",!
+
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

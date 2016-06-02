@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.IndexUtils">
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%RegisteredObject</Super>
+<TimeCreated>63713,62583.415616</TimeCreated>
+
+<Method name="GenerateAll">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set list=##class(DocBook.ManagerTables.PDFGroups).GetPDFGroups(verbose)
+    for i=1:1:$LL(list) {
+        set pdfgroup=$LISTGET(list,i)
+        set oref=##class(DocBook.ManagerTables.PDFGroups).%OpenId(pdfgroup,0)
+        if (oref.NeverCheckIn=0) {
+            do ..GenerateIndexesForPDFGroup(pdfgroup,verbose)
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GenerateIndexesForPDFGroup">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set oref=##class(DocBook.ManagerTables.PDFGroups).%OpenId(pdfgroup)
+    if (oref.NeverCheckIn=1) {
+        quit
+    }
+
+    do ..ProcessPDFGroup(pdfgroup,0,verbose)
+    set havestatic=##class(DocBook.ManagerTables.PDFGroups).HaveStatic(pdfgroup)
+    if havestatic {
+        do ..ProcessPDFGroup(pdfgroup,1,verbose)
+    } else {
+        //do ##class(DocBook.ManagerTables.Log).AddLogItem("IndexUtils","Not generating static index for PDF group because it has no static contents: "_pdfgroup,verbose)
+    }
+    
+    //now generate .bat file to create CL to check in the index files
+    set targetpdfdir=##class(DocBook.ManagerTables.PDFGroups).GetTargetPDFArea(pdfgroup)
+
+    set indexdir=..GetIndexDir()
+    set filename=##class(DocBook.Manager.Utils).AppendToPath(indexdir,"MakeIndexChangeList-"_pdfgroup_".bat")
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+    do ##class(DocBook.Manager.FileUtils).StartBatchFile(file,"GenerateIndexesForPDFGroup()")
+
+    Do file.WriteLine("REM To use this file:")
+    Do file.WriteLine("REM    1. Make sure your Perforce client is running.")
+    Do file.WriteLine("REM    2. Make sure the default Perforce changelist is empty.")
+    Do file.WriteLine("REM    3. Copy this file to the directory that contains the generated index files.")
+    Do file.WriteLine("REM    4. Double-click this file.")
+    Do file.WriteLine("REM    5. Review the newly updated default Perforce changelist.")
+    Do file.WriteLine("REM    6. Check in this changelist if you approve of it.")
+    Do file.WriteLine("REM ===================================================")
+    Do file.WriteLine("SETLOCAL")
+    Do file.WriteLine("REM ===================================================")
+
+    set fullindexfilename=..GetGeneratedIndexFilename(pdfgroup,0)
+    set localindexfilename=##class(%File).GetFilename(fullindexfilename)
+    set targetindexfilename=..GetTargetIndexFilename(pdfgroup,0)
+    Do file.WriteLine("P4 sync "_targetindexfilename)
+    Do file.WriteLine("P4 edit "_targetindexfilename)
+    Do file.WriteLine("copy /Y "_localindexfilename_" "_targetindexfilename)
+    
+    if havestatic {
+        set fullindexfilename=..GetGeneratedIndexFilename(pdfgroup,1)
+        set localindexfilename=##class(%File).GetFilename(fullindexfilename)
+        set targetindexfilename=..GetTargetIndexFilename(pdfgroup,1)
+        Do file.WriteLine("P4 sync "_targetindexfilename)
+        Do file.WriteLine("P4 edit "_targetindexfilename)
+        Do file.WriteLine("copy /Y "_localindexfilename_" "_targetindexfilename)
+    }
+
+    Do file.WriteLine("ENDLOCAL")
+    Do file.WriteLine("set /p inputvar=Press any key to continue")
+]]></Implementation>
+</Method>
+
+<Method name="ProcessPDFGroup">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String="",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set check=##class(DocBook.ManagerTables.PDFGroups).HaveGroup(pdfgroup)
+    if 'check {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("IndexUtils","Skipping PDF group because we have no record of it: "_pdfgroup,verbose)
+        quit
+    }
+
+    set filename=..GetGeneratedIndexFilename(pdfgroup,static)
+    if verbose {
+        write !!, "Starting to generate file..."
+        write !, filename
+    }
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+
+    do file.WriteLine("<html>")
+    do file.WriteLine("<head>")
+    do file.WriteLine("<META http-equiv=""Content-Type"" content=""text/html; charset=ASCII"">")
+    do file.WriteLine("<title>InterSystems Bibliography</title>")
+
+    //generate meta for each book
+    do ..AddMetaInfo(file,pdfgroup,static,verbose)
+    
+    do file.WriteLine("<style type=""text/css"">")
+    do file.WriteLine("h1 { color: white; background: #5290EC; font-family: Verdana,Arial,Helvetica,sans-serif; font-weight: bold; font-size: 1.8em; font-stretch: wider; text-align: center; border-top: black solid 2px; border-left: black solid 2px; border-right: black solid 2px; margin-left: 5px; margin-right: 5px; margin-top: 50px; padding-left: 10px; padding-top: 5px; padding-bottom: 5px; }")
+    do file.WriteLine("h2 { color: white; background: #5290EC; font-family: Verdana,Arial,Helvetica,sans-serif; font-weight: bold; font-size: 1.5em; font-stretch: wider; text-align: center; border-color: #AAAAAA; border-width: 2px; border-style: none; border-top: black solid 1px; margin-left: 5px; margin-right: 5px; margin-top: 40px; padding-left: 10px; padding-top: 2px; padding-bottom: 5px; }")
+    do file.WriteLine("h3 { color: white; background: #5290EC; font-family: Verdana,Arial,Helvetica,sans-serif; font-weight: bold; font-size: 1.2em; font-stretch: wider; text-align: center; border-color: #AAAAAA; border-width: 2px; border-style: none; border-top: black solid 1px; margin-left: 5px; margin-right: 5px; margin-top: 20px; padding-left: 10px; padding-top: 2px; padding-bottom: 5px; }")
+    do file.WriteLine("body { color: black; background: white; font-family: Verdana,Arial,Helvetica,sans-serif; margin: 5px; padding: 10px; }")
+    do file.WriteLine("div.description { color: black; background: white; font-family: Verdana,Arial,Helvetica,sans-serif; text-align: center; margin-left: 80px; margin-right: 80px; padding-top: 10px; padding-bottom: 10px; }")
+    do file.WriteLine("table.display { margin-left: 80px; margin-right: 80px; }")
+    do file.WriteLine("table.displaygap { background: #5290EC; font-size: 0.2em; }")
+    do file.WriteLine("tr.display { margin-left: 80px; margin-right: 80px; }")
+    do file.WriteLine("tr.displaygap { background: #5290EC; font-size: 0.2em; }")
+    do file.WriteLine("td.stdtitle { color: blue; background: white; text-decoration: none; font-family: Verdana,Arial,Helvetica,sans-serif; font-weight: none; font-size: 1.5em; line-height: 120%; border-top: white solid 1px; border-bottom: white solid 1px; border-left: white solid 1px; border-right: #AAAAAA solid 2px; padding: 5px; }")
+    do file.WriteLine("td.stdtitle a { color: blue; text-decoration: none; }")
+    do file.WriteLine("td.stdsubtitle { color: #8080D0; background: white; text-decoration: none; font-family: Verdana,Arial,Helvetica,sans-serif; font-weight: none; font-size: 0.9em; border-top: white solid 1px; border-bottom: white solid 1px; border-left: white solid 1px; border-right: white solid 1px; padding: 5px; }")
+    do file.WriteLine("td.role { color: blue; background: #FFF0B0; text-decoration: none; font-family: Verdana,Arial,Helvetica,sans-serif; font-size: 1.2em; font-weight: bold; border-top: white solid 1px; border-bottom: white solid 1px; border-left: white solid 1px; border-right: white solid 1px; margin-left: 5px; margin-right: 5px; margin-top: 20px; margin-bottom: 10px; padding-left: 10px; padding-right: 0px; padding-top: 2px; padding-bottom: 5px; }")
+    do file.WriteLine("div.category { color: white; background: #5290EC; text-decoration: none; font-family: Verdana,Arial,Helvetica,sans-serif; font-size: 1.5em; font-weight: normal; border-color: black; border-width: 1px; border-style: none; border-top: black solid 1px; margin-left: 5px; margin-right: 5px; margin-top: 20px; margin-bottom: 10px; padding-left: 10px; padding-right: 0px; padding-top: 2px; padding-bottom: 5px; }")
+    do file.WriteLine("table.article { margin-left: 50px; margin-right: 50px; }")
+    do file.WriteLine("ul.article { margin-left: 80px; margin-right: 80px; }")
+    do file.WriteLine("</style>")
+    do file.WriteLine("</head>")
+    do file.WriteLine("<body>")
+    do file.WriteLine("<center><img src=""./Intersystems.jpg"" height=""75px"" width=""250px"" alt=""InterSystems Corporation"" border=""0""></center>")
+    do file.WriteLine("<br clear=""all"">")
+
+    //generate section of major divisions
+    do ..WriteMajorDivisionSection(file,pdfgroup,static,verbose)
+
+    //generate section for each set
+    if verbose {
+        write !, "Adding one table for each set... "
+    }
+    do file.WriteLine("<!-- START OF GROUP DETAILS ******************************************* -->")
+    set setlist=##class(DocBook.ManagerTables.PDFGroups).GetSETsinPDFGroup(pdfgroup,static,verbose)
+    for i=1:1:setlist.Count() {
+        set setdata=setlist.GetAt(i)
+        set setid=$P(setdata,"^",1)
+        do ..WriteSectionForSet(file,setdata,static,verbose)
+    }
+
+    // generate section for articles
+    do ..WriteSectionForArticles(file,pdfgroup,static,verbose)
+
+    // generate section for PDF list
+    do ..WritePDFList(file,pdfgroup,static,verbose)
+    do file.Close()
+]]></Implementation>
+</Method>
+
+<Method name="AddMetaInfo">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%Library.File,pdfgroup:%String="",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if verbose {
+        write !, "Adding <meta> tags..."
+    }
+    
+    set sql="SELECT DocBookId, Type FROM DocBook_ManagerTables.DBContents "
+               _"WHERE PDFGroup = '"_pdfgroup_"' "
+    if static {
+        set sql=sql_"AND PDFCategory=3 "  
+    } else {
+        set sql=sql_"AND ((PDFCategory=2) OR (PDFCategory=3)) "
+    }
+    
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+    
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set docbookid=rset.%Get("DocBookId")
+        set type=rset.%Get("Type")
+        if (type="book") {
+            do file.WriteLine("<meta name="""_docbookid_""" scheme=""book"">")
+        } else {
+            do file.WriteLine("<meta name="""_docbookid_""" scheme=""article"">")
+        }
+        if verbose {
+            write !, "   Added <meta> tag for ", docbookid
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="WriteMajorDivisionSection">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%Library.File,pdfgroup,static,verbose:%Boolean</FormalSpec>
+<Implementation><![CDATA[
+    if verbose {
+        write !, "Adding table of major divisions of documents for this PDF group..."
+    }
+
+    do file.WriteLine("")
+    do file.WriteLine("<!-- START OF MAJOR DIVISION SECTION ******************************************* -->")
+    do file.WriteLine("<!-- table has row for each set and then one row for articles and finally a row to link to pdf xref -->")
+    do file.WriteLine("<h1>Major Divisions of Books</h1><br clear=""all"">")
+    do file.WriteLine("<a name=""BEGIN""></a>")
+
+    Do file.WriteLine("<table class=""display"" border=""0"" cellpadding=""0"" cols=""2"" width=""85%"">")
+    Do file.WriteLine("")
+    Do file.WriteLine("<tr class=""displaygap"">")
+    Do file.WriteLine("<td colspan=""2"">&#160;</td>")
+    Do file.WriteLine("</tr>")
+
+    set setlist=##class(DocBook.ManagerTables.PDFGroups).GetSETsinPDFGroup(pdfgroup,static,verbose)
+    //iterate through sets and generate a row for each
+    for i=1:1:setlist.Count() {
+        set setdata=setlist.GetAt(i)
+        set setid=$P(setdata,"^",1)
+        set title=$P(setdata,"^",2)
+        set subtitle=$P(setdata,"^",3)
+        if verbose {
+            write !, "   Adding row for set: ",setid
+        }
+        
+        Do file.WriteLine("")
+        Do file.WriteLine("<tr class=""display"">")
+        Do file.WriteLine("<td class=""stdtitle"">")
+        Do file.WriteLine("<nobr><a href=""#"_setid_""">"_title_"</a></nobr></td>")
+        Do file.WriteLine("<td class=""stdsubtitle"">")
+        Do file.WriteLine(subtitle_"</td>")
+        Do file.WriteLine("</tr>")
+
+        Do file.WriteLine("<tr class=""displaygap"">")
+        Do file.WriteLine("<td colspan=""2"">&#160;</td>")
+        Do file.WriteLine("</tr>")
+        
+        // for debugging 
+        //do file.WriteLine("row FOR "_setid)
+    }
+    // add row for articles
+    set articlelist=##class(DocBook.ManagerTables.PDFGroups).GetArticlesInPDFGroup(pdfgroup,static,verbose)
+    if (articlelist.Count() > 0) {
+        //next two lines?????
+    Do file.WriteLine("")
+    Do file.WriteLine("<tr class=""display"">")
+        do file.WriteLine("<td class=""stdtitle""><nobr><a href=""#Articles"">Technical Articles</a></nobr></td>")
+        do file.WriteLine("<td class=""stdsubtitle"">A collection of technical articles on various topics of interest.</td>")
+        Do file.WriteLine("</tr>")
+
+        Do file.WriteLine("<tr class=""displaygap"">")
+        Do file.WriteLine("<td colspan=""2"">&#160;</td>")
+        Do file.WriteLine("</tr>")
+    } else {
+        //do ##class(DocBook.ManagerTables.Log).AddLogItem("Perforce","No articles in the PDF group "_pdfgroup,verbose)
+    }
+
+    // add row for PDF file xref
+    Do file.WriteLine("<tr class=""display"">")
+    Do file.WriteLine("<td class=""stdtitle""><nobr><a href=""#Xref"">PDF File Cross-Reference</a></nobr></td>")
+    Do file.WriteLine("<td class=""stdsubtitle"">PDF File Cross-Reference</td>")
+    Do file.WriteLine("</tr>")
+
+    Do file.WriteLine("<tr class=""displaygap"">")
+    Do file.WriteLine("<td colspan=""2"">&#160;</td>")
+    Do file.WriteLine("</tr>")
+
+
+    Do file.WriteLine("</table><br clear=""all"">")
+    do file.WriteLine("")
+]]></Implementation>
+</Method>
+
+<Method name="WriteSectionForSet">
+<Description>
+setdata is expected to be a pieced string: setid^title^subtitle</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%Library.File,setdata:%String="",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set setid=$P(setdata,"^",1)
+    set settitle=$P(setdata,"^",2)
+    set setsubtitle=$P(setdata,"^",3)
+    if verbose {
+        write !, "   Adding table for set ", setid
+    }
+
+    do file.WriteLine("")
+    do file.WriteLine("<!-- Section for the set "_setid_" -->")
+    do file.WriteLine("<!-- Table has one row for each book in this set -->")
+    do file.WriteLine("<a name="""_setid_"""></a>")
+    do file.WriteLine("<h1>"_settitle_"</h1>")
+    do file.WriteLine("<table class=""display"" border=""0"" cellpadding=""0"" cols=""2"" width=""85%"">")
+
+    do file.WriteLine("")
+    do file.WriteLine("<tr class=""displaygap"">")
+    do file.WriteLine("<td colspan=""2"">&#160;</td>")
+    Do file.WriteLine("</tr>")
+    set contentslist=##class(DocBook.ManagerTables.DBContents).GetBookList(setid,static)
+    for i=1:1:contentslist.Count() {
+        set item=contentslist.GetAt(i)
+        set docbookid=$P(item,"^",1)
+        set booktitle=$P(item,"^",2)
+        set subtitle=$P(item,"^",3)
+        set filename="./pdfs/"_docbookid_".pdf"
+        Do file.WriteLine("")
+        do file.WriteLine("<tr class=""display"">")
+        do file.WriteLine("<td class=""stdtitle"">")
+        do file.WriteLine("<nobr><a href="""_filename_""" title="""_docbookid_""" target=""_blank"">"_booktitle_"</a></nobr></td>")
+        do file.WriteLine("<td class=""stdsubtitle"">")
+        do file.WriteLine(subtitle_"</td>")
+        Do file.WriteLine("</tr>")
+
+        do file.WriteLine("<tr class=""displaygap"">")
+        do file.WriteLine("<td colspan=""2"">&#160;</td>")
+        Do file.WriteLine("</tr>")
+    }
+    do file.WriteLine("</table><a name="""_setid_"""></a>")
+]]></Implementation>
+</Method>
+
+<Method name="WritePDFList">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%Library.File,pdfgroup:%String="",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if verbose {
+        write !, "Adding cross-reference of PDF files..."
+     }
+    
+    set sql="SELECT DocBookId,RawTitle,RawSubtitle FROM DocBook_ManagerTables.DBContents "
+               _"WHERE PDFGroup->Name = '"_pdfgroup_"' "
+    if static {
+        set sql=sql_"AND PDFCategory=3 "  
+    } else {
+        set sql=sql_" AND ((PDFCategory=2) OR (PDFCategory=3))" 
+    }
+    
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+    
+    do file.WriteLine("")
+    do file.WriteLine("<!-- START OF PDF FILE CROSS-REFERENCE LIST ******************************************* -->")
+    do file.WriteLine("<a name=""Xref""></a>")
+    do file.WriteLine("<h1>PDF File Cross-Reference</h1><br clear=""all"">")
+    do file.WriteLine("<ul>")
+
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set docbookid=rset.%Get("DocBookId")
+        set title=rset.%Get("RawTitle")
+        //set subtitle=rset.%Get("RawSubtitle")
+        set pdffilename="./pdfs/"_docbookid_".pdf"
+        set listitem="<li><a href="""_pdffilename_""" title="""_docbookid_""" target=""_blank"">"_docbookid_"</a> - "_title_"<p></p></li>"
+        do file.WriteLine(listitem)
+        if verbose {
+            write !, "   Added entry for ",docbookid
+        }
+    }
+    
+    do file.WriteLine("</ul>")
+    do file.WriteLine("</body>")
+    do file.WriteLine("</html>")
+]]></Implementation>
+</Method>
+
+<Method name="WriteSectionForArticles">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%Library.File,pdfgroup:%String="",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if (pdfgroup=""){ 
+        quit
+    }
+    if verbose {
+        write !, "Writing article section..."
+    }
+    set articlelist=##class(DocBook.ManagerTables.PDFGroups).GetArticlesInPDFGroup(pdfgroup,static,verbose)
+    if (articlelist.Count() = 0) {
+        quit
+    }
+    
+    //this role stuff is not right but washes out in the end
+    //first get set of roles!!!
+    set sql="SELECT DISTINCT %Exact(tagRole) AS tagRole FROM DocBook_ManagerTables.DBContents "
+           _"WHERE Type='article' AND PDFCategory>0 AND PDFGroup='"_pdfgroup_"'"
+
+    if static {
+        set sql=sql_"AND tagStatus='static' "
+    }
+
+    if (verbose>1) {
+        write !, "SQL for roles: ",sql
+    }
+
+    set stmt=##class(%SQL.Statement).%New()
+    set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Perforce","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Perforce",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set result=stmt.%Execute()
+    do file.WriteLine("")
+    do file.WriteLine("<!-- Section to list the articles -->")
+    Do file.WriteLine("<a name=""Articles""></a>")  
+    Do file.WriteLine("<h1>Technical Articles By Subject Area</h1>")
+    //<br><table class=""article"" border=""0"" cellpadding=""0"" cols=""1"" width=""20%"">")
+    Do file.WriteLine("<ul class=""article"">")
+
+    while result.%Next() {
+        do ..WriteArticlesForRole(file,pdfgroup,static,result.%Get("tagRole"),verbose)
+    }
+    
+    Do file.WriteLine("</ul>")
+]]></Implementation>
+</Method>
+
+<Method name="WriteArticlesForRole">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%Library.File,pdfgroup:%String="",static:%Boolean=0,role:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if verbose {
+        write !, "   articles for role:",role
+    }
+    //Do file.Write("<role")
+    //Do file.WriteLine(" category=""" _ role _ """>")
+
+    set sql="SELECT * FROM DocBook_ManagerTables.DBContents "
+           _"WHERE Type='article' AND PDFCategory>0 AND PDFGroup='"_pdfgroup_"'"
+
+    if static {
+        set sql=sql_"AND tagStatus='static' "
+    }
+
+    if (role'="") {
+        set sql=sql_"AND tagRole='"_role_"'"
+    } else {
+        set sql=sql_"AND tagRole IS NULL"
+    }
+
+    if (verbose>1) {
+        write !, "SQL for articles: ",sql
+    }
+
+
+    set stmt=##class(%SQL.Statement).%New()
+    set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set result=stmt.%Execute()
+    while result.%Next() {
+        set docbookid=result.%Get("DocBookId")
+        if (verbose) {
+            write !, "   Adding information for ",docbookid
+        }
+        set filename="./pdfs/"_docbookid_".pdf"
+        set title=result.%Get("RawTitle")
+        set subtitle=result.%Get("RawSubtitle")
+
+        do file.WriteLine("<li>")
+        do file.WriteLine("<a href="""_filename_""" title="""_docbookid_""" target=""_blank"">"_title_"</a>")
+        do file.WriteLine("<br>"_subtitle_"<p></p></li>")
+        
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetIndexDir">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set basedir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+    set indexdir=##class(DocBook.Manager.Utils).AppendToPath(basedir,"Indexes")
+    quit indexdir
+]]></Implementation>
+</Method>
+
+<Method name="GetGeneratedIndexFilename">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String,static:%Boolean=0</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set indexdir=..GetIndexDir()
+    if static {
+        set filename=##class(DocBook.Manager.Utils).AppendToPath(indexdir,pdfgroup_"STATICindex.html")
+    } else {
+        set filename=##class(DocBook.Manager.Utils).AppendToPath(indexdir,pdfgroup_"index.html")
+    }
+    quit filename
+]]></Implementation>
+</Method>
+
+<Method name="GetTargetIndexFilename">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String,static:%Boolean=0</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set indexdir=..GetIndexDir()
+    set pdfdir=##class(DocBook.ManagerTables.PDFGroups).GetTargetPDFArea(pdfgroup)
+    if static {
+        set targetdir=##class(DocBook.Manager.Utils).AppendToPath(pdfdir,"install")
+    } else {
+        set targetdir=##class(DocBook.Manager.Utils).AppendToPath(pdfdir,"full")
+    }
+    set filename=##class(DocBook.Manager.Utils).AppendToPath(targetdir,"index.html")
+    quit filename
+]]></Implementation>
+</Method>
+</Class>
+</Export>

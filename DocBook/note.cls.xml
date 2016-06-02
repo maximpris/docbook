@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.note">
+<Description>
+A note admonition.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.container</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Method name="HTMLRenderPostChildren">
+<Internal>1</Internal>
+<Implementation><![CDATA[	Write "</DIV>",!
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRenderPreChildren">
+<Internal>1</Internal>
+<Implementation><![CDATA[	Write "<DIV CLASS=""note""><SPAN CLASS=""note"">", $$$T("Note:"), "</SPAN> ",!
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

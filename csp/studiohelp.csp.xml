@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="studiohelp.csp" application="/csp/docbook/" default="1"><![CDATA[
+<!-- Copyright (c) 2002 InterSystems Inc. ALL RIGHTS RESERVED. -->
+<!-- Context Help Page for Studio: redirects to correct page -->
+
+<html>
+<head></head>
+<body>
+
+<!-- test
+<table border=1 cellpadding=5>
+<TR><TD>DOCUMENT</TD><TD>#(%request.Get("DOCUMENT"))#</TD></TR>
+<TR><TD>CONTEXT</TD><TD>#(%request.Get("CONTEXT"))#</TD></TR>
+<TR><TD>LANGUAGE</TD><TD>#(%request.Get("LANGUAGE"))#</TD></TR>
+<TR><TD>ELEMENT</TD><TD>#(%request.Get("ELEMENT"))#</TD></TR>
+<TR><TD>NAMESPACE</TD><TD>#(%request.Get("NAMESPACE"))#</TD></TR>
+<TR><TD>TOKEN</TD><TD>#(%request.Get("TOKEN"))#</TD></TR>
+<TR><TD>SelectedText</TD><TD>#(%request.Get("SelectedText"))#</TD></TR>
+</table>
+-->
+
+<script language=Cache method=OnPreHTTP arguments="" returntype=%Boolean>
+	Set url = ##class(DocBook.Librarian).FindURL(%request.Get("CONTEXT"),
+		%request.Get("LANGUAGE"),
+		%request.Get("ELEMENT"),
+		%request.Get("TOKEN"),
+		%request.Get("NAMESPACE"),
+		%request.Get("SelectText"),
+		%request.Get("DOCUMENT"))
+	Set %response.Redirect = url
+	Quit 1
+</script>
+
+</body>
+</html>
+]]></CSP>
+</Export>

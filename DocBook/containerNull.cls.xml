@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.containerNull">
+<Description>
+A container is a specialized block that can contain one or more blocks.
+This one functions like a container but never displays anything.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.container</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Method name="%OnBeforeSave">
+<Description>
+render this container's children</Description>
+<Internal>1</Internal>
+<FormalSpec>insert:%Boolean</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	If ($LENGTH(..content) > 0)
+	{
+		Write "Content truncated", ! 
+		Set ..content = ""
+	}
+	
+	Do ..DeleteDependents(..%Id())
+	
+	Set ..lastChildPos = 0
+
+	Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRender">
+<Description>
+render this container's children</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	// HTML rendering is null
+
+	Quit
+
+]]></Implementation>
+</Method>
+
+<Method name="XMLRender">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	// XML rendering is null
+	Quit
+
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.HelpChecker">
+<Description>
+Checks the entire doc set for bad links.</Description>
+<IncludeCode>DocBookMac,%sySystem</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.UI.StdPage</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Method name="OnPage">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    Set info = ##class(BannerInfo).%New()
+    Set info.title = $$$T("Management Portal Help Checker")
+    Set info.booktitle = $$$T("InterSystems Online Documentation")
+
+    Do ..Header($$$T("Help Checker"))
+
+    &html<<BODY>>
+
+    Do ..RenderBanner(info)
+    &html<<BR>>
+    
+    Do ..CheckHelp()
+
+    &html<<BR CLEAR="ALL">>
+    &html<<HR>>
+    &html<<BR>>
+    
+    Do ..CheckAnchor()
+
+    &html<<BR CLEAR="ALL">>
+    &html<<HR>>
+    &html<<BR>>
+    
+    Do ..CheckInterface()
+    
+    Do ..ListHelpAddress()
+    
+    Do ..Footer()
+
+    Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="CheckHelp">
+<Description>
+Runs down the Management Portal Page list looking
+for the help page for each</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<Implementation><![CDATA[
+    // init the names
+    Set src = "^%qMgtPortal.Index"
+    Set tgt = "^DocBook.Anchor"
+    
+    // they must both be here
+    If ($DATA(@src) = 0)
+    {
+        &html<<H2>#($$$T("Missing global"))# - #(src)#</H2>>
+    }
+    If ($DATA(@tgt) = 0)
+    {
+        &html<<H2>#($$$T("Missing global"))# - #(tgt)#</H2>>
+    }
+    
+    Quit:($DATA(@src) = 0)
+    Quit:($DATA(@tgt) = 0)
+    
+    &html<<H2>#($$$T("Help for Management Portal Pages"))#</H2>>
+    &html<<TABLE CLASS="CALSTable" CELLPADDING="5" CELLSPACING="0" COLS="4" BORDER="0" WIDTH="100%">>
+    &html<<TR>>
+    &html<<TH>#($$$T("No."))#</TH>>
+    &html<<TH>#($$$T("Anchor Name"))#</TH>>
+    &html<<TH>#($$$T("Link"))#</TH>>
+    &html<<TH>#($$$T("Page Address"))#</TH>>
+    &html<</TR>>
+    
+    // iterate over the source subscripts
+    Set source = $QUERY(@src)
+    Set counter = 0
+    Set missing = 0
+    While (source '= "")
+    {
+        Set counter = counter + 1
+        Set n = $FIND(source, "(")
+        If (n = 0)
+        {
+            &html<<TR>>
+            &html<<TD>#(counter)#</TD>>
+            &html<<TD>???</TD>>
+            &html<<TD>???</TD>>
+            &html<<TD>#($$$T("Cannot find subscript start:"))# #(source)#</TD>>
+            &html<</TR>>
+            Set source = $QUERY(@source)
+            Continue
+        }
+        Else
+        {
+            Set subscript = $EXTRACT(source, (n - 1), $LENGTH(source))
+            Set target = tgt _ subscript
+            Set addr = $EXTRACT(source, n, ($LENGTH(source) - 1))
+            Set portal = ##class(DocBook.Renderer).FmtInterface(addr)
+            
+            //write subscript, !
+            // check for overlap
+            If ($DATA(@target) = 0)
+            {
+                Set missing = missing + 1
+                Set docname = "&nbsp;"
+                Set docURL = "&nbsp;"
+            }
+            Else
+            {
+                Set page = "/csp/docbook/DocBook.UI.PortalHelpPage.cls"
+                Set docname = $GET(@target, "Error")
+                Set dockey = ##class(DocBook.PortalUtils).Normalize(addr)
+                Set dockey = ..EscapeURL(dockey)
+                Set docref = page _ "?KEY=" _ dockey
+                Set docURL = "<A CLASS=""Link"""
+                           _ " "
+                           _ "HREF="""
+                           _ docref
+                           _ """>"
+                           _ "Go"
+                            _ "</A>"
+            }
+        }
+        &html<<TR>>
+        &html<<TD>#(counter)#</TD>>
+        &html<<TD>#(docname)#</TD>>
+        &html<<TD>#(docURL)#</TD>>
+        &html<<TD>#(portal)#</TD>>
+        &html<</TR>>
+        
+        set source = $QUERY(@source)
+    }
+    &html<</TABLE>>
+
+    If (missing > 0)
+    {
+        &html<<P>>
+        &html<<H3>#($$$T("Missing items:"))# #(missing)# #($$$T("out of"))# #(counter)#</H3>>
+    }
+    
+    Quit
+]]></Implementation>
+</Method>
+
+<Method name="CheckAnchor">
+<Description>
+Runs down the list of anchors to make sure each is referenced by
+a management portal page</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<Implementation><![CDATA[
+    // init the names
+    Set src = "^DocBook.Anchor"
+    Set tgt = "^%qMgtPortal.Index"
+    
+    // they must both be here
+    If ($DATA(@src) = 0)
+    {
+        &html<<H2>#($$$T("Missing global"))# - #(src)#</H2>>
+    }
+    If ($DATA(@tgt) = 0)
+    {
+        &html<<H2>#($$$T("Missing global"))# - #(tgt)#</H2>>
+    }
+    
+    Quit:($DATA(@src) = 0)
+    Quit:($DATA(@tgt) = 0)
+    
+    &html<<H2>#($$$T("Anchor Cross-Reference Check"))#</H2>>
+    &html<<TABLE CLASS="CALSTable" CELLPADDING="5" CELLSPACING="0" COLS="3" BORDER="0" WIDTH="100%">>
+    &html<<TR>>
+    &html<<TH>#($$$T("No."))#</TH>>
+    &html<<TH>#($$$T("Anchor Name"))#</TH>>
+    &html<<TH>#($$$T("Link"))#</TH>>
+    &html<</TR>>
+
+    // iterate over the source subscripts
+    Set source = $QUERY(@src)
+    Set counter = 0
+    While (source '= "")
+    {
+        Set n = $FIND(source, "(")
+
+        If (n = 0)
+        {
+            Set counter = counter + 1
+            &html<<TR>>
+            &html<<TD>#(counter)#</TD>>
+            &html<<TD>???</TD>>
+            &html<<TD>#($$$T("Cannot find subscript start:"))# #(source)#</TD>>
+            &html<</TR>>
+            Set source = $QUERY(@source)
+            Continue
+        }
+        Else
+        {
+            Set subscript = $EXTRACT(source, (n - 1), $LENGTH(source))
+            Set target = tgt _ subscript
+            
+            //write subscript, !
+            // check for overlap
+            If ($DATA(@target) = 0)
+            {
+                Set counter = counter + 1
+                Set docname = $GET(@source, "Error")
+                Set addr = $EXTRACT(source, n, ($LENGTH(source) - 1))
+                Set portal = ##class(DocBook.PortalUtils).Display(addr)
+                
+                &html<<TR>>
+                &html<<TD>#(counter)#</TD>>
+                &html<<TD>#(docname)#</TD>>
+                &html<<TD>#(portal)#</TD>>
+                &html<</TR>>
+            }
+        }
+        set source = $QUERY(@source)
+    }
+    
+    &html<</TABLE>>
+    
+    If (counter = 0)
+    {
+        &html<<BR CLEAR="ALL">>
+        &html<<P>>
+        &html<<B>#($$$T("No unreferenced anchors found!"))#</B>>
+        &html<<P>>
+        &html<<BR CLEAR="ALL">>
+    }
+
+    Quit
+]]></Implementation>
+</Method>
+
+<Method name="CheckInterface">
+<Description>
+Looks for interfaces and makes sure each has a valid portal page
+reference</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<Implementation><![CDATA[
+    // init the names
+    Set tgt = "^%qMgtPortal.Index"
+    
+    // it must be present
+    If ($DATA(@tgt) = 0)
+    {
+        &html<<H2>#($$$T("Missing global:"))# #(tgt)#</H2>>
+        Quit
+    }
+    
+
+    // search text for interfaces
+    &sql(DECLARE InterfaceCursor CURSOR FOR 
+            SELECT ID, blockid, content, sourceFile
+            INTO  :id ,:key, :text, :src
+            FROM DocBook.block
+            WHERE content [ '<interface') 
+
+    &sql(OPEN InterfaceCursor)
+    
+    &html<<H2>#($$$T("Interface Cross-Reference Check"))#</H2>>
+    &html<<TABLE CLASS="CALSTable" CELLPADDING="5" CELLSPACING="0" COLS="4" BORDER="0" WIDTH="100%">>
+    &html<<TR>>
+    &html<<TH>#($$$T("No."))#</TH>>
+    &html<<TH>#($$$T("Block"))#</TH>>
+    &html<<TH>#($$$T("Interface Ref"))#</TH>>
+    &html<<TH>#($$$T("File Name"))#</TH>>
+    &html<</TR>>
+
+    Set counter = 0
+    &sql(FETCH InterfaceCursor)
+    
+    While (SQLCODE = 0) 
+    {
+        Set offset = 1
+        Set bgnpos = $FIND(text, "<interface", offset)
+        While (bgnpos > 0)
+        {
+            Set bgnpos = $FIND(text, ">", bgnpos)
+            If (bgnpos = 0)
+            {
+                Set counter = counter + 1
+                &html<<TR>>
+                &html<<TD>#(counter)#</TD>>
+                &html<<TD>#(id)#</TD>>
+                &html<<TD>Malformed interface begin tag</TD>>
+                &html<<TD>#(src)#</TD>>
+                &html<</TR>>
+                Quit
+            }
+            Set endpos = $FIND(text, "</interface>", bgnpos)
+            If (endpos = 0)
+            {
+                Set counter = counter + 1
+                &html<<TR>>
+                &html<<TD>#(counter)#</TD>>
+                &html<<TD>#(id)#</TD>>
+                &html<<TD>Missing interface end tag</TD>>
+                &html<<TD>#(src)#</TD>>
+                &html<</TR>>
+                Quit
+            }
+            Set ref = $EXTRACT(text, bgnpos, (endpos - $LENGTH("</interface>") - 1))
+            Set canonref = ##class(DocBook.PortalUtils).Normalize(ref)
+            Set displayref = ##class(DocBook.PortalUtils).Display(canonref)
+            Set refurl = ##class(DocBook.PortalUtils).GetPortalURL(canonref)
+            
+            If (refurl = "")
+            {
+                Set counter = counter + 1
+                &html<<TR>>
+                &html<<TD>#(counter)#</TD>>
+                &html<<TD>#(id)#</TD>>
+                &html<<TD>#(ref)#</TD>>
+                &html<<TD>#(src)#</TD>>
+                &html<</TR>>
+            }
+            
+            Set offset = endpos         
+            Set bgnpos = $FIND(text, "<interface", offset)
+        }
+
+        &sql(FETCH InterfaceCursor)
+    }
+
+    &sql(CLOSE InterfaceCursor)
+    
+    &html<</TABLE>>
+    
+    If (counter = 0)
+    {
+        &html<<BR CLEAR="ALL">>
+        &html<<P>>
+        &html<<B>#($$$T("No unreferenced anchors found!"))#</B>>
+        &html<<P>>
+        &html<<BR CLEAR="ALL">>
+    }
+
+    Quit
+]]></Implementation>
+</Method>
+
+<Method name="ListHelpAddress">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	Set tLink = ..Link("/csp/sys/%25CSP.UI.HelpChecker.cls")
+	&html<<div style="padding:20px;">
+	<h2>To see a complete list of HelpAddress parameter defined for each application, please click <a href="#(tLink)#" target="new">here.</a></h2>
+	</div>
+	>
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.LoadOutput">
+<Description><![CDATA[
+This page is launched by <class>DocBook.Manager.Home</class> when you choose the ]]></Description>
+<Super>%CSP.Page</Super>
+<TimeCreated>63103,41170.093265</TimeCreated>
+
+<Method name="OnPage">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<ServerOnly>1</ServerOnly>
+<Implementation><![CDATA[
+    set tSC = $$$OK
+    Try {
+        &html<<DIV class="programlisting"><PRE>>
+        set docbookid = $G(%request.Data("ID",1))
+        if (docbookid="") {
+            write !!, "No DocBookID specified!"
+        } else {
+            write !, "Loading DocBookID: "_docbookid
+    
+            write !, "This page executes the following command in the DOCBOOK namespace: "
+            write !, "   do ##class(DocBook.Manager.LoadUtils).LoadDocBookId("""_docbookid_""")"
+
+            write !
+            write !, "****************************************************************************************"
+            write !,"OUTPUT FROM THE COMMAND:",!
+            set status=##class(DocBook.Manager.LoadUtils).LoadDocBookId(docbookid)
+            write !, "****************************************************************************************"
+            if $$$ISERR(status) {
+                do $system.OBJ.DisplayError()
+            } else {
+                //write !, "LOAD WAS SUCCESSFUL!"
+            }
+        }
+        &html<</PRE></DIV>>
+        &html<<a href="javascript:location.reload(true)">Reload</a>>
+        &html<<br><A HREF="DocBook.UI.Page.cls?KEY=#(docbookid)#">View this item</A>>
+        &html<<br><A HREF="DocBook.Manager.Home.cls">Back to DocBook Manager</A>>
+    }
+    Catch(ex) {
+        set tSC = ex.AsStatus()
+        write $System.Status.GetErrorText(tSC)    
+    }
+
+    Quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+</Export>

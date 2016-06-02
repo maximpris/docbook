@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.GettingStarted">
+<Description>
+This is a special container that renders the GettingStarted page for the Documentation system.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.container</Super>
+<TimeCreated>58822,45005</TimeCreated>
+
+<Method name="GetBannerInfo">
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+    If (##class(DocBook.Utils).TrakCareLoaded())
+    {
+        Set info.title = $$$T("Getting Started with TrakCare, HealthShare, Ensemble and Cach&eacute;")
+    }
+    ElseIf (##class(DocBook.Utils).HealthShareLoaded())
+    {
+        Set info.title = $$$T("Getting Started with HealthShare, Ensemble and Cach&eacute;")
+    }
+    ElseIf (##class(DocBook.Utils).EnsembleLoaded())
+    {
+        Set info.title = $$$T("Getting Started with Ensemble and Cach&eacute;")
+    }
+    else
+    {
+        Set info.title = $$$T("Getting Started with Cach&eacute;")
+    }
+    Set info.booktitle = $$$T("InterSystems Online Documentation")
+    Set info.chap = ""
+    Set info.prev = ""
+    Set info.next = ""
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRender">
+<Internal>1</Internal>
+<Implementation><![CDATA[    Do ..ShowGettingStarted()
+]]></Implementation>
+</Method>
+
+<Method name="EmitSet">
+<Internal>1</Internal>
+<FormalSpec>Title:%String</FormalSpec>
+<Implementation><![CDATA[
+    &html<<DIV CLASS="set">>
+    Write Title, !
+    &html<</DIV>>
+    Quit
+]]></Implementation>
+</Method>
+
+<Method name="EmitItem">
+<Internal>1</Internal>
+<FormalSpec>Key:%String,Title:%String,SubTitle:%String</FormalSpec>
+<Implementation><![CDATA[
+    Set TargetCnt = 99
+    If (Key [ "//")
+    {
+        Set Ref = "HREF=""" _ Key _ """"
+    }
+    Else
+    {
+        Set Ref = "HREF=""DocBook.UI.Page.cls?KEY=" _ Key _ """"
+        &sql(SELECT COUNT(*) INTO :TargetCnt FROM DocBook.block WHERE blockid = :Key)
+    }
+    
+    If (TargetCnt > 0) 
+    {
+        Set IntroMarkup = "<A CLASS=""TOC"" " _ Ref _ ">"
+        Set FinishMarkup = "</A>"
+    }
+    Else
+    {
+        Set IntroMarkup = "<SPAN CLASS=""TOC""><!-- " _ Ref _ " -->"
+        Set FinishMarkup = "</SPAN>"
+    }
+
+    &html<<DIV CLASS="para">>
+    &html<<UL>>
+    &html<<LI CLASS="SetTOC">>
+    &html<#(IntroMarkup)#>
+    &html<<B>>
+    Write Title, !
+    &html<</B>>
+    &html<#(FinishMarkup)#>
+    Write "&#151;&nbsp;"
+    Write SubTitle, !
+    &html<</UL>>
+    &html<</DIV>>
+    
+    Quit
+]]></Implementation>
+</Method>
+
+<Method name="ShowGettingStarted">
+<Description>
+Show text</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+    Write "<DIV CLASS=""para1"">", !
+    Write $$$T("The material listed below will help you to get started using InterSystems products."),!
+    Write "<BR/>", !
+    If (##class(DocBook.Utils).TrakCareLoaded())
+    {
+        Write $$$T("InterSystems TrakCare, HealthShare, and Ensemble share many underlying core technologies with InterSystems Cach&eacute; so they are listed separately here."), !
+    }
+    If (##class(DocBook.Utils).HealthShareLoaded())
+    {
+        Write $$$T("InterSystems HealthShare and Ensemble share many underlying core technologies with InterSystems Cach&eacute; so they are listed separately here."), !
+    }
+    ElseIf (##class(DocBook.Utils).EnsembleLoaded())
+    {
+        Write $$$T("InterSystems Ensemble shares many underlying core technologies with InterSystems Cach&eacute; so they are listed separately here."), !
+    }
+    Write "<BR/>", !
+    Write $$$T("You can also go to the ")
+    Write "<SPAN CLASS=""citetitle"">"
+    Write "<A HREF=""DocBook.UI.Page.cls"">"
+    Write $$$T("Documentation Home Page")
+    Write "</A></SPAN>",!
+    Write "</DIV>"
+    
+    &html<<DIV CLASS="GettingStarted">>
+
+    If (##class(DocBook.Utils).TrakCareLoaded())
+    {
+        // New TrakCare Users
+        Do ..EmitSet($$$T("For New TrakCare Users"))
+        Do ..EmitItem("KOVERVIEW_preface", $$$T("An Overview of TrakCare"), $$$T("Provides an overview of TrakCare and background information relevant to the process of implementing TrakCare."))
+
+        // Experienced TrakCare Users
+        Do ..EmitSet($$$T("For Experienced TrakCare Users"))
+        Do ..EmitItem("KGSECURITY_preface", $$$T("TrakCare System Administration Guide"), $$$T("Describes system administration tasks and troubleshooting tips for TrakCare."))
+    }
+    If (##class(DocBook.Utils).HealthShareLoaded())
+    {
+        Do ..EmitSet($$$T("For New HealthShare Users"))
+        Do ..EmitItem("FOVW_preface", $$$T("An Overview of HealthShare"), $$$T("Introduces the HealthShare component architecture."))
+
+        // Experienced HealthShare Users
+        Do ..EmitSet($$$T("For Experienced HealthShare Users"))
+        Do ..EmitItem("FRN_preface", $$$T("HealthShare Release Notes"), $$$T("New Features and Key Corrections in HealthShare."))
+    }
+    If (##class(DocBook.Utils).EnsembleLoaded())
+    {
+        Do ..EmitSet($$$T("For New Ensemble Users"))
+        Do ..EmitItem("EGIN_preface", $$$T("Introducing Ensemble"), $$$T("An overview of the Ensemble product architecture and features."))
+        Do ..EmitItem("EPREP_preface", $$$T("Preparing to Use Ensemble"), $$$T("A road map for installing, upgrading, and getting started with Ensemble."))
+        Do ..EmitItem("EGBP_preface", $$$T("Ensemble Best Practices"), $$$T("A description of best practices for organizing and developing Ensemble productions."))
+
+        // Experienced Ensemble Users
+        Do ..EmitSet($$$T("For Experienced Ensemble Users"))
+        Do ..EmitItem("EGRN_preface", $$$T("Ensemble Release Notes"), $$$T("A listing of the new features in this release, as well as any upgrade issues."))
+        Do ..EmitItem("EPREP_preface", $$$T("Preparing to Use Ensemble"), $$$T("A road map for installing, upgrading, and getting started with Ensemble."))
+        Do ..EmitItem("EGDV_preface", $$$T("Developing Ensemble Productions"), $$$T("A complete guide to programming with Ensemble."))
+        Do ..EmitItem("EGMG_preface", $$$T("Managing Ensemble"), $$$T("User documentation for the Ensemble Management Portal."))
+    }
+    
+    // New Cache Users
+    Do ..EmitSet($$$T("For New Cach&eacute; Users"))
+    Do ..EmitItem("GIC_preface", $$$T("Introduction to Cach&eacute;"), $$$T("An overview of Cach&eacute; architecture and features."))
+    Do ..EmitItem("TWEB_preface", $$$T("Building Web Applications with Cach&eacute;"), $$$T("A tutorial that takes you through the steps of building an object-based Web application using Cach&eacute;."))
+
+    If (##class(DocBook.Utils).TrakCareLoaded())
+    {
+        Do ..EmitItem("GSA_preface", $$$T("Basic System Administration"), $$$T("A guide to administering your HealthShare, Ensemble and Cach&eacute; System."))
+    }
+    ElseIf (##class(DocBook.Utils).HealthShareLoaded())
+    {
+        Do ..EmitItem("GSA_preface", $$$T("Basic System Administration"), $$$T("A guide to administering your HealthShare, Ensemble and Cach&eacute; System."))
+    }
+    ElseIf (##class(DocBook.Utils).EnsembleLoaded())
+    {
+        Do ..EmitItem("GSA_preface", $$$T("Basic System Administration"), $$$T("A guide to administering your Ensemble and Cach&eacute; System."))
+    }
+    Else
+    {
+        Do ..EmitItem("GSA_preface", $$$T("Basic System Administration"), $$$T("A guide to administering your Cach&eacute; System."))
+    }
+
+    // Multivalue, if present
+    if ($ZBITGET(($ZVERSION(0)_$C(0,0,0,0,0,0)), 39))
+    {
+        Do ..EmitItem("SETMV", $$$T("MultiValue and Cach&eacute;"), $$$T("Information on the MultiValue features of Cach&eacute;."))
+    }
+
+    Do ..EmitItem("TLKP_preface", $$$T("Other Tutorial Offerings"), $$$T("A map of the other tutorial offerings for self-paced learning."))
+
+    // Experienced Cache Users
+    Do ..EmitSet($$$T("For Experienced Cach&eacute; Users"))
+    Do ..EmitItem("GCRN_preface", $$$T("Cach&eacute; Release Notes"), $$$T("A listing of the new features in this release."))
+    Do ..EmitItem("GCNV_preface", $$$T("Cach&eacute; Upgrade Checklists"), $$$T("A listing of changes in the release that may affect upgrades from earlier releases."))
+    Do ..EmitItem("GSTD_preface", $$$T("Using Cach&eacute; Studio"), $$$T("Documentation for Cach&eacute; Studio."))
+    Do ..EmitItem("GCAS_preface",  $$$T("Cach&eacute; Security Guide"), $$$T("A description of the security features available with this version."))
+
+    // Additional Info
+    Do ..EmitSet($$$T("For Additional Information"))
+    Do ..EmitItem("GDOC_preface", $$$T("InterSystems Documentation"), $$$T("A guide to finding and using information in online and PDF formats."))
+    Do ..EmitItem("//www.intersystems.com", $$$T("InterSystems Web Site"), $$$T("Information about InterSystems Corporation and its products."))
+    Do ..EmitItem("//www.intersystems.com/support/index.html" ,$$$T("InterSystems Support"), $$$T("Information about InterSystems Worldwide Response Center."))
+    Do ..EmitItem("//www.intersystems.com/education/learning-svcs.html", $$$T("InterSystems Learning Services"), $$$T("Information about our variety of training and certification programs."))
+    Do ..EmitItem("//www.intersystems.com/community/index.html", $$$T("Cach&eacute; News Groups"), $$$T("Discussion forums for Cach&eacute; developers and users."))
+
+    &html<</DIV>>
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

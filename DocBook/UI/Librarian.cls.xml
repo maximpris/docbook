@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.Librarian">
+<Description><![CDATA[
+Librarian-based search page
+This is a test page for Studio Help<BR>]]></Description>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.UI.StdPage</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Method name="OnPage">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    Set info = ##class(BannerInfo).%New()
+    Set info.title = $$$T("Library Search")
+    Set info.booktitle = $$$T("InterSystems Online Documentation")
+
+    Do ..Header($$$T("Library Search"))
+
+    &html<<BODY onload="return pageOnLoad();">>
+
+    Do ..RenderBanner(info)
+    &html<<BR>>
+
+    Set context = $G(%request.Data("CONTEXT",1))
+    Set language = $G(%request.Data("LANGUAGE",1))
+    Set element = $G(%request.Data("ELEMENT",1))
+    Set token = $G(%request.Data("TOKEN",1))
+    
+    Set heading = $$$T("Search for all documents containing a specific word or phrase by entering it in the field below:")
+
+    // search form
+    &html<<TABLE CCELLPADDING="0" CELLSPACING="0" BORDER="0" WIDTH="100%">>
+    &html<<TR><TD WIDTH="10%">&nbsp;</TD>>
+    &html<<TD>>
+    &html<<FORM ACTION="StudioHelp.csp" NAME="SearchForm">>
+    &html<<TABLE CLASS="SearchForm" CELLPADDING="5" BGCOLOR="silver" CELLSPACING="0" BORDER="0">>
+    &html<<TR>>
+    &html<<TD COLSPAN="4"><DIV CLASS="SearchForm">#(heading)#</DIV></TD>>
+    &html<</TR>>
+    &html<<TR>>
+    &html<<TD><DIV CLASS="SearchForm"><B>#($$$T("Context:"))#</B></DIV></TD>>
+    &html<<TD><INPUT CLASS="SearchInput" TYPE="TEXT" SIZE="40" NAME="CONTEXT" VALUE="#(..EscapeHTML(context))#">&nbsp;</TD>>
+    &html<<TD><DIV CLASS="SearchForm"><B>#($$$T("Language:"))#</B></DIV></TD>>
+    &html<<TD><INPUT CLASS="SearchInput" TYPE="TEXT" SIZE="40" NAME="LANGUAGE" VALUE="#(..EscapeHTML(language))#">&nbsp;</TD>>
+    &html<</TR>>
+    &html<<TR>>
+    &html<<TD><DIV CLASS="SearchForm"><B>#($$$T("DocBook Element:"))#</B></DIV></TD>>
+    &html<<TD><INPUT CLASS="SearchInput" TYPE="TEXT" SIZE="40" NAME="ELEMENT" VALUE="#(..EscapeHTML(element))#">&nbsp;</TD>>
+    &html<<TD><DIV CLASS="SearchForm"><B>#($$$T("Token:"))#</B></DIV></TD>>
+    &html<<TD>>
+    &html<<INPUT CLASS="SearchInput" TYPE="TEXT" SIZE="40" NAME="TOKEN" VALUE="#(..EscapeHTML(token))#">&nbsp;>
+    Set t = $$$T("Search")
+    &html<<INPUT CLASS="SearchButton" TYPE="SUBMIT" NAME="Search" VALUE="#(t)#">&nbsp;>
+    Set t = $$$T("Reset")
+    &html<<INPUT CLASS="SearchButton" TYPE="BUTTON" NAME="Reset" VALUE="#(t)#" ONCLICK="self.document.location='DocBook.UI.Librarian.cls';">>
+    &html<</TD>>
+    &html<</TR>>
+    &html<</TABLE>>
+    &html<</FORM>>
+    &html<</TD></TR></TABLE>>
+    
+    Set blockid = ##class(DocBook.Librarian).Lookup(context,language,element,token)
+    
+    If (blockid '= "") {
+        Set block = ##class(DocBook.block).OpenKey(blockid)
+        If (block '= "") {
+            &html<<HR>>
+            If (block.%IsA("DocBook.container")) {
+                &html<<DIV CLASS="Title">#(block.title)#</DIV>>
+            }
+            &html<<DIV CLASS="SearchText">>
+            Do block.HTMLRender()
+            &html<</DIV>>
+        }
+    }
+
+    Do ..Footer()
+
+    Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="ShowScripts">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    &html<<SCRIPT LANGUAGE=JavaScript>
+        function pageOnLoad()
+        {
+            // set focus to the first search field and select it
+            var form = self.document.SearchForm;
+            var control = form.CONTEXT;
+            control.focus();
+            control.select();
+            return true;
+        }
+        </SCRIPT>>
+
+]]></Implementation>
+</Method>
+</Class>
+</Export>

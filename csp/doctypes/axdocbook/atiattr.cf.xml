@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/atiattr.cf" application="/csp/docbook/" default="1"><![CDATA[
+#
+# $Id: atiattr.cf,v 22.1 1993/07/16 01:52:27 bsd Exp $
+#
+
+#
+# See atitag.bnf for syntax.
+#
+# tags: name pairing tex tidmap
+# sty: name tex textype datatype dfltval attrcode chclist texchclist elembits
+
+#	NOTE: all tags in this file must be give the attribute ATTR_ATI!
+
+#
+# The _xattrs tag is never instantiated as a tag.  Instead,
+# its attributes are appended to every SGML tag translation.
+#
+tag: _xattrs single NULL NULL
+
+sty: _treeloc NULL NOTEX TEXT NULL NULL NULL NULL NULL
+
+attr: ATTR_ATI
+
+
+]]></CSP>
+</Export>

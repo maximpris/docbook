@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Catalog">
+<Description>
+This is a special container that renders the title of books and articles for the Documentation system.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<SqlTableName>db_catalog</SqlTableName>
+<Super>DocBook.container</Super>
+<TimeCreated>58822,45005</TimeCreated>
+
+<Method name="GetBannerInfo">
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+	Set info.title = $$$T("Documentation Catalog")
+	Set info.booktitle = $$$T("InterSystems Online Documentation")
+	Set info.chap = ""
+	Set info.prev = ""
+	Set info.next = ""
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRender">
+<Internal>1</Internal>
+<Implementation><![CDATA[	Do ..ShowCatalog()
+]]></Implementation>
+</Method>
+
+<Method name="ShowCatalog">
+<Description>
+Display the catalog of titles</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+	// preface
+	&html<<DIV CLASS="para1">>
+	Write $$$T("Welcome to the InterSystems online documentation."), !
+	Write $$$T("What follows is a list of all the available online books and articles."), !
+	Write $$$T("Clicking on the title will take you directly to the document."), !
+	&html<</DIV>>
+    
+    &html<<DIV CLASS="set">Books</DIV>>
+	Do ..ShowBooks()
+
+    &html<<DIV CLASS="set">Articles</DIV>>
+	Do ..ShowArticles()
+]]></Implementation>
+</Method>
+
+<Method name="ShowBooks">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+	// loop over articles
+	&sql(DECLARE BCursor CURSOR FOR
+		SELECT ID,blockid,title,subtitle
+		INTO :setid,:key,:title,:desc
+		FROM DocBook.book
+		ORDER BY title
+	)
+	
+	&sql(OPEN BCursor)
+	&sql(FETCH BCursor)
+
+    &html<<DIV CLASS="para"><DL>>
+    Set n = 0
+	While (SQLCODE = 0) {
+		Set n = n + 1
+
+		Set link = "HREF=""DocBook.UI.FramePage.cls?KEY=" _ $ZCVT(key,"O","URL") _ """"
+
+		&html<<DT>
+		<A CLASS="TOCChapter" #(link)#>#(title)#</A>
+		</DT>
+		>
+
+		&html<<DD>
+		#(desc)#&nbsp;&#151;&nbsp;(<SPAN CLASS="filename">#(key)#</SPAN>)
+		</DD>>
+
+		&html<<P>>
+
+		&sql(FETCH BCursor)
+	}
+	&sql(CLOSE BCursor)
+    &html<</DL></DIV>>
+]]></Implementation>
+</Method>
+
+<Method name="ShowArticles">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+	// loop over articles
+	&sql(DECLARE ACursor CURSOR FOR
+		SELECT ID,blockid,title,subtitle
+		INTO :setid,:key,:title,:desc
+		FROM DocBook.article
+		ORDER BY title
+	)
+	
+	&sql(OPEN ACursor)
+	&sql(FETCH ACursor)
+
+    &html<<DIV CLASS="para"><DL>>
+    Set n = 0
+	While (SQLCODE = 0) {
+		Set n = n + 1
+
+		Set link = "HREF=""DocBook.UI.FramePage.cls?KEY=" _ $ZCVT(key,"O","URL") _ """"
+
+		&html<<DT>
+		<A CLASS="TOCChapter" #(link)#>#(title)#</A>
+		</DT>>
+
+		&html<<DD>
+		#(desc)#&nbsp;&#151;&nbsp;(<SPAN CLASS="filename">#(key)#</SPAN>)
+		</DD>>
+
+		&html<<P>>
+
+		&sql(FETCH ACursor)
+	}
+	&sql(CLOSE ACursor)
+    &html<</DL></DIV>>
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

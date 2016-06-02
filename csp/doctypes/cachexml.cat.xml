@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/cachexml.cat" application="/csp/docbook/" default="1"><![CDATA[
+-- Cache XML Master Catalog File --
+
+-- Load DocBook Catalog -- 
+CATALOG "docbook\cachedb.cat"
+
+
+
+
+]]></CSP>
+</Export>

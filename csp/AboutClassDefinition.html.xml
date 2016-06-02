@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="AboutClassDefinition.html" application="/csp/docbook/" default="1"><![CDATA[
+<HTML>
+
+<HEAD>
+<TITLE>About Class Definitions</TITLE>
+
+<STYLE type="text/css">
+	BODY 			{ color: black; background: white; font-family: Helvetica,Arial,sans-serif; }
+	TABLE.TitleBanner 	{ color: white; background: #287780; font-size: 24pt;
+				  font-family="Verdana,Arial,Helvetica,sans-serif"; }
+
+	Div.Section		{ color: black; background: #CBE6EB; font-size: 12pt;
+				  font-family="Verdana,Arial,Helvetica,sans-serif"; font-weight: bold;
+				  padding-top: 5; padding-bottom: 5;
+				  margin-top: 10; margin-bottom: 5; }
+
+	DIV.Text		{ margin-left: 5; padding-left: 5; padding-top: 5; padding-bottom: 5; margin-bottom: 10; }
+
+
+	DIV.Code		{ color: black; background: #E5E5E5; font-family: courier,monospace;
+				  text-align: left; margin-left: 10; margin-right: 10;
+				  padding-left: 5; padding-top: 5; padding-bottom: 5; }
+
+	DIV.caution  { background: #FFDDFF; color: black;
+				   font-family: Verdana,Arial,sans-serif;
+				   border-color: black; border-width: 1px; border-style: solid;
+				   margin-left: 40px;
+				   margin-right: 40px;
+				   margin-top: 10px;
+				   margin-bottom: 10px;
+				   line-height: 125%;
+				   padding: 3;
+				 }
+
+
+
+	TD.Term			{ font-weight: bold; }
+	TD.Text			{  }
+
+
+</STYLE>
+
+</HEAD>
+
+<BODY>
+
+<TABLE CLASS=TitleBanner bgcolor=#287780 CELLPADDING=0 CELLSPACING=0 COLS=2 WIDTH=100% BORDER=0>
+    <TR>
+        <!--
+        <TD width="120"><img src=/apps/documatic/%25CSP.StreamServer.cls?FILE=/apps/documatic/images/ClassLogo.jpg width=100 height=77></TD>
+        -->
+        <TD width="100%"><FONT face="Arial, Helvetica, sans-serif" color="#FFFFFF" size="+3">
+	About the Cach&eacute; Class Definition Classes</FONT></TD>
+    </TR>
+</TABLE>
+
+<P>
+<DIV CLASS=Caution>The <i>Cach&eacute; Library</i> set of class definitions classes
+has been superceded by the <quote>%Dictionary</quote> package.
+The <quote>%Library</quote> classes described here are maintained for compatibility with existing applications.
+<P>
+New code
+should make use of the classes within the <quote>%Dictionary</quote> package.
+Documentation on <quote%Dictionary</quote> can be found in the online documentation in the
+Cach&eacute; Development Guides section in the book titled, <quote>Using Cach&eacute; Objects</quote>.
+<p>
+Make sure that you specify the correct package name when using these classes
+or you may inadvertently use the wrong class.</DIV>
+
+<DIV CLASS=Text>The <i>Cach&eacute; Library</i> includes a number of class definition classes that
+provide object access to the <i>Cach&eacute; Unified Dictionary</i>. Using these classes you can
+programmatically examine class definitions, modify class definitions, create new classes,
+or even write programs that automatically generate documentation.</DIV>
+
+<DIV CLASS=Text>There are two parallel sets of class definition classes: those that represent <em>defined</em>
+classes and those that respresent <em>compiled</em> classes. A <em>defined</em> class definition
+represents the definition of a specific class. It includes only information defined by that class; it does not
+include information inherited from super classes. In addition to providing information about classes
+in the dictionary, these classes can be used to programmatically alter or create new class definitions.</DIV>
+
+<DIV CLASS=Text>A <em>compiled</em> class definition includes all of the class members that are inherited from super classes.
+A compiled class definition object can only be instantiated from a class that has been compiled.
+You cannot save a compiled class definition. In this document we will only discuss defined classes but
+the operation of the compiled class definitions is similar.</DIV>
+
+<DIV CLASS=Text>The family of class definition classes that represent <em>defined classes</em> includes:</DIV>
+
+<TABLE border="0" cellpadding="3" cellspacing="4">
+    <TR>
+        <TD CLASS=Term>
+
+        <A HREF="/csp/documatic/%25CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.AbstractDefinition">%AbstractDefinition</A></NOBR></TD>
+        <TD CLASS=Text>
+        Abstract base class for all class definition classes.</TD>
+    </TR>
+    <TR>
+        <TD CLASS=Term>
+        <A HREF="/csp/documatic/%25CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.ClassDefinition">%ClassDefinition</A></NOBR></TD>
+        <TD CLASS=Text>
+        Represents a class definition. Contains class keywords as well as collections containing class member definitions.</TD>
+    </TR>
+    <TR>
+        <TD CLASS=Term><NOBR>
+        <A HREF="/csp/documatic/%25CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.ForeignKeyDefinition">%ForeignKeyDefinition</A></NOBR></TD>
+        <TD CLASS=Text>
+        Represents a foreign key definition within a class.</TD>
+    </TR>
+    <TR>
+        <TD CLASS=Term><NOBR>
+        <A HREF="/csp/documatic/%25CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.IndexDefinition">%IndexDefinition</A></NOBR></TD>
+        <TD CLASS=Text>
+        Represents an index definition within a class.</TD>
+    </TR>
+    <TR>
+        <TD CLASS=Term><NOBR>
+        <A HREF="/csp/documatic/%25CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.MethodDefinition">%MethodDefinition</A></NOBR></TD>
+        <TD CLASS=Text>
+        Represents a method definition within a class.</TD>
+    </TR>
+    <TR>
+        <TD CLASS=Term><NOBR>
+        <A HREF="/csp/documatic/%25CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.ParameterDefinition">%ParameterDefinition</A></NOBR></TD>
+        <TD CLASS=Text>
+        Represents a parameter definition within a class.</TD>
+    </TR>
+    <TR>
+        <TD CLASS=Term><NOBR>
+        <A HREF="/csp/documatic/%25CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.PropertyDefinition">%PropertyDefinition</A></NOBR></TD>
+        <TD CLASS=Text>
+        Represents a property (attribute) definition within a class.</TD>
+    </TR>
+    <TR>
+        <TD CLASS=Term><NOBR>
+        <A HREF="/csp/documatic/%25CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.QueryDefinition">%QueryDefinition</A></NOBR></TD>
+        <TD CLASS=Text>
+        Represents a query definition within a class.</TD>
+    </TR>
+    <TR>
+        <TD CLASS=Term><NOBR>
+        <A HREF="/csp/documatic/%25CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.TriggerDefinition">%TriggerDefinition</A></NOBR></TD>
+        <TD CLASS=Text>
+        Represents an SQL trigger definition within a class.</TD>
+    </TR>
+</TABLE>
+
+<DIV CLASS=Section><B>Browsing Class Definitions</B></DIV>
+
+<DIV CLASS=Text>You can use the class definition classes to browse through the class definitions
+within the <i>Cach&eacute;</i> dictionary using the same techniques you
+would use in a database application: you can use the <A HREF="/csp/docbook/_CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.ResultSet">%ResultSet</A>
+object to iterate over sets of classes and you can instantiate
+persistent objects that represent specific class definitions.</DIV>
+
+<DIV CLASS=Text>For example,
+from within a <i>Cach&eacute;</i> process you can get a list of all classes defined
+within the dictionary for the current namespace by using the <B>%ClassDefinition.ClassInfo</B> query:</DIV>
+
+<DIV CLASS=Code><PRE>
+New result
+Set result=##class(%ResultSet).%New(&quot;%ClassDefinition.ClassInfo&quot;)
+Do result.Execute()
+For  Quit:result.Next()=0 Write result.GetDataByName(&quot;Name&quot;)
+Do result.%Close()
+</PRE></DIV>
+
+<DIV CLASS=Text>You can just as easily invoke this query from an ActiveX or
+Java client using the client ResultSet object.</DIV>
+
+<DIV CLASS=Text>This <B>%ClassDefinition.ClassInfo</B> query will return all of the classes
+visible from the current namespace (including classes in the system library). You can filter out unwanted
+classes using the various columns returned by the <B>%ClassDefinition.ClassInfo</B> query.</DIV>
+
+<DIV CLASS=Text>You can get detailed information about a specific class definition by opening a
+<A HREF="/csp/docbook/_CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.ClassDefinition">%ClassDefinition</A> object for the class and observing its properties. The
+ID used to store <A HREF="/csp/docbook/_CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.ClassDefinition">%ClassDefinition</A> objects is the class name:</DIV>
+
+<DIV CLASS=Code><PRE>
+Set cdef=##class(%ClassDefinition).%OpenId(&quot;Employee&quot;)
+Write cdef.Name
+; get list of properties
+Set count=cdef.Properties.Count()
+For i=1:1:count Write cdef.Properties.GetAt(i).Name
+Do cdef.%Close()
+</PRE></DIV>
+
+<DIV CLASS=Text>You can also do this easily from an ActiveX or Java client.</DIV>
+
+<DIV CLASS=Section><B>Altering Class Definitions</B></DIV>
+
+<DIV CLASS=Text>You can modify an existing class definition by opening a <A HREF="/csp/docbook/_CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.ClassDefinition">%ClassDefinition</A>
+object, making the desired changes, and saving it using the <B>%Save</B> method.</DIV>
+
+<DIV CLASS=Text>You can create a new class by creating a new <A HREF="/csp/docbook/_CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.ClassDefinition">%ClassDefinition</A>
+object, filling in its properties and saving it. When you create <A HREF="/csp/docbook/_CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.ClassDefinition">%ClassDefinition</A>
+object you must pass the name of the class via the <B>%New</B> command. When you want to add
+a member to the class (such as a property or method) you must create the corresponding definition
+class (passing its <B>%New</B> command a string containing &quot;classname.membername&quot;)
+and add the object to the appropriate collection within the <A HREF="/csp/docbook/_CSP.Documatic.cls?PAGE=CLASS&LIBRARY=%25SYS&CLASSNAME=%25Library.ClassDefinition">%ClassDefinition</A> object.</DIV>
+
+<DIV CLASS=Text>For example:</DIV>
+
+<DIV CLASS=Code><PRE>
+Set cdef=##class(%ClassDefinition).%New(&quot;MyClass&quot;)
+Set cdef.Persistent=1
+Set cdef.Super=&quot;%Persistent,%Populate&quot;
+
+; add a Name property
+Set pdef=##class(%PropertyDefinition).%New(&quot;MyClass.Name&quot;)
+Do cdef.Properties.Insert(pdef)
+Do pdef.%Close()
+
+Set pdef.Type=&quot;%String&quot;
+; save and close the class definition object
+Do cdef.%Save()
+Do cdef.%Close()
+</PRE></DIV>
+
+</BODY>
+</HTML>
+]]></CSP>
+</Export>

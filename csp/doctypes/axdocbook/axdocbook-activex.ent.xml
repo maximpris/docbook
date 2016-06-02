@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/axdocbook-activex.ent" application="/csp/docbook/" default="1"><![CDATA[
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fragment document type declaration subset:
+ArborText, Inc., 1988-2002, v.4002
+<!DOCTYPE DocumentTypeConfiguration PUBLIC "-//Arbortext//DTD Document Type Configuration 1.0//EN"
+ "dcfdtd.dtd">
+-->
+<!-- This file entity is a placeholder for <ActiveXControl> elements.  See online help for configuration information of ActiveX controls on Windows systems.-->
+<?Pub Caret?>
+<ActiveXControl element="date" controlName="date" scriptFileName="date.js"
+scriptName="date" programId="MSCAL.Calendar" eventName="DOMActivate"
+inPlaceActivate="yes">
+</ActiveXControl>
+<ActiveXControl element="address" controlName="addrform" scriptName="address"
+scriptFileName="address.js" programId="Shell.Explorer" eventName="DOMActivate"
+inPlaceActivate="no"></ActiveXControl>
+<ActiveXControl element="inlinegraphic" controlName="SVG" 
+scriptFileName="svg.js"
+condition="translate(substring(@fileref, string-length(@fileref) - 3), 'svg', 'SVG') = '.SVG'"
+programId="Adobe.SVGCtl" eventName="DOMActivate" inPlaceActivate="yes">
+</ActiveXControl>
+<ActiveXControl element="graphic" controlName="SVG" scriptFileName="svg.js"
+condition="translate(substring(@fileref, string-length(@fileref) - 3), 'svg', 'SVG') = '.SVG'"
+programId="Adobe.SVGCtl" eventName="DOMActivate" inPlaceActivate="yes">
+</ActiveXControl>
+]]></CSP>
+</Export>

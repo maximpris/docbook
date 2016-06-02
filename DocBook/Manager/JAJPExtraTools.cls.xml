@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.JAJPExtraTools">
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%RegisteredObject</Super>
+<TimeCreated>63713,62583.415616</TimeCreated>
+
+<Method name="WriteLoadRoutines">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    &sql(SELECT Origin into :Origin FROM DocBook_ManagerTables.PDFGroups where OriginProduct='cache' AND Locale='ja-jp')
+    if (SQLCODE=0) {
+        set foundcache=1
+        set cachedir=Origin
+    } else {
+        set foundcache=0
+    }
+
+    &sql(SELECT Origin INTO :Origin FROM DocBook_ManagerTables.PDFGroups where OriginProduct='ensemble' AND Locale='ja-jp')
+    if (SQLCODE=0) {
+        set foundensemble=1
+        set ensembledir=Origin
+    } else {
+        set foundensemble=0
+    }
+    
+    if (foundcache || foundensemble) {
+        set basedir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+        set toolsdir=##class(DocBook.Manager.Utils).AppendToPath(basedir,"JAJPExtraTools")
+        do ##class(%File).CreateDirectoryChain(toolsdir)
+    }
+
+    if foundcache {
+        set filename=##class(DocBook.Manager.Utils).AppendToPath(toolsdir,"loadjcache.rtn")
+        set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+        do file.WriteLine("^MAC^Save for Source Control^^~Format=Cache.S~^UTF8")
+        do file.WriteLine("%RO")
+        do file.WriteLine("loadjcache^MAC^^^0")
+        do file.WriteLine(" kill ^DocBook.Config(""SOURCE"")")
+        do file.WriteLine(" set ^DocBook.Config(""SOURCE"",1)="""_cachedir_"""")
+        do file.WriteLine(" do ##class(DocBook.Utils).LoadSets()")
+        do file.Close()
+    }
+
+    if (foundcache && foundensemble) {
+        set filename=##class(DocBook.Manager.Utils).AppendToPath(toolsdir,"loadjensemble.rtn")
+        set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+        do file.WriteLine("^MAC^Save for Source Control^^~Format=Cache.S~^UTF8")
+        do file.WriteLine("%RO")
+        do file.WriteLine("loadjensemble^MAC^^^0")
+        do file.WriteLine(" kill ^DocBook.Config(""SOURCE"")")
+        do file.WriteLine(" set ^DocBook.Config(""SOURCE"",1)="""_cachedir_"""")
+        do file.WriteLine(" set ^DocBook.Config(""SOURCE"",2)="""_ensembledir_"""")
+        do file.WriteLine(" do ##class(DocBook.Utils).LoadSets()")
+        do file.Close()
+    }
+]]></Implementation>
+</Method>
+
+<Method name="WritePackageStaticBat">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if (pdfgroup=""){
+        quit
+    }
+    set targetarea=##class(DocBook.ManagerTables.PDFGroups).GetTargetPDFArea(pdfgroup)
+    if (targetarea="") {
+        quit
+    }
+
+    set basedir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+    set packagedir=##class(DocBook.Manager.Utils).AppendToPath(basedir,"JAJPExtraTools")
+    do ##class(%File).CreateDirectoryChain(packagedir)
+
+    set filename=##class(DocBook.Manager.Utils).AppendToPath(packagedir,"PackageStatic-"_pdfgroup_".bat")
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,"WritePackageStaticBat()")
+    
+    set filetocopy=##class(DocBook.Manager.Utils).AppendToPath($system.Util.InstallDirectory(),"mgr\docbook\cache.dat")
+
+    set copyfilename=##class(DocBook.Manager.Utils).AppendToPath(packagedir,"cache.dat")
+    set copyfilename2=##class(DocBook.Manager.Utils).AppendToPath(packagedir,pdfgroup_"-cache.dat")
+    
+    do file.WriteLine("ECHO Make sure Cache has stopped and has closed the database connection.")
+    do file.WriteLine("ECHO Also make sure Perforce is running and has no default change list.")
+    do file.WriteLine("set /p inputvar=Press any key to continue")
+    do file.WriteLine("ECHO Copying DOCBOOK cache.dat to this directory...")
+    do file.WriteLine("IF EXIST cache.dat.bz2 ERASE cache.dat.bz2")
+    do file.WriteLine("IF EXIST cache.dat ERASE cache.dat")
+    do file.WriteLine("COPY /Y "_filetocopy_" "_copyfilename)
+    do file.WriteLine("COPY /Y "_filetocopy_" "_copyfilename2)
+    do file.WriteLine("ECHO Compressing DOCBOOK cache.dat...")
+    do file.WriteLine("bzip2 -zv9 cache.dat")
+    
+    set filetocheckout=##class(DocBook.Manager.Utils).AppendToPath(targetarea,"static\cache.dat.bz2")
+    do file.WriteLine("ECHO Checking out compressed DOCBOOK cache.dat from Perforce...")
+    do file.WriteLine("p4 sync "_filetocheckout)
+    do file.WriteLine("p4 edit "_filetocheckout)
+    do file.WriteLine("ECHO Copying compressed DOCBOOK cache.dat to Perforce..")
+    do file.WriteLine("COPY /Y cache.dat.bz2 "_filetocheckout)
+    do file.WriteLine("ECHO Saving a copy here too..")
+    set bzipcopyfilename=pdfgroup_"cache.dat.bz2"
+    do file.WriteLine("COPY /Y cache.dat.bz2 "_bzipcopyfilename)
+
+    do file.WriteLine("ECHO Now review the change list and submit it if OK...")
+
+    do ##class(DocBook.Manager.FileUtils).EndBatchFile(file)
+    if verbose {
+        w !, "Wrote the file "_filename
+    }
+]]></Implementation>
+</Method>
+</Class>
+</Export>

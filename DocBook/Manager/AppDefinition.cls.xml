@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.AppDefinition">
+<Super>%ZEN.application</Super>
+<TimeCreated>63620,47423.051266</TimeCreated>
+
+<XData name="Style">
+<Data><![CDATA[
+<style type="text/css">
+/* default body style */
+body {
+    font-family: arial;
+}
+
+.tabGroupBody {
+	height: 600px;
+	width: 1000px;
+}
+
+.paneHint {
+    font-style: italic;
+}
+
+.basicTitle {
+    font-weight: bold;
+}
+
+.alert {
+    background: red;
+    font-weight: bold;
+}
+
+.message {
+    background: red;
+    padding: 5px;
+}
+
+.progressMessage {
+    background: red;
+    padding: 5px;
+}
+
+.doneMessage {
+    background: yellow;
+    padding: 5px;
+}
+
+.basictext {
+    padding: 5px;
+}
+
+.tinypad {
+    padding: 4.5px;
+}
+
+.basicheading {
+    font-size: 16px;
+    font-weight: bold;
+}
+.basiclabel {
+    font-weight: bold;
+}
+
+.smallpad {
+    padding: 10px;
+}
+
+.basicpad {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.title {
+    font-weight: bold;
+    font-size: 24px;
+    padding: 5px;
+}
+
+.label {
+    font-weight: bold;
+}
+
+.hintclass {
+    font-style: italic;
+}
+
+.edit {
+    background: yellow;
+    border: 2px solid red;    
+    padding: 5px;
+}
+
+.initializing {
+    background: yellow;
+    border: 2px solid red;    
+    font-size: 24px;
+    padding: 5px;
+}
+
+.leftbutton {
+    display: block;
+    width: 160px;
+}
+
+
+.buttongroup {
+    padding: 10px;
+}
+
+.title { 
+    font-weight: bold;
+    text-align: left;
+    padding: 2px;
+}
+
+/* @doc="Main table for tablePane" */
+table.tpTable {
+    background: white;
+    border: 1px solid white;
+    font-family: arial;
+    width: 100%;
+    table-layout: fixed;
+    empty-cells: show;
+}
+
+/* @doc="Caption above table."*/
+table.tpTable caption { 
+    font-weight: bold;
+    text-align: left;
+    padding: 2px;
+    border: 1px solid white;
+    background: #404040;
+    background-image: url(images/grad-gray-10x100.png);
+    background-repeat: repeat-x;
+}
+
+/* @doc="Column header." */
+table.tpTable th {
+    border-right: 1px solid white;
+    border-bottom: 1px solid white;
+    color: black;
+    font-weight: bold;
+    text-align: left;
+    padding: 2px;
+    overflow: hidden;
+    background: #404040;
+    background-image: url(images/grad-gray-10x100.png);
+    background-repeat: repeat-x;
+}
+
+/* @doc="Selected column header." */
+table.tpTable th.tpHdrSelected {
+    color: white;
+    background: #F0F0F0;
+    background-image: url(images/grad-gray2-10x100.png);
+    background-repeat: repeat-x;
+}
+
+table.tpTable td {
+    border-right: 1px solid white;
+    border-bottom: 1px solid white;
+    padding: 2px;
+    overflow: hidden;
+    /*text-overflow: ellipsis;*/
+}
+
+table.tpTable tr.tpSelected td {
+    border-top: 1px solid white;
+    border-bottom: 2px solid white;
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+/* @doc="Selected row within table." */
+table.tpTable tr.tpSelected {
+    color: black;
+    background: #404040;
+    background-image: url(images/grad-yellow-10x100.png);
+    background-repeat: repeat-x;
+}
+
+/* @doc="Style used for table body outside of cells within the table." */
+.tpBody {
+    background: #DDDDDD;
+}
+
+/* @doc="Style used for table body outside of cells within the table when using fixed headers." */
+.tpBodyFixed {
+    background: #DDDDDD;
+    overflow-x:hidden;
+    overflow-y:auto;
+}
+ 
+/* @doc="Style for rows when not using zebra styling." */
+.tpRow {
+    color: darkblue;
+    background: white;
+}
+
+/* @doc="Style for odd-rows when using zebra styling." */
+.tpOdd {
+    color: darkblue;
+    background: white;
+}
+
+/* @doc="Style for even-rows when using zebra styling." */
+.tpEven {
+    color: darkblue;
+    background: AliceBlue;
+}
+
+/* @doc="Cell containing a string value." */
+.tpStr {
+
+}
+
+/* @doc="Cell containing numeric value." */
+.tpNum {
+    text-align: right;
+}
+
+/* @doc="Cell containing the current row selector." */
+.tpSel {
+    text-align: center;
+    font-weight: bold;
+}
+
+/* @doc="Cell containing the row number." */
+.tpRNum {
+    text-align: right;
+}
+
+/* @doc="Cell containing a link." */
+.tpAction {
+}
+
+.tpAction a {    
+    color: darkblue;
+}
+
+.tpAction a:hover {
+    color: darkblue;
+}
+
+.tpAction a:link {
+    color: darkblue;
+}
+
+.tpAction a:active {
+    color: darkblue;
+}
+
+/* @doc="Cell displaying No Results message." */
+table td.tpNoResults {
+    font-style: italic;
+    color: #202060;
+    background: white;
+}
+
+/* @doc="Extra padding cell at bottom of table." */
+table td.tpPadRow {
+    background: white;
+}
+
+/* @doc="Table containing filter controls." */
+table.tpFilterLayout {
+    border: none;
+}
+
+/* @doc="Cell within table containing filter controls." */
+table.tpFilterLayout td {
+    border: none;
+    background: none;
+}
+
+/* @doc="Filter control." */
+.tpFilter {
+    /*width: 100%;*/
+    font-size: 0.8em;
+}
+
+/* @doc="Filter control for date values." */
+.tpFilterDate {
+    font-size: 0.8em;
+}
+
+/* @doc="Filter control with focus." */
+.tpFilter:focus {
+    background: #FFFFE0;
+}
+
+/* @doc="Label for filter control." */
+.tpFilterLabel {
+    font-size: 0.6em;
+    font-weight: normal;
+    text-align: right;
+}
+
+/* @doc="Button in filter section." */
+.tpFilterButton {
+    vertical-align: middle;
+    border: 1px solid black;
+    font-size: 0.6em;
+}
+
+.tpFilterButton:hover {
+    background: #FFFF80;
+}
+
+
+col { 
+    background: linen;
+}
+
+#PageLabelXXX {
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+thXXX {
+    font-family: courier;
+}
+
+tdXXX {
+    font-family: courier;
+}
+
+
+</style>
+]]></Data>
+</XData>
+</Class>
+</Export>

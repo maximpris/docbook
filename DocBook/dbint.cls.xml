@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.dbint">
+<Description>
+A simple integer</Description>
+<ClassType>datatype</ClassType>
+<ClientDataType>INTEGER</ClientDataType>
+<IncludeCode>DocBookMac</IncludeCode>
+<OdbcType>INTEGER</OdbcType>
+<ProcedureBlock>0</ProcedureBlock>
+<SqlCategory>INTEGER</SqlCategory>
+<TimeCreated>59241,40475</TimeCreated>
+</Class>
+</Export>

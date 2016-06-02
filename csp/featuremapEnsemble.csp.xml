@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="featuremapEnsemble.csp" application="/csp/docbook/" default="1"><![CDATA[
+<HTML>
+<HEAD>
+<TITLE>Ensemble Feature Map</TITLE>
+
+<LINK REL="stylesheet" TYPE="text/css" HREF="docbookhtml.css" TITLE="Standard Style" >
+
+<STYLE>
+BODY {  font-family: Lucida sans unicode, Verdana,sans-serif;
+            font-size: 14pt; background: #FFFAE7;
+            }
+
+.para {
+    font-family: Lucida sans unicode, Verdana,sans-serif;
+    font-size: 0.8em;
+}
+
+A { text-decoration: none; color: yellow; }
+
+TD.MapOuter {}
+
+TD.MapItem {
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 8pt;
+            padding-right: 8pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+            background: #000040;
+            background-image: url(/csp/broker/images/grad-blue-10x100.png);
+            background-repeat: repeat-x;
+            }
+
+
+TD.MapItemHi {
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 8pt;
+            padding-right: 8pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+            background: #62A0FC;
+            }
+
+
+TD.MapItemSmall { 
+            padding: 2pt;
+            padding-right: 6px;
+            padding-left: 6px;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+            background: #000040;
+            background-image: url(/csp/broker/images/grad-blue-10x30.png);
+            background-repeat: repeat-x;
+            }
+
+TD.MapItemSmallHi { 
+            padding: 2pt;
+            padding-right: 6px;
+            padding-left: 6px;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+            background: #62A0FC;
+            }
+
+TD.MapGap { padding: 0pt; background: #FFFF80; }
+
+H1 { 
+    padding: 0pt; background: #FFFF80; 
+    font-weight: normal;
+    text-align: center; }
+
+CAPTION {
+    padding: 2pt;
+    font-weight: bold;
+    padding-right: 6px;
+    padding-left: 6px;
+    font-family: Lucida sans unicode, Verdana,sans-serif;
+    font-size: 12pt;
+    color: yellow;
+    text-align: center;
+    }
+
+TABLE.Container {
+            font-family: Lucida sans unicode, Verdana,sans-serif;
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 2pt;
+            padding-right: 2pt;
+            text-align: center;
+            border: darkblue solid 1px;
+            background: #C0C0C0;
+            background-image: url(/csp/broker/images/grad-halfgray-10x100.png);
+            background-repeat: repeat-x;
+            }
+
+    
+
+</STYLE>
+</HEAD>
+
+<SCRIPT LANGUAGE="CACHE" RUNAT="SERVER">
+
+    // define text arrays for the map
+
+    // labels for visible strategic features
+    Set %label("BUS") = "Business<BR>Rules"
+    Set %label("GWF") = "Workflow"
+    Set %label("DAS") = "Dashboards"
+    Set %label("JVG") = "Java"
+    Set %label("NETG") = ".NET"
+
+    // labels for internal strategic features
+    Set %label("USA") = "Universal Services Architecture"
+    Set %label("BHO") = "Business Hosts"
+    Set %label("MSE") = "Messaging Engine"
+    Set %label("CACHE") = "Data Engine"
+
+    // labels for developer features
+    Set %label("RECMAP") = "Record<BR>Mapper"
+    Set %label("WIZ") = "Code<BR>Generation<BR>Wizards"
+
+    // CAPTION: Business Processes
+    Set %label("BPL") = "Business<BR>Processes"
+    //Set %label("BPLXML") = "XML"
+    //Set %label("BPLPICS") = "Diagrams"
+    //Set %label("BPLCODE") = "Class Code"
+    
+    // CAPTION: Data Transformations
+    Set %label("DTL") = "Data<BR>Transformations"
+    //Set %label("DTLXML") = "XML"
+    //Set %label("DTLPICS") = "Diagrams"
+    //Set %label("DTLCODE") = "Class Code"
+
+    // labels for operator features
+    Set %label("EMP") = "Management<BR>Portal"
+    Set %label("TST") = "Testing<BR>Service"
+    Set %label("VTR") = "Visual<BR>Trace"
+    Set %label("EVT") = "Event<BR>Log"
+    Set %label("MON") = "Monitor<BR>Service"
+   
+
+    // labels for connectivity features 
+    // CAPTION: Interoperability
+    Set %label("EDI1") = "HL7.2"
+    Set %label("EDI2") = "HL7.3"
+    Set %label("EDI3") = "X12"
+    Set %label("EDI4") = "ASTM"
+    Set %label("DICOM") = "DICOM"
+    Set %label("EDIFACT") = "EDIFACT"
+    Set %label("XML") = "XML"
+    Set %label("ITK") = "Toolkit"
+    
+    
+    // CAPTION: Technology Adapters
+    Set %label("ADA") = "other"
+    Set %label("ADA01") = "Email"
+    Set %label("ADA02") = "File"
+    Set %label("ADA03") = "FTP"
+    Set %label("ADA04") = "HTTP"
+    Set %label("ADA05") = "LDAP"
+    Set %label("ADA06") = "MQSeries"
+    Set %label("ADA07") = "MSMQ"
+    Set %label("ADA08") = "Pipe"
+    Set %label("ADA09") = "Siebel"
+    Set %label("ADA10") = "SOAP"
+    Set %label("ADA11") = "SQL"
+    Set %label("ADA12") = "TCP"
+    Set %label("ADA13") = "Telnet"
+    Set %label("ADA14") = "SAP"
+    
+
+    // descriptions
+
+    // descriptions for visible strategic features
+    Set %text("BUS") = "Business rules provide a simple way to route messages and direct decision logic."
+    Set %text("GWF") = "Workflow allows employees to participate at strategic points in business processes."
+    Set %text("DAS") = "Dashboards display up-to-the-minute operational statistics for Ensemble productions."
+    Set %text("JVG") = "The Java Gateway permits easy interoperation with existing Java components."
+    Set %text("NETG") = "The .NET Gateway permits easy interoperation with Microsoft Windows components."
+
+    // descriptions for internal strategic features
+    Set %text("USA") = "Ensemble enables disparate applications to transparently share data and functionality."
+    Set %text("BHO") = "Business hosts accept requests and orchestrate the actions needed to satisfy them."
+    Set %text("MSE") = "Ensemble routes messages between business hosts, queueing or suspending as needed."
+    Set %text("CACHE") = "Ensemble incorporates Cach&eacute;, the post-relational database."
+
+    // descriptions for developer features
+    Set %text("RECMAP") = "The Record Mapper is a tool to more easily work with delimited and fixed-width files in Ensemble productions."
+    Set %text("WIZ") = "Studio is an integrated development environment that provides many tools."
+    
+    // CAPTION: Data Transformations
+    Set %text("DTL") = "The XML-based Ensemble Data Transformation Language defines a data transformation."
+    //Set %text("DTLXML") = "The XML-based Ensemble Data Transformation Language defines a data transformation."
+    //Set %text("DTLPICS") = "The Data Transformation Builder constructs a DTL data transformation from a visual diagram."
+    //Set %text("DTLCODE") = "An Ensemble data transformation may combine XML, diagrams, and class code."
+    
+    // CAPTION: Business Processes
+    Set %text("BPL") = "The XML-based Ensemble Business Process Language defines a business process."
+    //Set %text("BPLXML") = "The XML-based Ensemble Business Process Language defines a business process."
+    //Set %text("BPLPICS") = "The Business Process Designer constructs a BPL business process from a visual diagram."
+    //Set %text("BPLCODE") = "An Ensemble business process may combine XML, diagrams, and class code."
+
+    // descriptions for operator features
+    Set %text("EMP") = "The browser-based Management Portal supports users, operators, and developers."
+    Set %text("TST") = "The testing service allows you to send trial messages and view the results."
+    Set %text("VTR") = "You can visually trace the path of a specific message through a production."
+    Set %text("EVT") = "The event log collects informational and warning messages generated by business hosts."
+    Set %text("MON") = "The monitor service collects runtime statistics about the activities of business hosts."
+
+    // descriptions for connectivity features   
+    // CAPTION: Interoperability
+    Set %text("EDI1") = "Ensemble fully supports integration with HL7 Version 2 data and applications."
+    Set %text("EDI2") = "Ensemble fully supports integration with HL7 Version 3 data and applications."
+    Set %text("EDI3") = "Ensemble fully supports integration with X12 data and applications."
+    Set %text("EDI4") = "Ensemble supports integration with clinical applications that use the ASTM E 1394-97 standard."
+    Set %text("DICOM") = "Ensemble supports integration with clinical applications that use the DICOM standard."
+    Set %text("EDIFACT") = "Ensemble supports integration with clinical applications that use the EDIFACT standard."
+    Set %text("XML") = "Ensemble provides a graphical data transformation editor and routing rules for XML documents."
+    Set %text("ITK") = "Ensemble provides a set of standards and frameworks for making IT systems interoperable." 
+
+    // CAPTION: Technology Adapters
+    Set %text("ADA") = "Ensemble connects using several different third-party adapters."
+    Set %text("ADA01") = "Receives email messages via POP3 and sends email messages via SMTP."
+    Set %text("ADA02") = "Reads and writes  character or binary files on the local network."
+    Set %text("ADA03") = "Receives and sends character or binary files between local and remote systems via FTP."
+    Set %text("ADA04") = "Provides an HTTP listener for custom port listening, XML listening, or raw HTML handling."
+    Set %text("ADA05") = "Sends requests to an LDAP server and receives responses."
+    Set %text("ADA06") = "Receives and sends messages in IBM WebSphere MQ (MQ Series) format."
+    Set %text("ADA07") = "Receives and sends messages in Microsoft Message Queue (MSMQ) format."
+    Set %text("ADA08") = "Executes a shell command and communicates with it via pipes "
+    Set %text("ADA09") = "An HTTP adapter that sends requests to a Siebel server and returns responses."
+    Set %text("ADA10") = "Listens for SOAP requests via TCP or Web Server; also acts as a SOAP client."
+    Set %text("ADA11") = "Executes SQL statements against a remote database via an ODBC-defined DSN."
+    Set %text("ADA12") = "Manages an incoming or outgoing TCP connection."
+    Set %text("ADA13") = "Directly initiates and manages a Telnet connection."
+    Set %text("ADA14") = "Interfaces with the SAP Java Connector."
+
+    // links
+
+    // The start of each link to a documentation page
+        Set dbook = ..Link("/csp/docbook/" _ "DocBook.UI.Page.cls") // !!!
+        //Set dbook = "/csp/docbook/" _ "DocBook.UI.Page.cls" // !!!
+        Set dbook = dbook  _ "?KEY="
+
+    // links for visible strategic features
+    Set %link("BUS") = dbook _ "EBUS_preface"
+    Set %link("GWF") = dbook _ "EGWF_preface"
+    Set %link("DAS") = dbook _ "ECONFIG_dash"
+    Set %link("JVG") = dbook _ "EJVG_preface"
+    Set %link("NETG") = dbook _ "ENTG_preface"
+
+    // links for internal strategic features
+    Set %link("USA") = dbook _ "EGIN_intro"
+    Set %link("BHO") = dbook _ "EGIN_intro"
+    Set %link("MSE") = dbook _ "EGIN_intro"
+    Set %link("CACHE") = ..Link("/csp/docbook/featuremapCache.csp")
+    //Set %link("CACHE") = "/csp/docbook/featuremapCache.csp"
+
+    // links for developer features
+    Set %link("RECMAP") = dbook _ "EGDV_recmap"
+    Set %link("WIZ") = dbook _ "EGDV_studio"
+    
+    // CAPTION: Data Transformations
+    Set %link("DTL") = dbook _ "EDTL_preface"
+    //Set %link("DTLXML") = dbook _ "EDTL_preface"
+    //Set %link("DTLPICS") = dbook _ "EDTL_editor"
+    //Set %link("DTLCODE") = dbook _ "EGDV_data_transformation"
+
+    // CAPTION: Business Processes
+    Set %link("BPL") = dbook _ "EBPL_preface"
+    //Set %link("BPLXML") = dbook _ "EBPL_preface"
+    //Set %link("BPLPICS") = dbook _ "EBPL_editor"
+    //Set %link("BPLCODE") = dbook _ "EGDV_busproc"
+    
+    // links for operator features
+    Set %link("EMP") = dbook _ "EGMG_menuref"
+    Set %link("TST") = dbook _ "EGDV_testing_service"
+    Set %link("VTR") = dbook _ "EMONITOR_message_trace"
+    Set %link("EVT") = dbook _ "EMONITOR_event_log"
+    Set %link("MON") = dbook _ "EMONITOR_production"
+
+    // links for connectivity features  
+    // CAPTION: Interoperability
+    Set %link("EDI1") = dbook _ "EHL72_preface"
+    Set %link("EDI2") = dbook _ "EHL73_preface"
+    Set %link("EDI3") = dbook _ "EX12_preface"
+    Set %link("EDI4") = dbook _ "EAST_preface"
+    Set %link("DICOM") = dbook _ "EDICOM_preface"
+    Set %link("EDIFACT") = dbook _ "EACT_preface"
+    Set %link("XML") = dbook _ "EXML_preface"
+    Set %link("ITK") = dbook _ "EITK_preface"
+
+    // CAPTION: Adapters
+    Set %link("ADA") = dbook _ "EGIN_options_connectivity_adapters"
+    Set %link("ADA01") = dbook _ "EEMA_preface"
+    Set %link("ADA02") = dbook _ "EFIL_preface"
+    Set %link("ADA03") = dbook _ "EFTP_preface"
+    Set %link("ADA04") = dbook _ "EHTTP_preface"
+    Set %link("ADA05") = dbook _ "EGIN_options_connectivity_adapters"
+    Set %link("ADA06") = dbook _ "EMQS_preface"
+    Set %link("ADA07") = dbook _ "EGIN_options_connectivity_adapters"
+    Set %link("ADA08") = dbook _ "EGIN_options_connectivity_adapters"
+    Set %link("ADA09") = dbook _ "EGIN_options_connectivity_adapters"
+    Set %link("ADA10") = dbook _ "ESOAP_preface"
+    Set %link("ADA11") = dbook _ "ESQL_preface"
+    Set %link("ADA12") = dbook _ "ETCP_preface"
+    Set %link("ADA13") = dbook _ "EGIN_options_connectivity_adapters"
+    Set %link("ADA14") = dbook _ "ESAP_preface"
+
+    Set border = 1
+    Set:(%request.UserAgent["MSIE") border=0
+    
+</SCRIPT>
+
+<BODY>
+
+<a name="top">
+</a>
+<table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 10pt;">
+<tr>
+<td nowrap bgcolor="#FFFAE7" valign="bottom" align="left" >
+<a href="http://www.intersystems.com">
+<img src="/csp/sys/images/logo-topl-intersystems.gif" alt="InterSystems" align="left" width="205" height="78" border="none">
+</a>
+<br clear="left">
+<nobr>&nbsp;
+</nobr>
+</td>
+<td nowrap bgcolor="#FFFAE7" valign="top" align="left">
+<div class="wizardltlabel" style="margin-top:8px;">
+<span style="font-size:11pt; padding-right:5px;">InterSystems Online Documentation</span>
+</div>
+<div style="color: darkblue; margin-top:4px; font-weight: bold; font-size:15pt;">
+Ensemble Feature Map
+</div>
+</td>
+<td nowrap width="308" height="78" bgcolor="#FFFAE7" valign="bottom" align="left" style='background-repeat: repeat-y; background-image: url("../../csp/sys/images/opposite-pic-intersys.jpg");'>&nbsp;</td>
+<td width="2%" bgcolor="#388CCC">&nbsp;</td>
+<td bgcolor="#388CCC" valign="bottom">
+</td>
+<td bgcolor="#388CCC">&nbsp;</td>
+</tr>
+<tr>
+<td colspan="8" bgcolor="#D36D00">
+<img src="/csp/sys/images/spacer.gif" width="100%" height="2" alt="-" border="0">
+</td>
+</tr>
+<tr>
+<td class="LocatorBar" colspan="10">&nbsp;</td>
+</tr>
+</table>
+    
+<BR>
+
+<!-- Here is the feature map -->
+<DIV CLASS="para">The Feature Map displays a schematic overview of Ensemble. 
+You can click on the various features to find more information.
+</DIV>
+
+<HR>
+<BR>
+
+<TABLE BORDER=0><TR><TD>&nbsp;</TD>
+<TD>
+<TABLE CLASS="CONTAINER" BORDER="#(border)#" CELLSPACING="0" CELLPADDING="2">
+
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("BUS"))#>#(..DrawCell("BUS"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("GWF"))#>#(..DrawCell("GWF"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("DAS"))#>#(..DrawCell("DAS"))#</TD>
+<TD CLASS="MapItem" COLSPAN=1>
+<TABLE BORDER=0>
+<CAPTION>Gateways</CAPTION>
+<TR>
+<TD>&nbsp;</TD>
+</TR>
+<TR>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("JVG"))#>#(..DrawCell("JVG"))#</TD>
+<TD>&nbsp;</TD>
+</TR>
+<TR>
+<TD>&nbsp;</TD>
+</TR>
+<TR>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("NETG"))#>#(..DrawCell("NETG"))#</TD>
+<TD>&nbsp;</TD>
+</TR>
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("DTL"))#>#(..DrawCell("DTL"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("BPL"))#>#(..DrawCell("BPL"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("WIZ"))#>#(..DrawCell("WIZ"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("RECMAP"))#>#(..DrawCell("RECMAP"))#</TD>
+</TR>
+
+<TR>
+<TD CLASS="MapItem" COLSPAN=2>
+<TABLE BORDER=0>
+<CAPTION>Interoperability</CAPTION>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("EDI1"))#>#(..DrawCell("EDI1"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("EDI2"))# >#(..DrawCell("EDI2"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("EDI3"))#>#(..DrawCell("EDI3"))#</TD>
+<TD>&nbsp;</TD>
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("EDI4"))#>#(..DrawCell("EDI4"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("DICOM"))#>#(..DrawCell("DICOM"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("EDIFACT"))#>#(..DrawCell("EDIFACT"))#</TD>
+<TD>&nbsp;</TD>
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("XML"))#>#(..DrawCell("XML"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ITK"))#>#(..DrawCell("ITK"))#</TD>
+<TD>&nbsp;</TD>
+</TR>
+
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("USA"))# COLSPAN=4>#(..DrawCell("USA"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("EMP"))# COLSPAN=1 ROWSPAN=4>#(..DrawCell("EMP"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("TST"))#>#(..DrawCell("TST"))#</TD>
+</TR>
+
+<TR>
+
+<TD CLASS="MapItem" COLSPAN=3 ROWSPAN=3>
+<TABLE BORDER=0>
+<CAPTION>Technology Adapters</CAPTION>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA01"))#>#(..DrawCell("ADA01"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA02"))#>#(..DrawCell("ADA02"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA03"))#>#(..DrawCell("ADA03"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA04"))#>#(..DrawCell("ADA04"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA05"))#>#(..DrawCell("ADA05"))#</TD>
+</TR>
+<TR></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA06"))#>#(..DrawCell("ADA06"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA08"))#>#(..DrawCell("ADA08"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA14"))#>#(..DrawCell("ADA14"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA09"))#>#(..DrawCell("ADA09"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA10"))#>#(..DrawCell("ADA10"))#</TD>
+</TR>
+<TR></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA11"))#>#(..DrawCell("ADA11"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA12"))#>#(..DrawCell("ADA12"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA13"))#>#(..DrawCell("ADA13"))#</TD>
+<TD>&nbsp;</TD>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADA"))#>#(..DrawCell("ADA"))#</TD>
+</TR>
+</TABLE>
+</TD>
+<TD CLASS="MapItem" #(..DrawTD("BHO"))# COLSPAN=3>#(..DrawCell("BHO"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("VTR"))#>#(..DrawCell("VTR"))#</TD>
+</TR>
+
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("MSE"))# COLSPAN=3>#(..DrawCell("MSE"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("EVT"))#>#(..DrawCell("EVT"))#</TD>
+</TR>
+
+<TR>
+<TD CLASS="MapItem" #(..DrawTD("CACHE"))# COLSPAN=3>#(..DrawCell("CACHE"))#</TD>
+<TD CLASS="MapItem" #(..DrawTD("MON"))#>#(..DrawCell("MON"))#</TD>
+</TR>
+
+
+</TABLE>
+</TD><TD>&nbsp;</TD>
+</TR>
+</TABLE>
+
+<BR>
+<HR>
+
+</BODY>
+</HTML>
+
+<SCRIPT language=Cache method=DrawCell arguments="item:%String">
+    // draw contents of a cell within the map
+    Set txt ="<A"
+    Set:(%link(item)'="") txt = txt _ " HREF="""_%link(item) _ """"
+    Set txt = txt _ " TITLE="""_%text(item)_""">"_%label(item)_"</A>"
+    Quit txt
+</SCRIPT>
+
+<SCRIPT language=Cache method=DrawTD arguments="item:%String">
+    // draw attributes for TD tag
+    Set mousein = "MapItem"
+    Set mouseot = "MapItem"
+    Set:(%link(item)'="") mousein = "MapItemHi"
+    Set txt ="onmouseover=""this.className='" _ mousein _ "';"" onmouseout=""this.className='" _ mouseot _ "';"" "
+    Set:(%link(item)'="") txt = txt _ " onclick=""self.document.location='"_%link(item) _ "';"""
+    Quit txt
+</SCRIPT>
+
+<SCRIPT language=Cache method=DrawTDSmall arguments="item:%String">
+    // draw attributes for TD tag
+    Set mousein = "MapItemSmall"
+    Set mouseot = "MapItemSmall"
+    Set:(%link(item)'="") mousein = "MapItemSmallHi"
+    Set txt ="onmouseover=""this.className='" _ mousein _ "';"" onmouseout=""this.className='" _ mouseot _ "';"" "
+    Set:(%link(item)'="") txt = txt _ " onclick=""self.document.location='"_%link(item) _ "';"""
+    Quit txt
+</SCRIPT>
+]]></CSP>
+</Export>

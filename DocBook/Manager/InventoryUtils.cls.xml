@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.InventoryUtils">
+<Super>%RegisteredObject</Super>
+<TimeCreated>63713,62583.415616</TimeCreated>
+
+<Method name="GetInventoryDir">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set baseexportdir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+	set inventorydir=##class(DocBook.Manager.Utils).AppendToPath(baseexportdir,"Inventories")
+	// NB This MUST end with \
+	quit inventorydir
+]]></Implementation>
+</Method>
+
+<Method name="Setup">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	set inventorydir=..GetInventoryDir()
+	
+	if '##class(%File).Exists(inventorydir)	{
+	    do ##class(%File).CreateDirectoryChain(inventorydir)
+		set baseexportdir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+
+		set htmldir=##class(DocBook.Manager.Utils).AppendToPath(..GetInventoryDir(),"html")
+	    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","Creating directory "_htmldir,verbose)
+	    do ##class(%File).CreateDirectoryChain(htmldir)
+
+	    set appdir=##class(DocBook.Manager.ConfigUtils).GetParam("APPPERFORCEDIR")
+	    //NB make sure the follwoing has a trailing slash!
+		set inventorytoolsdir=##class(DocBook.Manager.Utils).AppendToPath(appdir,"external\pdfgen-step3")
+
+		do ##class(%File).CopyFile(inventorytoolsdir_"Full_TOC.xsl",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"Incl_Boilerplate.xsl",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"Incl_BoilerplateENUS.xsl",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"Incl_BoilerplateJAJP.xsl",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"Incl_Constants.xsl",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"Incl_CSS.xsl",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"Incl_Template.xsl",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"Incl_Utilities.xsl",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"msxsl.exe",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"TOC_Names.xsl",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"winansi.entities",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"step3.bat",inventorydir)
+		do ##class(%File).CopyFile(inventorytoolsdir_"step3iterator.bat",inventorydir)
+ 	}
+]]></Implementation>
+</Method>
+
+<Method name="GenerateAll">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+	do ..Setup()
+	set list=..GetListOfArch(verbose)
+	for i=1:1:$LL(list) {
+		set arch=$LISTGET(list,i)
+		if verbose {
+			write !, "Processing ",arch}
+		do ..Generate(arch,,verbose)
+		do ..Generate(arch,1,verbose)	
+	}
+]]></Implementation>
+</Method>
+
+<Method name="Generate">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>arch:%String="cache",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+	do ..Setup()
+
+	set inventorydir=..GetInventoryDir()
+	if 'static {
+		set filename=##class(DocBook.Manager.Utils).AppendToPath(inventorydir,arch_".xml")
+	} else {
+		set filename=##class(DocBook.Manager.Utils).AppendToPath(inventorydir,arch_"STATIC.xml")
+	}
+	set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename)
+	
+	; write the standard file header
+	Do ##class(DocBook.InventoryXML).WritePrologue(file)
+	
+	; write the book data
+	Do file.WriteLine("<!-- Sets -->")
+	Do ..WriteSETs(file,arch,static,verbose)
+
+	; write the article data
+	Do file.WriteLine("<!-- Articles -->")
+	Do ..WriteArticlesByRole(file,arch,static,verbose)
+	
+	; write the standard file trailer
+	Do ##class(DocBook.InventoryXML).WriteEpilogue(file)
+	
+	; Done with the file
+	Do file.Close()
+	
+	if verbose {
+		write !, "Wrote the file ",file.Name,!
+	}
+	
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetListOfArch">
+<Description>
+Returns a %List of the arch values in this database (except for the value intersystems)</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set sql="SELECT distinct tagArch FROM DocBook_ManagerTables.DBContents WHERE PDFCategory>0 "
+		
+	if (verbose>1) {
+		write !, "SQL to get list of SETs: ",sql, !
+	}
+
+	set stmt=##class(%SQL.Statement).%New()
+  	set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory","Error preparing SQL statement: "_sql,verbose)
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory",$system.Status.GetErrorText(status),verbose)
+        quit
+   	}
+
+  	set result=stmt.%Execute()
+  	set string=""
+  	while result.%Next() {
+	  	set arch=$$$LOWER(result.%Get("tagArch"))
+	  	if ((arch'="intersystems") && (arch'="")) {
+		  	set string=string_","_arch
+	  		if (verbose>2) {
+		  		write !, arch
+	  		}
+	  	}
+  	}
+  	set new=$ZSTRIP(string,"<",",")
+  	quit $LISTFROMSTRING(new,",")
+]]></Implementation>
+</Method>
+
+<Method name="GetListOfSETs">
+<Description>
+Returns a comma-separated list of the DocBookIds of the SETs 
+whose books have the given arch</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>arch:%String="cache",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set sql="SELECT distinct parentset, parentremap "
+		_"FROM DocBook_ManagerTables.DBContents WHERE PDFCategory>0 "
+		
+	if (arch="cache") {
+		set sql=sql_" AND (tagArch='"_arch_"' OR tagArch='intersystems') "
+	} else {
+		set sql=sql_" AND tagArch='"_arch_"' "
+	}
+
+	if static {
+		set sql=sql_"AND tagStatus='static' "
+	}
+	set sql=sql_"ORDER BY ParentRemap DESC"
+
+	if (verbose>1) {
+		write !, "SQL to get list of SETs: ",sql, !
+	}
+
+	set stmt=##class(%SQL.Statement).%New()
+  	set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory","Error preparing SQL statement: "_sql,verbose)
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory",$system.Status.GetErrorText(status),verbose)
+        quit
+   	}
+
+  	set result=stmt.%Execute()
+  	set string=""
+  	while result.%Next() {
+	  	set item="'"_result.%Get("parentset")_"'"
+
+	  	set string=string_","_item
+	  	if (verbose>2) {
+		  	write !, result.%Get("parentset")
+	  	}
+  	}
+  	set new=$ZSTRIP(string,"<",",")
+  	quit new
+]]></Implementation>
+</Method>
+
+<Method name="WriteSETs">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>XMLFile:%Library.File,arch:%String="cache",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+	if (arch=""){ 
+	    quit
+	}
+	set SETs=..GetListOfSETs(arch,static,verbose)
+	if (SETs="") {
+		quit
+	}
+	set sql="SELECT * FROM DocBook_ManagerTables.DBContents "
+	       _"WHERE DocBookID IN ("_SETs_") "
+	set sql=sql_"ORDER BY Remap DESC"
+
+	if verbose {
+		write !, "SQL for SETs: ",sql
+	}
+	
+	set stmt=##class(%SQL.Statement).%New()
+  	set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory","Error preparing SQL statement: "_sql,verbose)
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory",$system.Status.GetErrorText(status),verbose)
+        quit
+   	}
+
+  	set result=stmt.%Execute()
+
+	Do XMLFile.WriteLine("<sets>")
+	set counter=0
+  	while result.%Next() {
+	  	set counter=counter+1
+	  	set uniqueid="set"_counter
+	  	
+	  	if verbose {
+		  	write !, "set:",result.%Get("Title")
+	  	}
+		Do XMLFile.Write("<set")
+		Do XMLFile.Write(" id=""" _ result.%Get("DocBookId") _ """")
+		Do XMLFile.Write(" name=""" _ result.%Get("DocBookId") _ """")
+		Do XMLFile.Write(" status=""" _ result.%Get("TagStatus") _ """")
+		Do XMLFile.WriteLine(" order=""" _ result.%Get("Remap") _ """>")
+		
+		Do XMLFile.WriteLine("<title>" _ result.%Get("Title") _ "</title>")	
+		Do XMLFile.WriteLine("<subtitle>" _ result.%Get("Subtitle") _ "</subtitle>")
+		
+		Do XMLFile.WriteLine("<books>")
+		Do ..WriteBooksInSET(XMLFile,result.%Get("DocBookId"),static,verbose)
+		Do XMLFile.WriteLine("</books>")
+		Do XMLFile.WriteLine("</set>")
+  	}
+	Do XMLFile.WriteLine("</sets>")
+]]></Implementation>
+</Method>
+
+<Method name="WriteBooksInSET">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>XMLFile:%Library.File,SetId:%String="",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+	if (SetId=""){ 
+	    quit
+	}
+	set sql="SELECT * FROM DocBook_ManagerTables.DBContents "
+	       _" WHERE parentset = '"_SetId_"' AND PDFCategory>0 "
+	if static {
+		set sql=sql_"AND tagStatus='static' "
+	}
+
+	if verbose {
+		write !, "SQL for books in SET: ",sql
+	}
+	
+	set stmt=##class(%SQL.Statement).%New()
+  	set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory","Error preparing SQL statement: "_sql,verbose)
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory",$system.Status.GetErrorText(status),verbose)
+        quit
+   	}
+
+  	set result=stmt.%Execute()
+	set counter=0
+  	while result.%Next() {
+	  	set counter=counter+1
+	  	set uniqueid=SetId_"_"_counter
+	  	
+	  	if (verbose>2) {
+		  	write !, "   book:",result.%Get("Title")
+	  	}
+		Do XMLFile.Write("<book")
+		Do XMLFile.Write(" id=""" _ uniqueid _ """")
+		Do XMLFile.Write(" name=""" _ result.%Get("DocBookId") _ """")
+		Do XMLFile.Write(" status=""" _ result.%Get("TagStatus") _ """")
+		Do XMLFile.Write(" order=""" _ result.%Get("DocBookId") _ """")
+		Do XMLFile.WriteLine(" role=""" _ result.%Get("TagRole") _ """>")
+		
+		Do XMLFile.WriteLine("<title>" _ result.%Get("Title") _ "</title>")	
+		Do XMLFile.WriteLine("<subtitle>" _ result.%Get("Subtitle") _ "</subtitle>")
+		
+		Do XMLFile.WriteLine("</book>")
+
+  	}
+]]></Implementation>
+</Method>
+
+<Method name="WriteArticlesByRole">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>XMLFile:%Library.File,arch:%String="cache",static:%Boolean=0,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+	if (arch=""){ 
+	    quit
+	}
+    //first find out how many roles we have!!!
+	set sql="SELECT DISTINCT tagRole FROM DocBook_ManagerTables.DBContents "
+	       _"WHERE Type='article' AND PDFCategory>0 "
+	if (arch="cache") {
+		set sql=sql_" AND (tagArch='"_arch_"' OR tagArch='intersystems') "
+	} else {
+		set sql=sql_" AND tagArch='"_arch_"' "
+	}
+	if static {
+		set sql=sql_"AND tagStatus='static' "
+	}
+
+	if verbose {
+		write !, "SQL for roles: ",sql
+	}
+
+	set stmt=##class(%SQL.Statement).%New()
+  	set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory","Error preparing SQL statement: "_sql,verbose)
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory",$system.Status.GetErrorText(status),verbose)
+        quit
+   	}
+
+  	set result=stmt.%Execute()
+	Do XMLFile.WriteLine("<articles>")	
+  	while result.%Next() {
+	  	if (verbose>2) {
+		  	write !, "role:",result.%Get("tagRole")
+	  	}
+	  	do ..WriteArticlesForRole(XMLFile,arch,static,result.%Get("tagRole"),verbose)
+ 	}
+ 	//then do the articles that have no role specified!
+  	do ..WriteArticlesForRole(XMLFile,arch,static,"",verbose)
+	Do XMLFile.WriteLine("</articles>")
+]]></Implementation>
+</Method>
+
+<Method name="WriteArticlesForRole">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>XMLFile:%Library.File,arch:%String="cache",static:%Boolean=0,role:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+	Do XMLFile.Write("<role")
+	Do XMLFile.WriteLine(" category=""" _ role _ """>")
+
+	set sql="SELECT * FROM DocBook_ManagerTables.DBContents "
+			_"WHERE Type='article' AND PDFCategory>0 "
+	if (arch="cache") {
+		set sql=sql_" AND (tagArch='"_arch_"' OR tagArch='intersystems') "
+	} else {
+		set sql=sql_" AND tagArch='"_arch_"' "
+	}
+	if static {
+		set sql=sql_"AND tagStatus='static' "
+	}
+
+	if (role'="") {
+		set sql=sql_"AND tagRole='"_role_"'"
+	} else {
+		set sql=sql_"AND tagRole IS NULL"
+	}
+
+	if verbose {
+		write !, "SQL for articles: ",sql
+	}
+
+
+	set stmt=##class(%SQL.Statement).%New()
+	set status = stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory","Error preparing SQL statement: "_sql,verbose)
+	    do ##class(DocBook.ManagerTables.Log).AddLogItem("Inventory",$system.Status.GetErrorText(status),verbose)
+        quit
+   	}
+
+	set result=stmt.%Execute()
+	set counter=0
+	while result.%Next() {
+		set counter=counter+1
+		set uniqueid="article_"_role_counter
+
+		if (verbose>2) {
+			write !, "   article:",result.%Get("Title")
+		}
+		Do XMLFile.Write("<article")
+		Do XMLFile.Write(" id=""" _ uniqueid _ """")
+		Do XMLFile.Write(" name=""" _ result.%Get("DocBookId") _ """")
+		Do XMLFile.Write(" status=""" _ result.%Get("tagStatus") _ """")
+		Do XMLFile.Write(" order=""" _ result.%Get("DocBookId") _ """")
+		Do XMLFile.WriteLine(" role=""" _ result.%Get("tagRole") _ """>")
+
+		Do XMLFile.WriteLine("<title>" _ result.%Get("Title") _ "</title>")	
+		Do XMLFile.WriteLine("<subtitle>" _ result.%Get("Subtitle") _ "</subtitle>")
+
+		Do XMLFile.WriteLine("</article>")
+
+	}
+	Do XMLFile.WriteLine("</role>")
+]]></Implementation>
+</Method>
+</Class>
+</Export>

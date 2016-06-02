@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.figure">
+<Description>
+A figure.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.container</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Method name="HTMLRenderContent">
+<Description>
+Render the contents of this block</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	Write "<DIV CLASS=""figure-title"">",..title,"</DIV>",!
+	Write "<DIV CLASS=""figure"">"
+	Write "<A name=""",..id,"""></A>",!
+	Do ##class(Renderer).RenderText(..content)
+	Write "</DIV>",!
+]]></Implementation>
+</Method>
+
+<Method name="XMLRender">
+<Description>
+Render the contents of this block as DocBook XML</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+	Set attrtext = ..FmtAttrs(..tagattrs)
+	Set gensym = "label=" _ """" _ ..id _ """"
+	
+	If (attrtext '[ "label=")
+	{
+		Set attrtext = attrtext _ " " _ gensym
+	}
+
+	Write "<",..%ClassName()," ",attrtext,">"
+
+	Write "<title>", ..title, "</title>", !
+	Write ..content
+	Write "</",..%ClassName(),">",!
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

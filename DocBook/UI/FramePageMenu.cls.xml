@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.FramePageMenu">
+<Import>DocBook</Import>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%RegisteredObject</Super>
+<TimeCreated>64014,13831.92769</TimeCreated>
+
+<Method name="RenderMenu">
+<Description>
+Generate the menu for the current page.</Description>
+<Final>1</Final>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>key:%String,setId:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	// build tree
+	Set tree = ##class(MenuTree).%New()
+	Set msgTop = $$$T("Go to main list")
+	&html<<SCRIPT LANGUAGE="JavaScript">
+	
+	var CurrentBook = '';
+	
+	// find location of current page
+	function updateLocation()
+	{		
+		var key = '';
+		var book = '';
+		var query = '';		
+		
+		if (parent != null && 
+			 parent.PageFrame != null 
+			 && parent.PageFrame.getCurretnKey != null 
+			 //&& parent.PageFrame.QuickSearch != null && 
+			 //&& parent.PageFrame.KEY != null 
+			 ) {
+
+			key = parent.PageFrame.getCurretnKey();
+			
+			if (key != "") {
+				book = key.split("_")[0];
+			}
+			
+			if (key != '') {
+				query = '?KEY=' + key + '#' + key;
+			}		
+			if (book != CurrentBook) {
+				// reload
+				CurrentBook = book;
+				self.document.location = 'DocBook.UI.FramePage.cls' + query;
+			}
+			else {
+				// just change highlight
+				highlightItem(key, true);
+			}
+		}
+		
+		return true;
+	}
+	
+	function goHome()
+	{
+		self.document.location = 'DocBook.UI.FramePage.cls';
+		return true;
+	}
+	</SCRIPT>>
+
+	Do tree.ShowJS()	
+	
+	Set book = ""
+	Set bookKey = ""
+	
+	If ($E(key,1,1) = "A") {
+		// !!!
+		Set bookKey = key
+		Set key = "KNBASE"
+	}
+	
+	If ((key '= "") && (key '= "KNBASE")) {
+		// pull out first part of key
+		Set bookKey = $P(key,"_",1)
+		Set book = ##class(book).OpenKey(bookKey)
+	}
+
+	If (book = "") {
+		If (key = "KNBASE") {		
+			Set bookKey = "KNBASE"
+ 
+	 		// list all articles
+			Set page = "DocBook.UI.FramePage.cls"
+	
+			Write "<DIV CLASS=""Title BookHeader"">"
+			Write "<A HREF='DocBook.UI.FramePage.cls' data-ajax-ignored class='backButton' title='"_msgTop_"'>&laquo; Back</A> "
+			Write "<span>Technical Articles</span></DIV><HR>",!
+	
+			Do ..GetKNBase(.items, page)
+		}
+		Else {
+			// main list			
+			Set bookKey = ""
+ 
+	 		// list all books
+			Set page = "DocBook.UI.FramePage.cls"
+	
+			Write "<A name=""frametop""></A>",!
+			Write "<DIV CLASS=""Title MainHeader""><span>"_$$$T("InterSystems Documentation")_"</span></DIV><HR>",!
+			Write "<div class='searchButton' onclick=''><input id='searchTextBox' placeholder='search' onkeypress='return doSearchByEnter(event)' onclick='return false;' type='text'/ ><a onclick='doSearch();' >Go</a></div>",!
+			Do ..GetSets(.items, page)
+		}
+	}
+	Else {		
+		// TOC for current book
+		Set page = "DocBook.UI.FramePage.cls"
+	
+		// fill in tree
+		Write "<DIV CLASS=""Title BookHeader"">"
+		Write "<A HREF='DocBook.UI.FramePage.cls' data-ajax-ignored class='backButton' title='"_msgTop_"'>&laquo; Back</A> "
+		Write "<span>"_book.title,"</span></DIV>"
+		Write "<HR>",!
+
+		Do ..GetComponents(book.%Id(),.items,page, 0, key)
+	}
+
+	Merge tree.Items = items	
+	Write "<A id=""TreeTop"" name=""TreeTop""></A>",!
+	Do tree.ShowTree(key, setId)
+	
+	&html<<SCRIPT LANGUAGE="JavaScript">
+		CurrentBook = '#(bookKey)#';
+		highlightItem('#(key)#', true, '#(setId)#')
+	 </SCRIPT>>
+
+	Write "<HR>",! 	
+	Write "<DIV CLASS=""Title TopOfList""><A id=""ClassReference"" class=""class-reference-menu"" data-ajax-ignored href=""../documatic/%25CSP.Documatic.cls"" target=""_blank"">Class Reference</A><A id=""resetHomePageBtn"" class=""reset-and-go-home-page"" data-ajax-ignored href=""DocBook.UI.FramePage.cls"">Reset</A> <A HREF=""#"" data-ajax-ignored data-tree-top>"_$$$T("[Top of List]")_"</A></DIV>"
+
+  &html<<SCRIPT LANGUAGE=JavaScript>
+		function doSearchByEnter(e) {		    
+			if(e.keyCode == 13) {
+		    	doSearch();
+			}
+		    return true;
+		}
+		
+		function doSearch() {
+			var kw = document.getElementById("searchTextBox").value;
+			document.location = 'DocBook.UI.SearchPageZen.cls?KeyWord=' + escape(kw);			
+		    return true;
+		} 	
+	
+    </SCRIPT>
+    >
+
+    Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetBookTitle">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>key:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	Set book = ""
+	Set bookKey = ""
+	
+	If ($E(key,1,1) = "A") {		
+		Set bookKey = key
+		Set key = "KNBASE"
+	}
+	
+	If ((key '= "") && (key '= "KNBASE")) {
+		// pull out first part of key
+		Set bookKey = $P(key,"_",1)
+		Set book = ##class(book).OpenKey(bookKey)
+	}
+	
+	If (book = "") {
+		If (key = "KNBASE") {		
+			Set bookKey = "KNBASE"
+ 
+	 		return "Technical Articles"
+		}
+		Else {
+			return "InterSystems Documentation"
+		}
+	}
+	Else {		
+		return book.title
+	}
+	return ""
+]]></Implementation>
+</Method>
+
+<Method name="GetComponents">
+<Description>
+Show the list of components for a book</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[ctrid:id,&tname:cdata,page:cdata,n:dbint=0,currentKey:%String]]></FormalSpec>
+<Implementation><![CDATA[
+	New %ISCDBCounter
+	Set %ISCDBCounter = $INCREMENT(^||DocBook.CursorCount)
+	Kill %DocBookCursor(%ISCDBCounter)
+#EXECUTE Set %msqlvar = "%DocBookCursor(%ISCDBCounter"
+
+	Set lastcls = ""
+	Set introkey = ""
+
+	// loop over components
+	&sql(DECLARE CompCursor CURSOR FOR
+		SELECT ID,blockid, title, x__classname
+		INTO :compid,:key, :title, :cls
+		FROM component
+		WHERE container = :ctrid
+		ORDER BY blockpos
+	)
+	
+	&sql(OPEN CompCursor)
+	&sql(FETCH CompCursor)
+
+	Set n = n + 1
+	While (SQLCODE = 0) {
+
+		// error detection
+		Set:title="" title = key _ " (untitled)"
+		Set isCurrentKey = 0
+
+		If (cls [ "part") {
+			// link to intro for Part in menu
+			
+			&sql(SELECT intro->blockid INTO :introkey 
+					FROM DocBook.part
+					WHERE %ID = :compid)
+			
+			If (introkey '= "") {
+				Set tname(n) = $LB(title,page_"?KEY="_introkey,introkey, "", "", "", 0)
+			}
+			Else {
+				Set tname(n) = $LB(title,"","")
+			}
+		}
+		Else {
+			If (key = currentKey)
+			{
+				Set isCurrentKey = 1
+			}				
+			Set tname(n) = $LB(title, page_"?KEY="_key, key, "", "", isCurrentKey)		
+			
+		}
+		
+		If (cls [ "reference") {
+			Do ..GetRefEntries(compid, .tname, page, n)
+		}
+		ElseIf (cls [ "part") {
+			// recursively get sub-components
+			Do ..GetComponents(compid, .subtname, page, 0, currentKey)
+			Merge tname(n) = subtname
+		}
+		Else {
+			Do ..GetSect1(compid, .tname, page, n)
+		}
+		
+		Set n = n + 1
+
+		&sql(FETCH CompCursor)
+	}
+	&sql(CLOSE CompCursor)
+#EXECUTE Kill %msqlvar
+
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="GetSect1">
+<Description>
+get the level 1 sections for the given chapter</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[chid:id,&tname:cdata,page:cdata,number:dbint]]></FormalSpec>
+<Implementation><![CDATA[
+	// list all of the sect1 blocks
+	&sql(DECLARE S1Cursor CURSOR FOR
+		SELECT ID,blockid, title, component->blockid
+		INTO :sid,:key, :title, :chap
+		FROM sect1
+		WHERE container = :chid
+	)
+
+	&sql(OPEN S1Cursor)
+	&sql(FETCH S1Cursor)
+	Set n = 1
+	While (SQLCODE = 0) {
+		// error detection
+		Set:title="" title = key _ " (untitled)"
+
+		Set tname(number,n) = $LB(title,page_"?KEY="_chap_"#"_key,key)
+
+		&sql(FETCH S1Cursor)
+		Set n = n + 1
+	}
+ 
+	&sql(CLOSE S1Cursor)
+]]></Implementation>
+</Method>
+
+<Method name="ShowSect2">
+<Description>
+display the level 2 sections for the given chapter</Description>
+<Internal>1</Internal>
+<FormalSpec>id:id,label:cdata</FormalSpec>
+<Private>1</Private>
+<Implementation><![CDATA[
+
+	Set num = 1
+
+	// list all of the sect2 blocks
+	&sql(DECLARE S2Cursor CURSOR FOR
+		SELECT ID,blockid, title, component->blockid
+		INTO :sid,:key, :title, :chap
+		FROM sect2
+		WHERE container = :id
+	)
+
+	&sql(OPEN S2Cursor)
+	&sql(FETCH S2Cursor)
+
+	Write "<MENU>",!
+
+	While (SQLCODE = 0) {
+		&html<<LI><A CLASS="TOCSect2" HREF='DocBook.UI.FramePage.cls?KEY=#($ZCVT(chap,"O","URL"))##("#"_key)#'>#(label _ "." _ num)# #(title)#</A></LI>>
+		&sql(FETCH S2Cursor)
+		Set num = num + 1
+	}
+
+	Write "</MENU>",!
+
+	&sql(CLOSE S2Cursor)
+]]></Implementation>
+</Method>
+
+<Method name="GetRefEntries">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[id:id,&tname:cdata,page:cdata,number:dbint]]></FormalSpec>
+<Implementation><![CDATA[
+	&sql(DECLARE RECursor CURSOR FOR
+		SELECT blockid, refmeta_refentrytitle
+		INTO :key, :title
+		FROM refentry
+		WHERE container = :id
+		ORDER BY refmeta_refentrytitle
+	)
+
+	&sql(OPEN RECursor)
+	&sql(FETCH RECursor)
+	Set n = 1
+
+	While (SQLCODE = 0) {
+		// error detection
+		Set:title="" title = key _ " (untitled)"
+
+		Set tname(number,n) = $LB(title,page_"?KEY="_key,key)
+		Set n = n + 1
+
+		&sql(FETCH RECursor)
+	}
+
+	&sql(CLOSE RECursor)
+]]></Implementation>
+</Method>
+
+<Method name="GetSets">
+<Description>
+Get list of sets</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&tname:cdata,page:cdata]]></FormalSpec>
+<Implementation><![CDATA[
+	&sql(DECLARE SetCursor CURSOR FOR
+		SELECT id
+		INTO :setid
+		FROM db_set		
+		ORDER BY remap
+	)
+
+	&sql(OPEN SetCursor)
+	&sql(FETCH SetCursor)
+	Set n = 1
+
+	While (SQLCODE = 0) {
+		Set set = ##class(DocBook.set).%OpenId(setid)
+		If (set '="") {
+			Set n = n + 1
+			Set tname(n) = $LB(set.title, page_"?SET="_setid, "", "", setid)
+		}
+		
+		Do ..GetBooks(setid,n,.tname,page)		
+
+		&sql(FETCH SetCursor)
+	}
+
+	&sql(CLOSE SetCursor)
+	/*
+	
+	Set n = 0
+	
+	Set setid = $O(^DocBook.blockI("setIdx",""))	
+	While (setid '="") {
+		Set set = ##class(DocBook.set).%OpenId(setid)
+		If (set '="") {
+			Set n = n + 1
+			Set tname(n) = $LB(set.title, page_"?SET="_setid, "", "", setid)
+		}
+		
+		Do ..GetBooks(setid,n,.tname,page)
+
+		Set setid = $O(^DocBook.blockI("setIdx",setid))
+	}*/
+	
+	Set n = n + 1
+	Set tname(n) = $LB($$$T("Technical Articles"),page_"?KEY=KNBASE","KNBASE")
+]]></Implementation>
+</Method>
+
+<Method name="GetKNBase">
+<Description>
+Get list of articles in KNBASE</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&tname:cdata,page:cdata]]></FormalSpec>
+<Implementation><![CDATA[
+	Set n = 0
+	
+	// loop over articles
+	&sql(DECLARE TCursor CURSOR FOR
+		SELECT blockid,title
+		INTO :key,:title
+		FROM DocBook.article
+		ORDER BY title
+	)
+	
+	&sql(OPEN TCursor)
+	&sql(FETCH TCursor)
+
+	While (SQLCODE = 0) {
+		// error detection
+		Set:title="" title = key _ " (untitled)"
+
+		Set n = n + 1
+		Set tname(n) = $LB(title,page _ "?KEY=" _ key)
+
+		&sql(FETCH TCursor)
+	}
+	&sql(CLOSE TCursor)
+]]></Implementation>
+</Method>
+
+<Method name="GetBooks">
+<Description>
+Get list of books for the given set</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[setid:id,number:dbint,&tname:cdata,page:cdata]]></FormalSpec>
+<Implementation><![CDATA[
+	// loop over books
+	&sql(DECLARE BookCursor CURSOR FOR
+		SELECT ID,blockid,title,subtitle,dbrole
+		INTO :id,:bookKey,:title,:desc, :role
+		FROM DocBook.book
+		WHERE container = :setid
+		Order by remap
+	)
+
+	Set n = 0
+	
+	&sql(OPEN BookCursor)
+	&sql(FETCH BookCursor)
+
+	While (SQLCODE = 0) {
+		// error detection
+		Set:title="" title = key _ " (untitled)"
+
+		Set n = n + 1
+		Set tname(number,n) = $LB(title,page_"?KEY="_bookKey,bookKey, "", "", "", 1)
+		&sql(FETCH BookCursor)
+	}
+	&sql(CLOSE BookCursor)
+]]></Implementation>
+</Method>
+</Class>
+</Export>

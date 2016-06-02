@@ -1,0 +1,613 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.Links">
+<Description><![CDATA[
+This class stores one record for each link found in the database. 
+For general comments, see <class>DocBook.ManagerTables.Utils</class>.
+This is a fairly large table and so has several indices.]]></Description>
+<IncludeCode>%occSAX,DocBookMac</IncludeCode>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="SourceFile">
+<Description>
+This is the name of the file from which this content was taken.
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100"/>
+</Property>
+
+<Index name="SourceFileIdx">
+<Properties>SourceFile</Properties>
+</Index>
+
+<Property name="ParentTopic">
+<Description>
+Parent DocBookId. Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="ParentTopicIdx">
+<Properties>ParentTopic</Properties>
+</Index>
+
+<Property name="ShortContent">
+<Description>
+First 50 characters of the text that contains the link.
+Displayed in table.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="50"/>
+</Property>
+
+<Property name="LinkTarget">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="500"/>
+</Property>
+
+<Index name="LinkTargetIdx">
+<Properties>LinkTarget</Properties>
+</Index>
+
+<Property name="LinkType">
+<Description>
+One of "bad" "external" "ok" or "documatic"
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+</Property>
+
+<Index name="LinkTypeIdx">
+<Properties>LinkType</Properties>
+</Index>
+
+<Property name="LinkTag">
+<Description>
+"link" or "ulink" or olink.
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+</Property>
+
+<Index name="LinkTagIdx">
+<Properties>LinkTag</Properties>
+</Index>
+
+<Property name="LinkToBook">
+<Description>
+1 if this link points directly to a book, rather than a preface (which should be rare)</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="OlinkNamespace">
+<Description>
+This applies only to olinks -- target namespace, if any</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="OlinkClass">
+<Description>
+This applies only to olinks -- name of the class</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="OlinkMemberName">
+<Description>
+This applies only to olinks -- name of the class member we're trying to point to</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="OlinkMemberType">
+<Description>
+This applies only to olinks -- type of the class member we're trying to point to</Description>
+<Type>%String</Type>
+</Property>
+
+<Method name="Rebuild">
+<Description>
+verbose can be 0, 1, or 2</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0,checkRemoteOlinks:%Boolean=1</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.Links:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: Link scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of links...",verbose)
+    do ..%KillExtent()
+    do ..FindLinks(verbose,checkRemoteOlinks)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE scanning links",verbose)
+    set ^DocBookManager("LastLinkCheck")=$zdt($h,3)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="Initialized">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    if $D(^DocBookManager("LastLinkCheck")) {
+        set return=1 
+    } else {
+        set return=0 
+    }
+    quit return
+]]></Implementation>
+</Method>
+
+<Method name="GetTimeStamp">
+<Description>
+Returns time stamp of last time we scanned the links in this database</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastLinkCheck"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Method name="ScanIsStale">
+<Description>
+Returns true if the link scan info is possibly stale 
+(that is, if the user has loaded files or removed items AFTER the last 
+link scan). Otherwise returns false.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    set filets=##class(DocBook.Manager.LoadUtils).GetLoadDeleteTimeStamp()
+    set linkts=..GetTimeStamp()
+  
+    set elapsed=$system.SQL.DATEDIFF("second",filets,linkts)
+  
+    if (elapsed<0) {
+       set stale=1
+    } else {
+       set stale=0 
+    }
+    quit stale
+]]></Implementation>
+</Method>
+
+<Method name="FindLinks">
+<Description>
+iterate through all the blocks and find the blocks that have links.
+verbose can be 0, 1, or 2</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0,checkRemoteOlinks:%Boolean=0</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    set sql = "SELECT blockid, content, sourceFile as src,container->blockid AS parentblockid FROM DocBook.block WHERE (content [ '<link' OR content [ '<ulink')"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set key=rset.%Get("blockid")
+        set text=rset.%Get("content")
+        set src=rset.%Get("src")
+        set parentblockid=rset.%Get("parentblockid")
+        if (verbose=2) { write !, "Checking : ",key  }
+        do ..CheckLinksInBlock(src,parentblockid,text,verbose,checkRemoteOlinks)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="CheckLinksInBlock">
+<Description>
+Check the links in a block of text; create entries in the links table.
+verbose can be 0, 1, or 2</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>source:%String,parentblockid:%String,txt:%String,verbose:%Integer=0,checkRemoteOlinks:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    // we assume that text has a link in it or else we would not be here.
+    set tokens = ##class(%CSP.TokenStream).%New()
+    do tokens.OpenFromString(txt)
+
+    While (tokens.NextToken()) {
+        if ((tokens.Tag'="link") && (tokens.Tag'="olink") && (tokens.Tag'="ulink")) {
+            continue
+        }
+
+        if (verbose=2) {
+            write !!,"   Tag:", tokens.Tag
+            write !,"   Text:", tokens.Text
+            write !,"   Type:", tokens.Type
+        }
+        
+        set attrs = ""
+        set linktarget = ""
+
+        set record=..%New()
+        set record.SourceFile=source
+        set record.ParentTopic=parentblockid
+        set record.LinkTag=tokens.Tag
+        set record.ShortContent=$EXTRACT(txt,1,50)
+        set record.LinkType="ok" ; preliminary value -- may be changed in later testing 
+
+        if (record.LinkTag = "ulink") {
+            do tokens.GetAttrs(.attrs)
+            set linktarget = $G(attrs("url","value"))
+            set linktarget = $ZCONVERT(linktarget, "I", "HTML")
+
+        } elseif (record.LinkTag="link") {
+            do tokens.GetAttrs(.attrs)
+            set linktarget = $G(attrs("linkend","value"))
+
+        } elseif (record.LinkTag="olink") {
+            do tokens.GetAttrs(.attrs)
+            set type = $G(attrs("type","value"))
+            set localinfo = $G(attrs("localinfo","value"))
+            set role = $G(attrs("role","value"))
+            set linktarget=type_"^"_localinfo_"^"_role
+            set localinfopieces=$L(localinfo,":")
+            //write !, localinfopieces
+            if (localinfopieces=2) {
+                set namespace=""
+                set class=$P(localinfo,":",1)
+                set member=$P(localinfo,":",2)
+                if (class="") { set class="<NO CLASS SPECIFIED>" }
+                if (member="") { set member="<NO CLASS MEMBER SPECIFIED>" }
+                set linktarget="class "_class_", "_role_" "_member
+
+            } else {
+                set namespace=$P(localinfo,":",1)
+                set class=$P(localinfo,":",2)
+                set member=$P(localinfo,":",3)
+                if (namespace="") { set namespace="<NO NAMESPACE SPECIFIED>" }
+                if (class="") { set class="<NO CLASS SPECIFIED>" }
+                if (member="") { set member="<NO CLASS MEMBER SPECIFIED>" }
+                set linktarget="namespace "_namespace_", class "_class_", "_role_" "_member
+            }
+            set record.OlinkNamespace=namespace
+            set record.OlinkClass=class
+            set record.OlinkMemberType=role
+            set record.OlinkMemberName=member
+            //write !, linktarget
+        }
+
+        set record.LinkTarget=linktarget
+
+        //just treat each LinkTag separately
+        
+        if record.LinkTag="olink" {
+            set test=..IsOlinkBad(namespace,class,role,member,checkRemoteOlinks)
+            //write !, namespace, " ", class, " ", role, " ", member, " ", checkRemoteOlinks, " ", test
+            if (test=0) { 
+                set record.LinkType="ok" 
+            } elseif (test=1) {
+                set record.LinkType="bad"
+            } else {
+                set record.LinkType="untested"
+            }
+        } //end of olink
+        
+        if record.LinkTag="ulink" {
+            if ..IsLinkExternal(linktarget) {
+                set linktarget=$ZSTRIP(linktarget,"<>"," ")
+                if ($$$UPPER($E(linktarget,1,4))="HTTP") {
+                    set record.LinkType="external-http"
+                } elseif ($$$UPPER($E(linktarget,1,4))="/CSP") {
+                    set record.LinkType="external-csp"
+                } elseif ($$$UPPER($E(linktarget,1,3))="FTP") {
+                    set record.LinkType="external-ftp"
+                } elseif ($$$UPPER($E(linktarget,1,4))="mail") {
+                    set record.LinkType="external-mail"
+                } else {    
+                    set record.LinkType="external-other" 
+                }
+            } elseif ..IsLinkBad(linktarget) {
+                set record.LinkType="bad" 
+                //It should be rare to link directly to a book, 
+                //but that is possible in this branch, so let's flag when that happens
+                if (($E(linktarget,1)'="A")&& (linktarget'["_")) {
+                    set record.LinkToBook=1
+                }
+            } else {
+                set record.LinkType="ok"
+                //It should be rare to link directly to a book, 
+                //but that is possible in this branch, so let's flag when that happens
+                if (($E(linktarget,1)'="A")&& (linktarget'["_")) {
+                    set record.LinkToBook=1
+                }
+            }
+        } //end of ulink
+        
+        if record.LinkTag="link" {
+            //It should be rare to link directly to a book, 
+            //but that is possible in this branch, so let's flag when that happens
+            if (($E(linktarget,1)'="A")&& (linktarget'["_")) {
+                set record.LinkToBook=1
+            }
+            if ..IsLinkBad(linktarget) {
+                set record.LinkType="bad"
+            } else {
+                set record.LinkType="ok"
+            }
+        } //end of link
+        
+        set status= record.%Save()
+        if $$$ISERR(status) {
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.SourceFile_" "_record.ParentTopic_" "_record.ShortContent,verbose)
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        }
+        
+    }
+]]></Implementation>
+</Method>
+
+<Method name="IsLinkExternal">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>url:%String</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    set answer=0
+    if ((url [ "http:") || (url [ "https:") || (url [ "ftp:") || (url [ "mailto:") || (url [ ".html") || (url [ "www.") || (url [ ".htm") || (url [ ".cls") || (url [ ".csp")) {
+         set answer=1
+    }
+    quit answer
+]]></Implementation>
+</Method>
+
+<Method name="IsLinkBad">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>url:%String</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    set answer=0
+    set id = ##class(DocBook.block).FindId(url)
+    if ((id = "") && ($$$UPPER(url) '= "KNBASE")) {
+        set answer=1
+    }
+    quit answer
+]]></Implementation>
+</Method>
+
+<Method name="IsOlinkBad">
+<Description>
+0=ok, 1=bad, 99=unknown</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>namespace:%String="",classname:%String="",membertype:%String="",membername:%String="",checkRemoteOlinks:%Boolean=0</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    if (classname="") || (membertype="") || (membername="") {
+        quit 1
+    }
+
+    
+    //if (checkRemoteOlinks=0)  {
+    //    if ((namespace'="") || ($E(classname,1)'="%")) {
+    //      quit 99 //we can't check, so return 99
+    //    }
+    //}
+    
+    if ((namespace'="") && '##class(%SYS.Namespace).Exists(namespace)) {
+        quit 99 //we can't check, so return 99
+    }
+
+
+    set switchedNamespace=0
+    if (namespace'="") {
+        set newnamespace=namespace
+        set keep=$NAMESPACE
+        zn newnamespace
+        set switchedNamespace=1
+        //write !, "changing namespace to "_newnamespace
+    } elseif ($E(classname,1)'="%")  {
+        set newnamespace="%SYS"
+        set keep=$NAMESPACE
+        zn newnamespace
+        set switchedNamespace=1
+        //write !, "changing namespace to "_newnamespace
+    }
+        
+
+    //this does class exist?
+    set classexists=##class(%Dictionary.CompiledClass).%ExistsId(classname)
+    if 'classexists {
+        set answer=1
+    } else {
+        set classinstance=##class(%Dictionary.CompiledClass).%OpenId(classname)
+        set answer=1
+        //let see if this class has a member of this type
+        if (membertype="method") {
+            for i=1:1:classinstance.Methods.Count() {
+                if (membername=classinstance.Methods.GetAt(i).Name) {
+                    set answer=0
+                }
+            }
+            for i=1:1:classinstance.Queries.Count() {
+                if (membername=classinstance.Queries.GetAt(i).Name) {
+                    set answer=0
+                }
+            }
+        } elseif (membertype="property") {
+            for i=1:1:classinstance.Properties.Count() {
+                if (membername=classinstance.Properties.GetAt(i).Name) {
+                    set answer=0
+                }
+            }
+        } elseif (membertype="parameter") {
+            for i=1:1:classinstance.Parameters.Count() {
+                if (membername=classinstance.Parameters.GetAt(i).Name) {
+                    set answer=0
+                }
+            }
+        }
+    } //end of else
+
+    if (switchedNamespace=1) {
+        //write !, "changing back"
+        zn keep
+    }
+    quit answer
+]]></Implementation>
+</Method>
+
+<Method name="GetBadLinkCount">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+   &sql(SELECT COUNT(*) into :mycount FROM DocBook_ManagerTables.Links WHERE LinkType='bad')
+   if (SQLCODE'=0) {
+       set mycount=99999
+   }
+   quit mycount
+]]></Implementation>
+</Method>
+
+<Method name="GetExternalLinkCount">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+   &sql(SELECT COUNT(*) into :mycount FROM DocBook_ManagerTables.Links WHERE LinkType='external')
+   if (SQLCODE'=0) {
+       set mycount=99999
+   }
+   quit mycount
+]]></Implementation>
+</Method>
+
+<Method name="GetOKLinkCount">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+   &sql(SELECT COUNT(*) into :mycount FROM DocBook_ManagerTables.Links WHERE LinkType='ok')
+   if (SQLCODE'=0) {
+       set mycount=99999
+   }
+   quit mycount
+]]></Implementation>
+</Method>
+
+<Method name="GetLinkCount">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+   &sql(SELECT COUNT(*) into :mycount FROM DocBook_ManagerTables.Links)
+   quit mycount
+   if (SQLCODE'=0) {
+       set mycount=99999
+   }
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ManagerTables.LinksD</DataLocation>
+<DefaultData>LinksDefaultData</DefaultData>
+<IdLocation>^DocBook.ManagerTables.LinksD</IdLocation>
+<IndexLocation>^DocBook.ManagerTables.LinksI</IndexLocation>
+<StreamLocation>^DocBook.ManagerTables.LinksS</StreamLocation>
+<ExtentSize>39488</ExtentSize>
+<Data name="LinksDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>SourceFile</Value>
+</Value>
+<Value name="3">
+<Value>ParentTopic</Value>
+</Value>
+<Value name="4">
+<Value>ShortContent</Value>
+</Value>
+<Value name="5">
+<Value>LinkTarget</Value>
+</Value>
+<Value name="6">
+<Value>LinkType</Value>
+</Value>
+<Value name="7">
+<Value>LinkTag</Value>
+</Value>
+<Value name="8">
+<Value>LinkToBook</Value>
+</Value>
+<Value name="9">
+<Value>OlinkNamespace</Value>
+</Value>
+<Value name="10">
+<Value>OlinkClass</Value>
+</Value>
+<Value name="11">
+<Value>OlinkMemberName</Value>
+</Value>
+<Value name="12">
+<Value>OlinkMemberType</Value>
+</Value>
+</Data>
+<Property name="%%CLASSNAME">
+<Selectivity>0.0117%</Selectivity>
+<OutlierSelectivity>.998826:</OutlierSelectivity>
+</Property>
+<Property name="LinkTag">
+<Selectivity>33.3332%</Selectivity>
+</Property>
+<Property name="LinkTarget">
+<Selectivity>0.0280%</Selectivity>
+</Property>
+<Property name="LinkToBook">
+<Selectivity>2.1812%</Selectivity>
+<OutlierSelectivity>.978188:0</OutlierSelectivity>
+</Property>
+<Property name="LinkType">
+<Selectivity>2.0134%</Selectivity>
+<OutlierSelectivity>.979866:"ok"</OutlierSelectivity>
+</Property>
+<Property name="OlinkClass">
+<Selectivity>0.1923%</Selectivity>
+<OutlierSelectivity>.994966:</OutlierSelectivity>
+</Property>
+<Property name="OlinkMemberName">
+<Selectivity>0.0025%</Selectivity>
+<OutlierSelectivity>.994966:</OutlierSelectivity>
+</Property>
+<Property name="OlinkMemberType">
+<Selectivity>0.5034%</Selectivity>
+<OutlierSelectivity>.994966:</OutlierSelectivity>
+</Property>
+<Property name="OlinkNamespace">
+<Selectivity>0.0117%</Selectivity>
+<OutlierSelectivity>.998826:</OutlierSelectivity>
+</Property>
+<Property name="ParentTopic">
+<Selectivity>0.0089%</Selectivity>
+</Property>
+<Property name="ShortContent">
+<Selectivity>0.0476%</Selectivity>
+</Property>
+<Property name="SourceFile">
+<Selectivity>0.2616%</Selectivity>
+</Property>
+<SQLMap name="IDKEY">
+<BlockCount>-2940</BlockCount>
+</SQLMap>
+<SQLMap name="LinkTagIdx">
+<BlockCount>-212</BlockCount>
+</SQLMap>
+<SQLMap name="LinkTargetIdx">
+<BlockCount>-316</BlockCount>
+</SQLMap>
+<SQLMap name="LinkTypeIdx">
+<BlockCount>-212</BlockCount>
+</SQLMap>
+<SQLMap name="ParentTopicIdx">
+<BlockCount>-312</BlockCount>
+</SQLMap>
+<SQLMap name="SourceFileIdx">
+<BlockCount>-224</BlockCount>
+</SQLMap>
+</Storage>
+</Class>
+</Export>

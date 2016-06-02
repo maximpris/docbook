@@ -1,0 +1,2920 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Taxonomy">
+<Description>
+This class defines the categories for the documentation materials
+so thath the new Zen home page can address them.
+</Description>
+<ClassType/>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%Library.RegisteredObject</Super>
+<TimeCreated>60423,56772</TimeCreated>
+
+<Method name="Define">
+<Description>
+This generates the globals needed by the new home page.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    Kill ^DocBook.BookList
+    Kill ^DocBook.BookCategory
+    Kill ^||ValidValues
+
+    Do ..Prescribe()
+
+    Do ..Adjust()
+
+    Kill ^||ValidValues
+
+    Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="Prescribe">
+<Description>
+This generates the globals needed by the new home page.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    Set app = ",Client/Server" _
+              ",Integration" _
+              ",Terminal" _
+              ",Web" _
+              ","
+    Set ^||ValidValues("app") = app
+
+    Set product = ",Cache" _
+                  ",Ensemble" _
+                  ",HealthShare" _
+                  ",TrakCare" _
+                  ",Confidential" _
+                  ",Internal" _
+                  ","
+    Set ^||ValidValues("product") = product
+
+    Set book = ",Articles" _
+               ",Guides" _
+               ",References" _
+               ",Tutorials" _
+               ","
+    Set ^||ValidValues("book") = book
+
+    Set role = ",Administration" _
+               ",Development" _
+               ",General" _
+               ",Installation" _
+               ",Security" _
+               ",Implementation" _
+               ",Tools" _
+               ","
+    Set ^||ValidValues("role") = role
+
+    Set level = ",Introductory" _
+                ",Intermediate" _
+                ",Advanced" _
+                ","
+    Set ^||ValidValues("level") = level
+
+    Set lang = ",BASIC" _
+               ",BPL" _
+               ",CPP" _
+               ",CSP" _
+               ",DOTNET" _
+               ",DTL" _
+               ",DeepSee" _
+               ",HTML" _
+               ",Java" _
+               ",Javascript" _
+               ",MultiValue" _
+               ",ObjectScript" _
+               ",PERL" _
+               ",PYTHON" _
+               ",SOAP" _
+               ",SQL" _
+               ",ISQL/TSQL" _
+               ",XML" _
+               ",ZEN" _
+               ","
+    Set ^||ValidValues("lang") = lang
+
+
+    Do ..FillIn("ISP",
+                "role", $$$T("Installation"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("ITECHREF",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "book", $$$T("References"))
+    Do ..FillIn("IDEPLOY",
+                "role", $$$T("Installation"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"))
+
+
+    Do ..FillIn("GEMS",
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                //"product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+
+
+    Do ..FillIn("AAD_application_development",
+                "role", $$$T("Development"),
+                "product", $$$T("Confidential"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ABAS_FAQ",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Articles"),
+                "lang", $$$T("BASIC"))
+    Do ..FillIn("ABPHP_HPBestPractice",
+                "product", $$$T("Cache"),
+                "role", $$$T("General"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ACHUI_Mgmt",
+                "role", $$$T("Development"),
+                "role", $$$T("Administration"),
+                "role", $$$T("Security"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"),
+                "app", $$$T("Terminal"))
+    Do ..FillIn("ACMD_Cache_Cmd_Line",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "product", $$$T("Confidential"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ACSW_Switches",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ACVE_UsingCVEndian",
+                "role", $$$T("Development"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ADBE",
+                "role", $$$T("Security"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ADM_DataMove",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "product", $$$T("Confidential"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("AFILEMAN_Conversion",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("AGBC_Gblockcopy",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("AINST_Installer",
+                "role", $$$T("Installation"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ALDC_LegacyDocCollection",
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "level", $$$T("Intermediate"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ALOCK",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"),
+                "lang", $$$T("ObjectScript"))
+    Do ..FillIn("AMIRROR_FAQ",
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ANAI_NetApp_Integration",
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ANLS_Classes",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ANUM",
+                "role", $$$T("Development"),
+                "level", $$$T("Advanced"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("APMML",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("APRI_HowToPrintDocs",
+                "role", $$$T("Administration"),
+                "level", $$$T("Introductory"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "product", $$$T("TrakCare"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ARAPI",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ARPT_pButtons",
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ASECURING",
+                "role", $$$T("Development"),
+                "role", $$$T("Security"),
+                "app", $$$T("Client/Server"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ASEMAPHORE",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("ASQL_FAQ",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"),
+                "lang", $$$T("SQL"))
+    Do ..FillIn("ATRYCATCHFAQ",
+                "role", $$$T("Development"),
+                "app", $$$T("Client/Server"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("AUIP_Adding_UNIX_Install_Pkg_to_Cache",
+                "product", $$$T("Cache"),
+                "role", $$$T("Installation"),
+                "role", $$$T("Tools"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("AUNIT_StudioPerforce",
+                "role", $$$T("Tools"),
+                "level", $$$T("Intermediate"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("AWLD",
+                "role", $$$T("Development"),
+                "app", $$$T("Web"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("AVMEM",
+                "role", $$$T("Development"),
+                "app", $$$T("Client/Server"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("AWSI_Win_Silent_Install",
+                "role", $$$T("Installation"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("AZF_DSM",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+    Do ..FillIn("AZSS_ZStartZStop",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Articles"))
+
+
+    Do ..FillIn("FADM",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("FBSC",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("FINS",
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("FRN",
+                "role", $$$T("Administration"),
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+
+
+    Do ..FillIn("BGAX",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("BASIC"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("BGCL",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"),
+                "book", $$$T("References"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("CPP"))
+    Do ..FillIn("BGJD",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("Java"),
+                "lang", $$$T("SQL"))
+    Do ..FillIn("BGOD",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("BASIC"),
+                "lang", $$$T("SQL"),
+                "lang", $$$T("DOTNET"))
+    Do ..FillIn("BGNT",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("DOTNET"))
+    Do ..FillIn("BLAX",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("BASIC"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("BLCP",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Client/Server"),
+                "lang", $$$T("CPP"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("BLCX",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Client/Server"),
+                "lang", $$$T("CPP"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("BLJV",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("Java"))
+    Do ..FillIn("BLXT",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "lang", $$$T("Java"))
+    Do ..FillIn("BNTG",
+                "role", $$$T("Development"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("DOTNET"))
+    Do ..FillIn("BXCI",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"),
+                "book", $$$T("References"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("CPP"))
+    Do ..FillIn("BXJD",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("Java"),
+                "lang", $$$T("ObjectScript"))
+    Do ..FillIn("BXJS",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("Javascript"))
+    Do ..FillIn("BXJV",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("Java"))
+    Do ..FillIn("BXNT",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("DOTNET"))
+    Do ..FillIn("BXOD",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("DOTNET"),
+                "lang", $$$T("ObjectScript"))
+    Do ..FillIn("DAN",
+                "product", $$$T("Cache"),
+                "role", $$$T("Tools"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("DAR",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("DCON",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("DCUBE",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("DDD",
+                "product", $$$T("Cache"),
+                "role", $$$T("Tools"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("DDT",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("DMOD",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("DMODEL",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("DOV",
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("DPROG",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("DSITE",
+                "product", $$$T("Cache"),
+                "role", $$$T("Administration"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("DSYN",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("DUG",
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("DUSER",
+                "product", $$$T("Cache"),
+                "role", $$$T("Administration"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("D2ANLY",
+                "product", $$$T("Cache"),
+                "role", $$$T("Administration"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("D2DASH",
+                "product", $$$T("Cache"),
+                "role", $$$T("Administration"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("D2DT",
+                "product", $$$T("Cache"),
+                "role", $$$T("Tools"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("D2GS",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("D2GMDX",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("D2IMP",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("D2KPI",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("D2MODADV",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("D2MODEL",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("D2RMDX",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("References"))
+    Do ..FillIn("D2PROG",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("D2RPT",
+                "product", $$$T("Ensemble"),
+                "role", $$$T("Development"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("D2USER",
+                "product", $$$T("Cache"),
+                "role", $$$T("Administration"),
+                "level", $$$T("Introductory"),
+                "lang", $$$T("DeepSee"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GBAS",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "lang", $$$T("BASIC"))
+    Do ..FillIn("GBAX",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("BASIC"))
+    Do ..FillIn("GBAX",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GBCB",
+                "role", $$$T("Development"),
+                "lang", $$$T("CPP"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GBCD",
+                "role", $$$T("Development"),
+                "lang", $$$T("CPP"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Client/Server"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GBCP",
+                "role", $$$T("Development"),
+                "lang", $$$T("CPP"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GBJJ",
+                "role", $$$T("Development"),
+                "lang", $$$T("Java"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GBJP",
+                "role", $$$T("Development"),
+                "lang", $$$T("Java"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GBJV",
+                "role", $$$T("Development"),
+                "lang", $$$T("Java"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GBMP",
+                "role", $$$T("Development"),
+                "lang", $$$T("DOTNET"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GBOC",
+                "role", $$$T("Development"),
+                "lang", $$$T("CPP"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GBPL",
+                "role", $$$T("Development"),
+                "lang", $$$T("PERL"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GBPY",
+                "role", $$$T("Development"),
+                "lang", $$$T("PYTHON"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCAS",
+                "role", $$$T("Security"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCD",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCDI",
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCGI",
+                "role", $$$T("Installation"),
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "app", $$$T("Web"),
+                "level", $$$T("Advanced"),
+                "lang", $$$T("CSP"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCHW",
+                "role", $$$T("Administration"),
+                "app", $$$T("Terminal"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("References"))
+    Do ..FillIn("GCI",
+                "role", $$$T("Security"),
+                "role", $$$T("Installation"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCIO",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"),
+                "book", $$$T("References"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("CPP"))
+    Do ..FillIn("GCM",
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCNV",
+                "role", $$$T("Installation"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCNVA",
+                "role", $$$T("Installation"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCOS",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "lang", $$$T("ObjectScript"))
+    Do ..FillIn("GCRL",
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCRN",
+                "role", $$$T("Administration"),
+                "role", $$$T("Installation"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCSP",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "app", $$$T("Web"),
+                "lang", $$$T("ObjectScript"),
+                "lang", $$$T("BASIC"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("CSP"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GCTM",
+                "role", $$$T("Installation"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("References"))
+    Do ..FillIn("GDDM",
+                "role", $$$T("Development"),
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GDOC",
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GGBL",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"),
+                "lang", $$$T("ObjectScript"),
+                "lang", $$$T("SQL"))
+    Do ..FillIn("GHA",
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GIC",
+                "role", $$$T("Development"),
+                "role", $$$T("Administration"),
+                "role", $$$T("Security"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GIII",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GIOD",
+                "role", $$$T("Development"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Terminal"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GISQ",
+                "role", $$$T("Development"),
+                "app", $$$T("Client/Server"),
+                "lang", $$$T("SQL"),
+                "lang", $$$T("ISQL/TSQL"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GIMT",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GIKNOW",
+                "role", $$$T("Development"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "lang", $$$T("ObjectScript"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GJVG",
+                "role", $$$T("Development"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("Java"))
+    Do ..FillIn("GMSM",
+                "role", $$$T("Administration"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Terminal"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GNET",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GNTG",
+                "role", $$$T("Development"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("DOTNET"))
+    Do ..FillIn("GOBJ",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "lang", $$$T("BASIC"),
+                "lang", $$$T("ObjectScript"))
+    Do ..FillIn("GODB",
+                "role", $$$T("Development"),
+                "lang", $$$T("SQL"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GORIENT",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "lang", $$$T("ObjectScript"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GRCA",
+                "role", $$$T("Development"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("XML"))
+    Do ..FillIn("GREST",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "lang", $$$T("SOAP"))
+    Do ..FillIn("GRPT",
+                "role", $$$T("Development"),
+                "book", $$$T("Guides"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "app", $$$T("Web"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("ZEN"),
+                "lang", $$$T("XML"))
+    Do ..FillIn("GSA",
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GSOP",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "lang", $$$T("SOAP"))
+    Do ..FillIn("GSOAP",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "lang", $$$T("SOAP"))
+    Do ..FillIn("GSOAPSEC",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "lang", $$$T("SOAP"))
+    Do ..FillIn("GSQG",
+                "role", $$$T("Development"),
+                "lang", $$$T("SQL"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GSQL",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "lang", $$$T("SQL"))
+    Do ..FillIn("GSTD",
+                "role", $$$T("Tools"),
+                "lang", $$$T("ObjectScript"),
+                "lang", $$$T("BASIC"),
+                "lang", $$$T("MultiValue"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GSTU",
+                "role", $$$T("Development"),
+                "role", $$$T("Administration"),
+                "role", $$$T("Installation"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "level", $$$T("Advanced"),
+                "app", $$$T("Web"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Terminal"),
+                "book", $$$T("References"))
+    Do ..FillIn("GSYB",
+                "role", $$$T("Development"),
+                "lang", $$$T("SQL"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GTBP",
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GTER",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GTSQ",
+                "role", $$$T("Development"),
+                "app", $$$T("Client/Server"),
+                "lang", $$$T("SQL"),
+                "lang", $$$T("ISQL/TSQL"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GVCC",
+                "role", $$$T("Development"),
+                "app", $$$T("Terminal"),
+                "lang", $$$T("MultiValue"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GVGS",
+                "role", $$$T("Development"),
+                "app", $$$T("Terminal"),
+                "lang", $$$T("MultiValue"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GVOD",
+                "role", $$$T("Development"),
+                "app", $$$T("Terminal"),
+                "lang", $$$T("MultiValue"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GVRF",
+                "role", $$$T("Development"),
+                "app", $$$T("Terminal"),
+                "lang", $$$T("BASIC"),
+                "lang", $$$T("MultiValue"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GVSP",
+                "role", $$$T("Development"),
+                "app", $$$T("Terminal"),
+                "lang", $$$T("MultiValue"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GVTT",
+                "role", $$$T("Development"),
+                "app", $$$T("Terminal"),
+                "lang", $$$T("MultiValue"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("GWSCB",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "app", $$$T("Client/Server"),
+                "lang", $$$T("SOAP"),
+                "lang" , $$$T("DOTNET"))
+    Do ..FillIn("GWST",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Client/Server"),
+                "lang", $$$T("ZEN"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("CSP"))
+    Do ..FillIn("GXML",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "lang", $$$T("XML"))
+    Do ..FillIn("GXMLPROJ",
+                "product", $$$T("Cache"),
+                "role", $$$T("Development"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "lang", $$$T("XML"))
+    Do ..FillIn("GZAP",
+                "role", $$$T("Development"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("CSP"),
+                "lang", $$$T("ZEN"),
+                "lang", $$$T("Javascript"),
+                "lang", $$$T("XML"))
+    Do ..FillIn("GZCP",
+                "role", $$$T("Development"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("CSP"),
+                "lang", $$$T("ZEN"),
+                "lang", $$$T("Javascript"),
+                "lang", $$$T("XML"))
+    Do ..FillIn("GZEN",
+                "role", $$$T("Development"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("CSP"),
+                "lang", $$$T("ZEN"),
+                "lang", $$$T("Javascript"),
+                "lang", $$$T("XML"))
+    Do ..FillIn("ZENMOJO",
+                "role", $$$T("Development"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("CSP"),
+                "lang", $$$T("ZEN"),
+                "lang", $$$T("Javascript"),
+                "lang", $$$T("XML"))
+    Do ..FillIn("ZMPLUGIN",
+                "role", $$$T("Development"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("CSP"),
+                "lang", $$$T("ZEN"),
+                "lang", $$$T("Javascript"),
+                "lang", $$$T("XML"))
+
+    Do ..FillIn("RACS",
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("RBAS",
+                "role", $$$T("Development"),
+                "lang", $$$T("BASIC"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("RCOS",
+                "role", $$$T("Development"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("RCPF",
+                "role", $$$T("Administration"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("References"))
+    Do ..FillIn("RCSP",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "app", $$$T("Web"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("CSP"),
+                "lang", $$$T("ObjectScript"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("RERR",
+                "role", $$$T("Development"),
+                "lang", $$$T("ObjectScript"),
+                "lang", $$$T("BASIC"),
+                "lang", $$$T("MultiValue"),
+                "lang", $$$T("SQL"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "product", $$$T("TrakCare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("RGOT",
+                "role", $$$T("Development"),
+                "role", $$$T("Administration"),
+                "role", $$$T("Security"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("References"))
+    Do ..FillIn("ROBJ",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"),
+                "lang", $$$T("ObjectScript"))
+    Do ..FillIn("RSQL",
+                "role", $$$T("Development"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Web"),
+                "lang", $$$T("SQL"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("RVBS",
+                "role", $$$T("Development"),
+                "app", $$$T("Terminal"),
+                "lang", $$$T("MultiValue"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("RVCL",
+                "role", $$$T("Development"),
+                "app", $$$T("Terminal"),
+                "lang", $$$T("MultiValue"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("RVPC",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("References"),
+                "lang", $$$T("MultiValue"))
+    Do ..FillIn("RVQL",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("References"),
+                "lang", $$$T("MultiValue"))
+    Do ..FillIn("RZUT",
+                "role", $$$T("Development"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("Confidential"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("TBAS",
+                "role", $$$T("Development"),
+                "app", $$$T("Client/Server"),
+                "lang", $$$T("BASIC"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TCMP",
+                "role", $$$T("Development"),
+                "app", $$$T("Client/Server"),
+                "lang", $$$T("DOTNET"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TCOS",
+                "role", $$$T("Development"),
+                "app", $$$T("Client/Server"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TCSP",
+                "role", $$$T("Development"),
+                "app", $$$T("Web"),
+                "lang", $$$T("ObjectScript"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("THL7",
+                "role", $$$T("Development"),
+                "app", $$$T("Web"),
+                "app", $$$T("Client/Server"),
+                "product", $$$T("Cache"),
+                "lang", $$$T("ObjectScript"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TJAV",
+                "role", $$$T("Development"),
+                "app", $$$T("Web"),
+                "app", $$$T("Client/Server"),
+                "product", $$$T("Cache"),
+                "lang", $$$T("Java"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TJLP",
+                "role", $$$T("Development"),
+                "lang", $$$T("Java"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TLKP",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TQKS",
+                "role", $$$T("Tools"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TSOA",
+                "role", $$$T("Development"),
+                "app", $$$T("Web"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("Javascript"),
+                "lang", $$$T("XML"),
+                "lang", $$$T("SOAP"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TSQS",
+                "role", $$$T("Development"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TUNT",
+                "role", $$$T("Development"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TVQS",
+                "role", $$$T("Development"),
+                "lang", $$$T("MultiValue"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TWEB",
+                "role", $$$T("Development"),
+                "app", $$$T("Web"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("Javascript"),
+                "lang", $$$T("XML"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TXML",
+                "role", $$$T("Development"),
+                "app", $$$T("Web"),
+                "lang", $$$T("XML"),
+                "product", $$$T("Cache"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TZEN",
+                "role", $$$T("Development"),
+                "app", $$$T("Web"),
+                "lang", $$$T("BASIC"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("CSP"),
+                "lang", $$$T("ZEN"),
+                "lang", $$$T("Javascript"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("Cache"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Tutorials"))
+
+
+    Do ..FillIn("EACT",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EAST",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EBPL",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("BPL"))
+    Do ..FillIn("EBPLR",
+                 "role", $$$T("Development"),
+                 "product", $$$T("Ensemble"),
+                 "level", $$$T("Intermediate"),
+                 "book", $$$T("References"),
+                 "app", $$$T("Integration"),
+                 "lang", $$$T("BPL"))
+    Do ..FillIn("EBUS",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EDAS",
+                "role", $$$T("Development"),
+                "role", $$$T("Tools"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("XML"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EHL72",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EDICOM",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EDOOP",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "lang", $$$T("ObjectScript"),
+                "lang", $$$T("Java"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EDTL",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("DTL"))
+    Do ..FillIn("EDTLR",
+                "role", $$$T("Development"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("XML"))
+    Do ..FillIn("EDTLR",
+                "role", $$$T("Development"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("XML"))
+    Do ..FillIn("EEDI",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EEMA",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EERR",
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "product", $$$T("TrakCare"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("References"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("EESB",
+                "product", $$$T("Ensemble"),
+                "role", $$$T("Development"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("EFIL",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EFTP",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EGBP",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("EGDQ",
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("EGDV",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("EGIN",
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("EGMG",
+                "role", $$$T("Development"),
+                "role", $$$T("Administration"),
+                "role", $$$T("Tools"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EGRN",
+                "product", $$$T("Ensemble"),
+                "role", $$$T("Administration"),
+                "role", $$$T("Installation"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EPREP",
+                "product", $$$T("Ensemble"),
+                "role", $$$T("Administration"),
+                "role", $$$T("Installation"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EGWF",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EHL73",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EHTTP",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EITK",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("EIWA",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EJVG",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("Java"))
+    Do ..FillIn("EMMQ",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("EMQS",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("ENTG",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Client/Server"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("DOTNET"))
+    Do ..FillIn("EPUSH",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"))
+    Do ..FillIn("ERECMAP",
+                "role", $$$T("Development"),
+                "role", $$$T("Tools"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("EREST",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("SOAP"))
+    Do ..FillIn("ESAP",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("Java"))
+    Do ..FillIn("ESOAP",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Web"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("SOAP"))
+    Do ..FillIn("ESQL",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "lang", $$$T("SQL"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("ETCP",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("EX12",
+                "role", $$$T("Development"),
+                "app", $$$T("Integration"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("ECONFIG",
+                "role", $$$T("Development"),
+                "role", $$$T("Administration"),
+                "role", $$$T("Security"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("EMONITOR",
+                "role", $$$T("Development"),
+                "role", $$$T("Administration"),
+                "product", $$$T("Ensemble"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("EXML",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "lang", $$$T("XML"),
+                "book", $$$T("Guides"),
+                "app", $$$T("Integration"))
+    Do ..FillIn("TELP",
+                "role", $$$T("Development"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Tutorials"))
+    Do ..FillIn("TTEP",
+                "role", $$$T("Development"),
+                "lang", $$$T("BPL"),
+                "product", $$$T("Ensemble"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Tutorials"))
+
+
+    Do ..FillIn("FRN",
+                "role", $$$T("Administration"),
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("FIHE",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("FINS",
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("FBSC",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("FREG",
+                "role", $$$T("Development"),
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("FOVW",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"))
+
+
+    Do ..FillIn("HADM",
+                "role", $$$T("Administration"),
+                "role", $$$T("Tools"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HCON",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HCUI",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HDAT",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HENS",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HERR",
+                "role", $$$T("Development"),
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("References"))
+    Do ..FillIn("HFLW",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HINS",
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HMAP",
+                "role", $$$T("Development"),
+                "role", $$$T("Tools"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HPGG",
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HPD",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HOV",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HPIC",
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HPUSH",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HREF",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("HRN",
+                "role", $$$T("Administration"),
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HRPT",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSAA",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSAAADM",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSAAIC",
+                "role", $$$T("Installation"),
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSEC",
+                "role", $$$T("Security"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSPD",
+                "role", $$$T("Tools"),
+                "product", $$$T("HealthShare"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HPDC",
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSPDIMP",
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSPI",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSUP",
+                "role", $$$T("Development"),
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HTRM",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Advanced"))
+
+    ///// re-organized HealthShare corpus
+
+    Do ..FillIn("HEADM",
+                "role", $$$T("Administration"),
+                "role", $$$T("Tools"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HECON",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HECUI",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HEDAT",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HEENS",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HEFLW",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HEINS",
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HEMAP",
+                "role", $$$T("Development"),
+                "role", $$$T("Tools"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HEOV",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSPIC",
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HEPUSH",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HEREF",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("References"))
+    Do ..FillIn("HERN",
+                "role", $$$T("Administration"),
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HERPT",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HESEC",
+                "role", $$$T("Security"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HESUP",
+                "role", $$$T("Development"),
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HETRM",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Advanced"))
+    Do ..FillIn("HSAARN",
+                "role", $$$T("Administration"),
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSPDC",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSPIRN",
+                "role", $$$T("Administration"),
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+
+    ///// HealthShare Personal Community
+
+    Do ..FillIn("HSPCIntroduction",
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"))
+    Do ..FillIn("HSPCRelNotes",
+                "role", $$$T("Administration"),
+                "role", $$$T("Installation"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSPCInstallation",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSPCRoadmap",
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSPCCoding",
+                "role", $$$T("Development"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSPCConfiguring",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("HSPCUI",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("AHSPC_MU2Reports",
+                "role", $$$T("Administration"),
+                "product", $$$T("HealthShare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Articles"))
+
+
+    Do ..FillIn("IIM",
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KADM",
+                "role", $$$T("Administration"),
+                "product", $$$T("TrakCare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("KCOR",
+                "role", $$$T("Development"),
+                "product", $$$T("TrakCare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("KCUI",
+                "role", $$$T("Development"),
+                "product", $$$T("TrakCare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("KDOC",
+                "product", $$$T("TrakCare"),
+                "product", $$$T("Confidential"))
+    Do ..FillIn("KEPR",
+                "role", $$$T("Development"),
+                "product", $$$T("TrakCare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("KMEN",
+                "role", $$$T("Development"),
+                "product", $$$T("TrakCare"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("KORD",
+                "role", $$$T("Development"),
+                "product", $$$T("TrakCare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("KOV",
+                "role", $$$T("Implementation"),
+                "product", $$$T("TrakCare"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("KQUE",
+                "role", $$$T("Administration"),
+                "product", $$$T("TrakCare"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("KWRK",
+                "role", $$$T("Development"),
+                "product", $$$T("TrakCare"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("KGADMIN",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Administration"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGAUDIT",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Administration"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGBILLING",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGCLINPATH",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGCODETAB",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGCONNECT",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Advanced"),
+                "role", $$$T("Development"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGDSS",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Administration"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGENCREC",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGEPR",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGGRAPH",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGINFOLINK",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGINSTALL",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Advanced"),
+                "role", $$$T("Installation"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGMENU",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGMENU",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGMENTHEALTH",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGORDER",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGPATCHING",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Advanced"),
+                "role", $$$T("Installation"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGPHARMACY",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Advanced"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGPRINTING",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Advanced"),
+                "role", $$$T("Installation"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGQUEST",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGREPORT",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGSCHEDULE",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Administration"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGSECURITY",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Security"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGUPGRADE",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Advanced"),
+                "role", $$$T("Installation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGWEBPAGE",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Tools"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGWORKFLOW",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGWORKLIST",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMBILLING",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("ObjectScript"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMCIS",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMCOMMUNITY",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMEMERGENCY",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMINPATIENTS",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMLAB",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMMATERNITY",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMMEDRECORDS",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMOPTHEATER",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMORDER",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Advanced"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMOUTPATIENTS",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMOVERVIEW",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Introductory"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMPHARMACY",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMPOLYCLINIC",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMRADIOLOGY",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMWAITLISTS",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KOVERVIEW",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Introductory"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRCCR",
+                "app", $$$T("Web"),
+                "book", $$$T("References"),
+                "level", $$$T("Advanced"),
+                "role", $$$T("Tools"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRCODETAB",
+                "app", $$$T("Web"),
+                "book", $$$T("References"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRCOMP",
+                "app", $$$T("Web"),
+                "book", $$$T("References"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRELNOTES2009",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Installation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRELNOTES2010",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Installation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRELNOTES20102",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Installation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRELCOMP20102009",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Installation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRELNOTES2011",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Installation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRELNOTES2012",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Installation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRELNOTES2013",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Installation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRELNOTES2015",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Installation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRELNOTES2014",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Installation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGCONVROUTINE",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Installation"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRFOUND",
+                "app", $$$T("Web"),
+                "book", $$$T("References"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRGLOSS",
+                "app", $$$T("Web"),
+                "book", $$$T("References"),
+                "level", $$$T("Introductory"),
+                "role", $$$T("Tools"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRHL7",
+                "app", $$$T("Web"),
+                "book", $$$T("References"),
+                "level", $$$T("Advanced"),
+                "role", $$$T("Development"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRSYSPARAM",
+                "app", $$$T("Web"),
+                "book", $$$T("References"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRSECGROUPPARAM",
+                "app", $$$T("Web"),
+                "book", $$$T("References"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KUGLAYOUT",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KUGLISTEDIT",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KUGOPTHEATER",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+
+
+    Do ..FillIn("KGLAB",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Introductory"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KMLAB",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Introductory"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRCODETABLAB",
+                "app", $$$T("Web"),
+                "book", $$$T("References"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KRCOMPLAB",
+                "app", $$$T("Web"),
+                "book", $$$T("References"),
+                "level", $$$T("Intermediate"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+    Do ..FillIn("KGSYSADMINLAB",
+                "app", $$$T("Web"),
+                "book", $$$T("Guides"),
+                "level", $$$T("Introductory"),
+                "role", $$$T("Implementation"),
+                "lang", $$$T("CSP"),
+                "product", $$$T("TrakCare"))
+
+
+    Do ..FillIn("XGBD",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "app", $$$T("Web"),
+                "lang", $$$T("Java"),
+                "lang", $$$T("DOTNET"),
+                "lang", $$$T("HTML"),
+                "lang", $$$T("ObjectScript"),
+                "lang", $$$T("PYTHON"),
+                "lang", $$$T("SQL"),
+                "lang", $$$T("XML"),
+                "level", $$$T("Advanced"),
+                "book", $$$T("Guides"))
+
+
+    Do ..FillIn("XDOCBOOK",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "app", $$$T("Web"),
+                "lang", $$$T("XML"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XTOOLS",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XOVIEW",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "lang", $$$T("XML"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XPIX",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XSTYLE",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XNEWHIRE",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "level", $$$T("Introductory"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XOWNERS",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XTAGS",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XPROC",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XREF",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XSAMPLE",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XTRAKREFGEN",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+    Do ..FillIn("XTRAKJIRA",
+                "role", $$$T("Tools"),
+                "product", $$$T("Internal"),
+                "level", $$$T("Intermediate"),
+                "book", $$$T("Guides"))
+
+
+    Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="Check">
+<Description>
+Make sure all the loaded books and articles are marked</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    Set Orphans = 0
+    For Tbl = "book", "article"
+    {
+        Set Q = "SELECT blockid FROM DocBook." _ Tbl _ " WHERE blockid IS NOT NULL"
+
+        Set RS = ##class(%Library.ResultSet).%New("%DynamicQuery:SQL")
+        Set sc = RS.Prepare(Q)
+        If ($$$ISERR(sc))
+        {
+            Write $$$T("Error attempting to prepare check query"), !
+            Do $SYSTEM.Status.DisplayError(sc)
+            Quit
+        }
+        Set sc = RS.Execute()
+        If ($$$ISERR(sc))
+        {
+            Write $$$T("Error attempting to execute check query"), !
+            Do $SYSTEM.Status.DisplayError(sc)
+            Quit
+        }
+
+        While (RS.Next())
+        {
+            Set Key = RS.GetData(1)
+            If ($DATA(^DocBook.BookList(Key)) = 0)
+            {
+                Set Orphans = Orphans + 1
+                Set Orphans(Orphans) = Key
+            }
+        }
+
+        Set RS = ""
+    }
+
+    If (Orphans > 0)
+    {
+        Write "Orphaned documents:", !
+        For i = 1 : 1 : Orphans
+        {
+            Write ?3, Orphans(i), !
+        }
+    }
+
+    Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="FillIn">
+<Description>
+Add data to the ^DocBook.BookList global</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Doc:%String,Props...:%List</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    Set n = $GET(Props, 0)
+    Set i = 1
+    While (i < n)
+    {
+        Set Name = $GET(Props(i), "Missing")
+        Set Value = $GET(Props(i + 1), "Missing")
+        If ($DATA(^||ValidValues(Name)) = 0)
+            {
+                Write "***** Missing category: ", Name, !
+            }
+        Else
+            {
+                Set Allowed = ^||ValidValues(Name)
+                If (Allowed '[ ("," _ Value _ ","))
+                {
+                    Write "***** Undefined value: ", Value, "; category: ", Name, "; allowed: ", $EXTRACT(Allowed, 2, *-1), !
+                }
+            }
+        Set ^DocBook.BookList(Doc, Name, Value) = ""
+        Set i = $INCREMENT(i, 2)
+    }
+
+    Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="Adjust">
+<Description>
+Remove the data for the missing materials.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    Set Item = ""
+    Set Item = $ORDER(^DocBook.BookList(Item))
+    While (Item '= "")
+    {
+        Set bQuery = "SELECT ID FROM DocBook.book WHERE blockid = '" _ Item _ "'"
+        Set aQuery = "SELECT ID FROM DocBook.article WHERE blockid = '" _ Item _ "'"
+
+        ;#Write Item, ": "
+
+        If (..Probe(bQuery))
+        {
+            ;# Write "Book", !
+        }
+        Elseif (..Probe(aQuery))
+        {
+            ;# Write "Article", !
+        }
+        Else
+        {
+            #;Write "Trim: ", Item, !
+            Kill ^DocBook.BookList(Item)
+            Set Item = $ORDER(^DocBook.BookList(Item))
+            CONTINUE
+        }
+
+        Set Name = ""
+        Set Name = $ORDER(^DocBook.BookList(Item,Name))
+        While (Name '= "")
+        {
+            Set Value = ""
+            Set Value = $ORDER(^DocBook.BookList(Item,Name,Value))
+            While (Value '= "")
+            {
+                Set discard = $Increment(^DocBook.BookCategory(Name,Value))
+
+                Set Value = $ORDER(^DocBook.BookList(Item,Name,Value))
+            }
+
+            Set Name = $ORDER(^DocBook.BookList(Item,Name))
+        }
+
+        Set Item = $ORDER(^DocBook.BookList(Item))
+    }
+
+    Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="Probe">
+<Description>
+SQl probe for document</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Query:%String</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+
+    Set RS = ##class(%Library.ResultSet).%New("%DynamicQuery:SQL")
+    Set sc = RS.Prepare(Query)
+    If ($$$ISERR(sc))
+    {
+        Write $$$T("Error attempting to prepare query"), !
+        Do $SYSTEM.Status.DisplayError(sc)
+        Quit 0
+    }
+    Set sc = RS.Execute()
+    If ($$$ISERR(sc))
+    {
+        Write $$$T("Error attempting to execute query"), !
+        Do $SYSTEM.Status.DisplayError(sc)
+        Quit 0
+    }
+
+    Set Count = 0
+    While (RS.Next())
+    {
+        Set Count = Count + 1
+    }
+
+    Quit Count
+
+]]></Implementation>
+</Method>
+
+<Method name="Collect">
+<Description>
+Display the stored taxonomy data</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&Entries]]></FormalSpec>
+<ReturnType/>
+<Implementation><![CDATA[
+    Set Entries = 0
+
+    Set Doc = ""
+    Set Doc = $ORDER(^DocBook.BookList(Doc))
+    While (Doc '= "")
+    {
+        Set Category = ""
+        Set Category = $ORDER(^DocBook.BookList(Doc, Category))
+        While (Category '= "")
+        {
+            Set Value = ""
+            Set Value = $ORDER(^DocBook.BookList(Doc, Category, Value))
+            While (Value '= "")
+            {
+                Set Entries($INCREMENT(Entries)) = $LISTBUILD(Doc, Category, Value)
+                Set Value = $ORDER(^DocBook.BookList(Doc, Category, Value))
+            }
+            Set Category = $ORDER(^DocBook.BookList(Doc, Category))
+        }
+        Set Doc = $ORDER(^DocBook.BookList(Doc))
+    }
+
+    Set Entries(0) = $LISTBUILD($$$T("Document"), $$$T("Category"), $$$T("Value"))
+
+    Quit
+
+]]></Implementation>
+</Method>
+
+<Method name="Show">
+<Description>
+Display the stored taxonomy data</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType/>
+<Implementation><![CDATA[
+    Set Entries = ""
+    Do ..Collect(.Entries)
+
+    Set Sep = " - "
+
+    For i = 1 : 1 : Entries
+    {
+        Set Entry = Entries(i)
+        For j = 1 : 1 : 3
+        {
+            Write:(j > 1) Sep
+            Write $LISTGET(Entry, j)
+        }
+        Write !
+    }
+
+  Quit
+
+]]></Implementation>
+</Method>
+</Class>
+</Export>

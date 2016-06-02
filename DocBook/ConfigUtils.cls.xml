@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ConfigUtils">
+<Description>
+This abstracts the location of the configuration data the DocBook uses.
+It is done this way so that we can localize all the configuration data
+references and thereby ease the transition to Cache 5.1.
+
+</Description>
+<ClassType/>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%Library.RegisteredObject</Super>
+<TimeCreated>58822,45005</TimeCreated>
+
+<Method name="LocateGlobal">
+<Description>
+This looks for the global data first in
+^DocBook.Config(...) and, failing that, in ^%SYS("DOCBOOK",...").
+If it finds either, it returns the prefix of the first one it
+finds as a string.  
+If it does not find either, it returns an empty string.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Subscript:%String=""</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    ; construct each of the references
+    set prefix50 = "^%SYS(""DOCBOOK"","
+    set ref50 = prefix50 _ Subscript _ ")"
+
+    set prefix51 = "^DocBook.Config("
+    set ref51 = prefix51  _ Subscript _ ")"
+    
+    ; test each one
+    quit:($DATA(@ref51) > 0) prefix51
+    quit:($DATA(@ref50) > 0) prefix50
+    quit ""
+    
+]]></Implementation>
+</Method>
+
+<Method name="CollectConfigParams">
+<Description>
+Collect the present settings of the various configuration parameters
+</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Sep:%String="~"</FormalSpec>
+<Private>0</Private>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set result = ""
+
+    set div = ","
+    set params = "TRACE"
+               _ div _ "WIDECHARCHECK"
+               _ div _ "PDFCHECK"
+               _ div _ "ENTITYCHECK"
+               _ div _ "INCLREMARK"
+               _ div _ "INDEXCLASS"
+               _ div _ "IGNORECOLORERROR"
+               _ div _ "SUPPRESSFRAMEWARNING"
+               _ div _ "URL"
+               _ div _ "EXPIRES"
+               _ div _ "VARYBYPARAM"
+    
+    for i = 1 : 1 : $LENGTH(params, div)
+    {
+        set name = $PIECE(params, div, i)
+        set:($LENGTH(result) > 0) result = result _ Sep
+        set result = result _ name _ " = " _ $CLASSMETHOD("DocBook.ConfigUtils", ("Get" _ name))
+    }
+    quit result
+    
+]]></Implementation>
+</Method>
+
+<Method name="DisplayConfigParams">
+<Description>
+This displays the present setings of the various configuration parameters
+</Description>
+<ClassMethod>1</ClassMethod>
+<Private>0</Private>
+<Implementation><![CDATA[
+    set separator = "~"
+    set pieces = ..CollectConfigParams(separator)
+    for i = 1 : 1 : $LENGTH(pieces, separator)
+    {
+        write $PIECE(pieces, separator, i), !
+    }
+    quit
+    
+]]></Implementation>
+</Method>
+
+<Method name="VarValue">
+<Description>
+Gets the value of the configuration variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Name:%String</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    set subscript = """" _ Name _ """"
+
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") 0
+    set ref = prefix _ subscript _ ")"
+        
+    quit +$GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetTRACE">
+<Description>
+Gets the value of the TRACE variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """TRACE"""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") 0
+    set ref = prefix _ subscript _ ")"
+        
+    quit +$GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetWIDECHARCHECK">
+<Description>
+Gets the value of the WIDECHARCHECK variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """WIDECHARCHECK"""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") 0
+    set ref = prefix _ subscript _ ")"
+        
+    quit +$GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetPDFCHECK">
+<Description>
+Gets the value of the PDFCHECK variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """PDFCHECK"""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") 0
+    set ref = prefix _ subscript _ ")"
+        
+    quit +$GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetENTITYCHECK">
+<Description>
+Gets the value of the ENTITYCHECK variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """ENTITYCHECK"""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") 0
+    set ref = prefix _ subscript _ ")"
+        
+    quit +$GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetINCLREMARK">
+<Description>
+Gets the value of the INCLREMARK variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """INCLREMARK"""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") 0
+    set ref = prefix _ subscript _ ")"
+        
+    quit +$GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetINDEXCLASS">
+<Description>
+Gets the value of the INCLREMARK variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """INDEXCLASS"""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") ""
+    set ref = prefix _ subscript _ ")"
+        
+    quit $GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetIGNORECOLORERROR">
+<Description>
+Gets the value of the IGNORECOLORERROR variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """IGNORECOLORERROR"""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") 0
+    set ref = prefix _ subscript _ ")"
+        
+    quit +$GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetSUPPRESSFRAMEWARNING">
+<Description>
+Gets the value of the SUPPRESSFRAMEWARNING variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """SUPPRESSFRAMEWARNING"""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") 0
+    set ref = prefix _ subscript _ ")"
+        
+    quit +$GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetURL">
+<Description>
+Gets the value of the URL variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """URL"""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") ""
+    set ref = prefix _ subscript _ ")"
+        
+    quit $GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetEXPIRES">
+<Description>
+Gets the value of the EXPIRES variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """EXPIRES"""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") "03600"
+    set ref = prefix _ subscript _ ")"
+        
+    quit $GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetVARYBYPARAM">
+<Description>
+Gets the value of the VARYBYPARAM variable.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """VARYBYPARAM"""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") ""
+    set ref = prefix _ subscript _ ")"
+        
+    quit $GET(@ref)
+    
+]]></Implementation>
+</Method>
+
+<Method name="GetSOURCE">
+<Description>
+Converts the search paths into a list.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec/>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """SOURCE"""
+    
+    ; init the result
+    set result = ""
+    
+    ; find out where it is
+    set prefix = ..LocateGlobal(subscript)
+    quit:(prefix = "") result
+    
+    ; see if there are any
+    set ref = prefix _ subscript _ ")"
+    set state = $DATA(@ref)
+    quit:($DATA(@ref) < 10) result
+    
+    ; iterate over them
+    set curkey = """"""
+    set ref = prefix _ subscript _ "," _ curkey _ ")"
+    set curkey = $ORDER(@ref)
+    while (curkey '= "")
+    {
+        set ref = prefix _ subscript _ "," _ """" _ curkey _ """" _ ")"
+        set candidate = $GET(@ref)
+        set curkey = $ORDER(@ref)
+        
+        set candidate = $ZSTRIP(candidate,"<>W")
+        continue:($LENGTH(candidate) = 0)
+        continue:($EXTRACT(candidate,1) = "#")
+        set result = result _ $LISTBUILD(candidate)
+    }
+        
+    quit result
+    
+]]></Implementation>
+</Method>
+</Class>
+</Export>

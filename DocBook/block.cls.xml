@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.block">
+<Description>
+The block is the basic content container for the DocBook database.</Description>
+<Abstract>1</Abstract>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<StorageStrategy>Default</StorageStrategy>
+<Super>%Library.Persistent</Super>
+<TimeCreated>58725,70059</TimeCreated>
+
+<Parameter name="EXTENTSIZE">
+<Description>
+Changes the value of the extenstize on table to avoid
+having the query optimizer call BuildValueArray during searches</Description>
+<Default>10000000</Default>
+</Parameter>
+
+<Index name="IdIndex">
+<Properties>id</Properties>
+<Unique>1</Unique>
+</Index>
+
+<Index name="bookIndex">
+<Type>bitmap</Type>
+<Properties>book</Properties>
+</Index>
+
+<Index name="bookPos">
+<Properties>book,blockpos</Properties>
+</Index>
+
+<Index name="componentIndex">
+<Type>bitmap</Type>
+<Properties>component</Properties>
+</Index>
+
+<Index name="containerIndex">
+<Type>bitmap</Type>
+<Properties>container</Properties>
+</Index>
+
+<Index name="contentIdx">
+<Type>bitmap</Type>
+<Properties>content(KEYS)</Properties>
+</Index>
+
+<Index name="titleIdx">
+<Type>bitmap</Type>
+<Properties>title(KEYS)</Properties>
+</Index>
+
+<Property name="blockpos">
+<Description>
+This block's position within its parent container.</Description>
+<Type>dbfloat</Type>
+</Property>
+
+<Property name="book">
+<Description>
+The book this block belongs to.</Description>
+<Type>book</Type>
+</Property>
+
+<Property name="component">
+<Description>
+The component (chapter,refentry, or article) this block belongs to.</Description>
+<Type>component</Type>
+</Property>
+
+<Property name="container">
+<Description>
+The parent container to which this block belongs.</Description>
+<Type>container</Type>
+</Property>
+
+<Property name="content">
+<Description>
+The text content of this block.</Description>
+<Type>DocBook.IndexedText</Type>
+<Parameter name="MAXLEN" value="32000"/>
+<Parameter name="SELECTIVITY" value="20%"/>
+</Property>
+
+<Property name="id">
+<Description>
+This is the block ID</Description>
+<Type>id</Type>
+<SqlFieldName>blockid</SqlFieldName>
+</Property>
+
+<Property name="lang">
+<Description>
+The lang attribute for this block</Description>
+<Type>cdata</Type>
+<SqlFieldName>dblang</SqlFieldName>
+</Property>
+
+<Property name="lastchange">
+<Description>
+Timestamp for this block</Description>
+<Type>%TimeStamp</Type>
+</Property>
+
+<Property name="role">
+<Description>
+The role attribute for this block</Description>
+<Type>cdata</Type>
+<SqlFieldName>dbrole</SqlFieldName>
+</Property>
+
+<Property name="remap">
+<Description>
+Used primarily on books as the primary sort key to order them in the list.</Description>
+<Type>cdata</Type>
+</Property>
+
+<Property name="sourcefile">
+<Description>
+The xml source file from where this block was loaded</Description>
+<Type>cdata</Type>
+<Parameter name="MAXLEN" value="100"/>
+</Property>
+
+<Property name="sourcetime">
+<Description>
+Timestamp of the source file for this block</Description>
+<Type>%TimeStamp</Type>
+</Property>
+
+<Property name="status">
+<Description><![CDATA[
+The status attribute for this block<br>
+Within the DocBook standard, status is only available 
+for certain elements. We define it here for consistency.]]></Description>
+<Type>cdata</Type>
+<SqlFieldName>dbstatus</SqlFieldName>
+</Property>
+
+<Property name="tagattrs">
+<Description>
+This is a reconstituted list of the attributes supplied with this block.</Description>
+<Type>%Library.List</Type>
+</Property>
+
+<Property name="title">
+<Description><![CDATA[
+Title.<br>
+Strictly speaking a block does not have title, a
+container does. This is defined here for convenience.]]></Description>
+<Type>DocBook.IndexedText</Type>
+<Parameter name="MAXLEN" value="1000"/>
+<Parameter name="SELECTIVITY" value="20%"/>
+</Property>
+
+<Property name="renderedContent">
+<Description>
+Some blocks may choose to pre-render their content for HTML
+and place it here.</Description>
+<Type>cdata</Type>
+</Property>
+
+<Method name="%OnBeforeSave">
+<Internal>1</Internal>
+<FormalSpec>insert:%Boolean</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; Set timestamp
+	Set ..lastchange = $ZDT($H,3)
+
+	#; make sure search cache is cleared
+	If ($D(^DocBook.SearchCache)) {
+		Do ##class(DocBook.UI.SearchPageZen).ClearCache()
+	}
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="HasAttr">
+<Description>
+Is there an attribute with this name</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>AttrName:%Library.String,AttrList:%Library.List</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	set result = ""
+	set attrs = AttrList
+	set tempname = "/" _ $ZCONVERT(AttrName, "U") _ "/"
+	for i = 1 : 5 : $LISTLENGTH(attrs)
+	{
+		set name = "/" _ $ZCONVERT($LIST(attrs, (i + 1)), "U") _ "/"
+		if ($ZCONVERT(name, "U") [ tempname) {
+			set result = $$$OK
+		}
+	}
+	
+	quit result
+]]></Implementation>
+</Method>
+
+<Method name="GetAttrValue">
+<Description>
+Get value for attribute with this name</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>AttrName:%Library.String,AttrList:%Library.List</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	
+	set result = ""
+	set attrs = AttrList
+	set tempname = $ZCONVERT(AttrName, "U")
+	for i = 1 : 5 : $LISTLENGTH(attrs)
+	{
+		set name = $LIST(attrs, (i + 1))
+		if ($ZCONVERT(name, "U") = tempname)
+		{
+			set result = $LIST(attrs, (i + 4))
+		}
+	}
+	
+	quit result
+]]></Implementation>
+</Method>
+
+<Method name="FmtAttrs">
+<Description>
+Render the attributes for this block</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>AttrList:%Library.List,OnlyIds:%Library.List=""</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	
+	set attrs = AttrList
+	set only = "/"
+	for i = 1 : 1 : $LISTLENGTH(OnlyIds)
+	{
+		set only = only _ $ZCONVERT($LIST(OnlyIds, i), "U") _ "/"
+	}
+	
+	set result = ""
+	; Format of the attribute list
+	; A sequence of 5-element chunks as follows: 
+	; +0 - the uri
+	; +1 - local (unqualified) name
+	; +2 - qualified name
+	; +3 - the type ("CDATA", NMTOKEN", "ENTITY", etc.)
+	; +4 - the attribute value.
+	;
+	for i = 1 : 5 : $LISTLENGTH(attrs)
+	{
+		set name = $LIST(attrs, (i + 1))
+		set proceed = 0
+		set:(OnlyIds = "") proceed = 1
+		set:((OnlyIds '= "") && (only [ ("/" _ $ZCONVERT(name, "U") _ "/"))) proceed = 1
+		if (proceed)
+		{
+			set:(result '= "") result = result _ " "
+			set result = result _ name
+			if ($LISTDATA(attrs, (i + 4)))
+			{
+				set val = $LIST(attrs, (i + 4))
+				; we could use $ISVALIDNUM to determine whether to 
+				; quote the value, but in practice it is not necessary
+				set result = result _ "=""" _ $ZCONVERT(val, "O", "HTML") _ """"
+			}
+		}
+	}
+	
+	quit result
+]]></Implementation>
+</Method>
+
+<Method name="FindId">
+<Description>
+Find a block Object ID froms its block id.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>bid:cdata</FormalSpec>
+<ReturnType>id</ReturnType>
+<Implementation><![CDATA[
+
+	Set id = ""
+	&sql(SELECT ID INTO :id FROM block WHERE blockid = :bid)
+
+	If (SQLCODE '= 0) {
+		Quit ""
+	}
+	Quit id
+]]></Implementation>
+</Method>
+
+<Method name="GetBannerInfo">
+<Description>
+Return banner info used to render the HTML page</Description>
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+	Set info.title = ""
+	Set info.booktitle = ""
+	Set info.chap = ""
+	Set info.prev = ""
+	Set info.next = ""
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRender">
+<Description>
+Render the contents of this block as HTML</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	
+	Do ..HTMLRenderContent()
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRenderContent">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	// if this block has a recognized status value, then wrap
+	// it with the appropriate DIV.
+	// This does not work with NetScape
+	//New statusmark		
+	Set statusmark = ""
+	If ((..status'="")&&%ie)
+	{
+		If ($TRANSLATE(..status, "L") [ "draft")
+		{
+			Set statusmark = "draft"
+		}
+		If ($TRANSLATE(..status, "L") [ "broken")
+		{
+			Set statusmark = "broken"
+		}
+	}
+	Write:(statusmark'="") "<DIV CLASS=""",statusmark,""">"
+	Write "<A name=""",..id,"""></A>",!
+	Write ##class(DocBook.Renderer).FilterText(..content)
+	Write:(statusmark'="") "</DIV>"
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRenderId">
+<Description><![CDATA[
+Render the object with object id 
+<varname>id</varname> as HTML.]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>id:cdata</FormalSpec>
+<Implementation><![CDATA[
+	Set block = ##class(block).%OpenId(id)
+	If (block '= "") {
+		Do block.HTMLRender()
+	}
+]]></Implementation>
+</Method>
+
+<Method name="OpenKey">
+<Description>
+Find and open a block instance given its block id
+(not its object id).</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>bid:cdata</FormalSpec>
+<ReturnType>block</ReturnType>
+<Implementation><![CDATA[	Quit ..%OpenId(..FindId(bid))
+]]></Implementation>
+</Method>
+
+<Method name="XMLRender">
+<Description>
+Render the contents of this block as DocBook XML</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	
+	Set tagtext = ..FmtAttrs(..tagattrs)
+	Set:(tagtext '= "") tagtext = " " _ tagtext
+	Write "<",..%ClassName(),tagtext,">"
+	Write ..content
+	Write "</",..%ClassName(),">",!
+]]></Implementation>
+</Method>
+
+<Method name="XMLRenderId">
+<Description><![CDATA[
+Render the block with Object Id 
+<varname>id</varname> as DocBook XML]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>id:cdata</FormalSpec>
+<Implementation><![CDATA[
+	Set block = ##class(block).%OpenId(id)
+	If (block '= "") {
+		Do block.XMLRender()
+	}
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%CacheStorage</Type>
+<DataLocation>^DocBook.blockD</DataLocation>
+<DefaultData>blockDefaultData</DefaultData>
+<IdLocation>^DocBook.blockD</IdLocation>
+<IndexLocation>^DocBook.blockI</IndexLocation>
+<StreamLocation>^DocBook.blockS</StreamLocation>
+<ExtentSize>10000000</ExtentSize>
+<Data name="Content">
+<Attribute>content</Attribute>
+<Structure>node</Structure>
+<Subscript>"content"</Subscript>
+</Data>
+<Data name="Render">
+<Attribute>renderedContent</Attribute>
+<Structure>node</Structure>
+<Subscript>"render"</Subscript>
+</Data>
+<Data name="blockDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>blockpos</Value>
+</Value>
+<Value name="3">
+<Value>book</Value>
+</Value>
+<Value name="4">
+<Value>component</Value>
+</Value>
+<Value name="5">
+<Value>container</Value>
+</Value>
+<Value name="6">
+<Value>id</Value>
+</Value>
+<Value name="7">
+<Value>lang</Value>
+</Value>
+<Value name="8">
+<Value>lastchange</Value>
+</Value>
+<Value name="9">
+<Value>role</Value>
+</Value>
+<Value name="10">
+<Value>sourcefile</Value>
+</Value>
+<Value name="11">
+<Value>sourcetime</Value>
+</Value>
+<Value name="12">
+<Value>status</Value>
+</Value>
+<Value name="13">
+<Value>title</Value>
+</Value>
+<Value name="14">
+<Value>attrgiven</Value>
+</Value>
+<Value name="15">
+<Value>tagattrs</Value>
+</Value>
+<Value name="16">
+<Value>remap</Value>
+</Value>
+</Data>
+<Property name="blockpos"/>
+<Property name="book"/>
+<Property name="component"/>
+<Property name="container"/>
+<Property name="content"/>
+<Property name="id"/>
+<Property name="lang"/>
+<Property name="lastchange"/>
+<Property name="remap"/>
+<Property name="renderedContent"/>
+<Property name="role"/>
+<Property name="sourcefile"/>
+<Property name="sourcetime"/>
+<Property name="status"/>
+<Property name="tagattrs"/>
+<Property name="title"/>
+</Storage>
+</Class>
+</Export>

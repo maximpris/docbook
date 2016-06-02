@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/axdocbook.acl" application="/csp/docbook/" default="1"><![CDATA[
+package axdocbook
+
+#--------------------
+#
+#  external functions
+#
+#--------------------
+autoload _u::find_parent_oid()	_u;
+autoload _smartinsert::tag()	_smartinsert;
+
+#---------------------------
+#
+# global constants
+#
+#---------------------------
+
+global TITLE_TAG = "title";
+global PARA_TAG = "para";
+global EMPHASIS_TAG = "emphasis";
+global INFORMALTABLE_TAG = "informaltable";
+global TABLE_TAG = "table";
+
+
+#---------------------------
+#
+# global variables
+#
+#---------------------------
+
+global globaldoc = -1;	# used by instance.acl
+
+#-----------------------
+#
+#  function definitions
+#
+#-----------------------
+
+###
+# inside_list
+#  
+#
+#  PARAMETERS: list - tagname of a particular list 
+#			   type to check against
+#
+#  DESCRIPTION: indicates whether or not the cursor 
+#				is in a list tag
+#
+#  RETURNS: 0 or 1
+#			0 - not in a list
+#			1 - in a list
+#
+#  AUTHOR:  Brian Mulloy (bmulloy@arbortext.com)
+#
+#  REVISIONS:
+#	3/8/99 initial
+# 
+
+function inside_list(list='') {
+
+	# CHANGE? should probably be part of a table of tags
+	# list of list tag names
+	local LISTS = "calloutlist|glosslist|itemizedlist|orderedlist|segmentedlist|simplelist|variablelist|procedure|bridgehead";
+	# return code
+	local rc = 0;
+	# the oid of the containing list or invalid 
+	# oid if no list
+	local list_oid = _u::find_parent_oid(LISTS)
+	
+	# if within a valid list
+	if (oid_valid(list_oid)) {
+		# if a particular list is not specified
+		if (list == "") {
+			# the caret is in one of the given list types
+			rc = 1;
+		} else {
+			# check if the current list is the one specified
+			# CHANGE? ATTN! the following probably has a hole.  
+			# If the lists are nested
+			# then list_oid will be the first list, but a
+			# parent of that may be the list being sought 
+			# should replace with another:
+			# _u::find_parent_oid(LISTS)
+			rc = (oid_name(list_oid) == list);
+		}
+	}
+
+	return rc;
+
+}
+
+
+###
+# return_key
+#  
+#
+#  PARAMETERS:
+#
+#  DESCRIPTION: carries out the functionality of 
+#				the remapped return key
+#
+#  RETURNS: 0 if default mapping should be applied,
+#	   -1 if event handled
+#
+#  AUTHOR:  Brian Mulloy (bmulloy@arbortext.com)
+#
+#  REVISIONS:
+#	3/8/99 initial
+# 
+function return_key()
+{
+	if (option("smartinsert") == "off") {
+	  return 0;	# do default action
+	}
+	if (doc_kind() == "ascii") {
+	  return 0;
+	}
+
+	# check for line-specific tags, which maintain carriage returns
+	if (oid_asis(oid_caret())) {
+		return 0;
+	}
+
+	# the following conditional group switches the return key
+	# behavior according to the tag context.  CHANGE? the following
+	# would ideally be a table of some kind from an external file
+	# which could be more easily maintained
+	
+	# if inside a table
+	if ((inside_tag(INFORMALTABLE_TAG))||(inside_tag(TABLE_TAG))) {
+		# insert a new row
+		insert_row;
+	# else if in a title
+	} else 	if (oid_name(oid_caret())==TITLE_TAG) {
+		# split title text and insert a new tag set 
+		# similar to the tag set containing the 
+		# title unless the caret is at the end 
+		# tag then just insert a para.
+
+		# store the original position
+		local orig_oid= oid_caret();
+		local orig_pos= oid_caret_pos(orig_oid);
+
+		# store the title oid and pos
+		local title_oid =_u::find_parent_oid(TITLE_TAG);
+		local title_pos = oid_caret_pos(title_oid);
+
+		local parent_oid = oid_parent(title_oid);
+		# store the title's parent tag
+		local parent_name = oid_name(parent_oid);
+
+		local do_paste=0;
+
+		# verify the title tag is valid
+		# should always be so
+		if (oid_valid(title_oid)){
+		
+			# if caret is not at the end tag
+			# it should be at the beginning or 
+			# somewhere in the middle
+			if (title_pos!=-1) {
+				# if in the middle
+				if (title_pos!=0) {
+					# select from the caret point
+					# to the start tag
+					set balancedselections=off;
+					clear_mark all;
+					mark begin;
+					goto_oid(title_oid);
+					mark end;
+					if (length($main::selection)>0) {
+						# delete the mark
+						delete_mark
+						do_paste=1;
+					}
+					set balancedselections=on;
+				}
+
+				# insert a new parent tag set
+				# this happens if the caret is at the 
+				# beginning or in the middle
+				_smartinsert::tag(parent_name, -1);
+				if (do_paste) {
+					paste;
+					goto_oid(orig_oid);
+				}
+			# if at the end of the title tag
+			} else {
+				# inset a para
+				_smartinsert::tag(PARA_TAG);
+				# this do paste should never get called
+				# CHANGE? I'm not sure why it's here
+				if (do_paste) {
+					paste;
+				}
+			}
+
+		}
+	# if inside a list
+	} else if (inside_list()) {
+		# if at the end tag
+		if (oid_caret_pos() != -1) {		
+
+			# spilt the tag
+			split;		
+
+		# if not at end tag then process the list 
+		# according to its type this means in most
+		# cases inserting the necessary list item tag
+
+		} else if (inside_list("itemizedlist") || inside_list("orderedlist")) {
+
+			_smartinsert::tag('listitem');
+
+		} else if (inside_list("calloutlist")) {
+
+			_smartinsert::tag('callout');
+
+		} else if (inside_list("glosslist")) {
+
+			_smartinsert::tag('glossentry');
+
+		} else if (inside_list("segmentedlist")) {
+
+			_smartinsert::tag('seglistitem');
+
+		} else if (inside_list("simplelist")) {
+
+			_smartinsert::tag('member');
+
+		} else if (inside_list("variablelist")) {
+
+			_smartinsert::tag('varlistentry');
+
+		} else if (inside_list("procedure")) {
+
+			_smartinsert::tag('step');
+
+		} else if (inside_list("bridgehead")) {
+
+			_smartinsert::tag('bridgehead');
+
+		}
+	# the default case
+	} else {
+		# do not split an emphasis tag
+		# leave it whole and process around it
+		# CHANGE? this should be changed to handle
+		# emphasis tags more intuitively
+		if (oid_name(oid_caret())==EMPHASIS_TAG) {
+			# move the caret outside of the emphasis tag
+			if (execute("find -t -e -noselect -nowrapscan '</[^>]+.*>|<[^>]+.*>'") == 0) {
+				# and start processing over
+				return_key();
+			}
+		}
+
+		# if not emphasis tag do a split
+		local split = execute("split");
+
+		# if the split fails, insert a para tag
+		if (split!=0) {
+			_smartinsert::tag(PARA_TAG);
+		}
+	}
+
+	# call the caret callback to reset things 
+	ui::caret_moved_callback();
+
+	return -1;	# handled event
+}
+
+###
+# shift_return_key
+#  
+#
+#  PARAMETERS: none
+#
+#  DESCRIPTION: carries out the functionality of the remapped shift+return key
+#
+#  DETAILS:
+#
+#  RETURNS: 0 if default mapping should be applied,
+#	   -1 if event handled
+#
+#  AUTHOR:  Brian Mulloy (bmulloy@arbortext.com)
+#
+#  REVISIONS:
+#	3/8/99 initial
+# 
+
+function shift_return_key()
+{
+	if (option("smartinsert") == "off") {
+	  return 0;	# do default action
+	}
+	if (doc_kind() == "ascii") {
+	  return 0;
+	}
+
+	# in a bridgehead? 
+	if (inside_list("bridgehead"))
+	{
+		# insert a para
+		_smartinsert::tag('para');
+	}
+	# otherwise if line-specific or inside a list 
+	else if (oid_asis(oid_caret()) || inside_list())
+	{
+		# then split
+		split;
+	}
+	# otherwise
+	else
+	{
+		# process like a return keystroke
+		return return_key();
+	}
+	return -1;	# handled event
+}
+
+###
+# enter_key_event
+#
+#  PARAMETERS: doc - current document
+#	       mod - 1 if shift key, 0 if not
+#	       op - callback phase, 2 to execute
+#
+#  DESCRIPTION: callback to override default behavior for enter/shift+enter
+#		keys for axdocbook documents
+#
+#  DETAILS:
+#
+#  RETURNS: 0 if default mapping should be applied,
+#	   -1 if event handled
+#
+#  AUTHOR:  Pat Sherry (psherry@arbortext.com)
+#
+#  REVISIONS:
+#	1/8/03 initial
+#
+
+function enter_key_event(doc, mod, op)
+{
+ if (op != 2) {
+    return 0;	# first call, continue
+  }
+  if (mod == 1) {
+    return shift_return_key();
+  }
+  return return_key();
+}
+]]></CSP>
+</Export>

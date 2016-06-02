@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="DocBook_UI.js" application="/csp/docbook/" default="1"><![CDATA[
+/*** Zen Module: DocBook_UI ***/
+
+self._zenClassIdx['buttonViewX'] = 'DocBook_UI_buttonViewX';
+self.DocBook_UI_buttonViewX = function(index,id) {
+	if (index>=0) {DocBook_UI_buttonViewX__init(this,index,id);}
+}
+
+self.DocBook_UI_buttonViewX__init = function(o,index,id) {
+	('undefined' == typeof _ZEN_Component_buttonView__init) ?zenMaster._ZEN_Component_buttonView__init(o,index,id):_ZEN_Component_buttonView__init(o,index,id);
+}
+function DocBook_UI_buttonViewX_serialize(set,s)
+{
+	var o = this;s[0]='904465301';s[1]=o.index;s[2]=o.id;s[3]=o.name;s[4]=set.addObject(o.parent,'parent');s[5]=set.addObject(o.composite,'composite');s[6]=o.OnGetButtonInfo;s[7]=o.align;s[8]=o.aux;s[9]=o.columns;s[10]=o.containerStyle;s[11]=(o.dragEnabled?1:0);s[12]=(o.dropEnabled?1:0);s[13]=(o.dynamic?1:0);s[14]=o.enclosingClass;s[15]=o.enclosingStyle;s[16]=o.error;s[17]=o.height;s[18]=(o.hidden?1:0);s[19]=o.hint;s[20]=o.hintClass;s[21]=o.hintStyle;s[22]=o.label;s[23]=o.labelClass;s[24]=o.labelDisabledClass;s[25]=o.labelStyle;s[26]=o.onafterdrag;s[27]=o.onbeforedrag;s[28]=o.ondrag;s[29]=o.ondrop;s[30]=o.onhide;s[31]=o.onrefresh;s[32]=o.onselect;s[33]=o.onshow;s[34]=o.onupdate;s[35]=o.overlayMode;s[36]=o.renderFlag;s[37]=o.seed;s[38]=(o.showLabel?1:0);s[39]=o.slice;s[40]=o.title;s[41]=o.tuple;s[42]=o.valign;s[43]=('boolean'==typeof o.value?(o.value?1:0):o.value);s[44]=(o.visible?1:0);s[45]=o.width;
+}
+function DocBook_UI_buttonViewX_getSettings(s)
+{
+	s['name'] = 'string';
+	this.invokeSuper('getSettings',arguments);
+}
+
+self.DocBook_UI_buttonViewX_ReallyRefreshContents = function() {
+	zenInstanceMethod(this,'ReallyRefreshContents','','',arguments);
+}
+self.DocBook_UI_buttonViewX__Loader = function() {
+	zenLoadClass('_ZEN_Component_buttonView');
+	DocBook_UI_buttonViewX.prototype = zenCreate('_ZEN_Component_buttonView',-1);
+	var p = DocBook_UI_buttonViewX.prototype;
+	if (null==p) {return;}
+	p.constructor = DocBook_UI_buttonViewX;
+	p.superClass = ('undefined' == typeof _ZEN_Component_buttonView) ? zenMaster._ZEN_Component_buttonView.prototype:_ZEN_Component_buttonView.prototype;
+	p.__ZENcomponent = true;
+	p._serverClass = 'DocBook.UI.buttonViewX';
+	p._type = 'buttonViewX';
+	p.serialize = DocBook_UI_buttonViewX_serialize;
+	p.getSettings = DocBook_UI_buttonViewX_getSettings;
+	p.ReallyRefreshContents = DocBook_UI_buttonViewX_ReallyRefreshContents;
+}
+/* EOF */]]></CSP>
+</Export>

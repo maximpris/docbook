@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ErrorLog">
+<Description>
+A list of errors found while loading the DocBook content.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%Persistent</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Property name="SourceFile">
+<Description>
+Source file containing the error</Description>
+<Type>cdata</Type>
+<Parameter name="MAXLEN" value="100"/>
+</Property>
+
+<Property name="Type">
+<Description>
+Type of error</Description>
+<Type>cdata</Type>
+<Parameter name="MAXLEN" value="100"/>
+</Property>
+
+<Property name="content">
+<Description>
+Content of the error block	</Description>
+<Type>cdata</Type>
+<Parameter name="MAXLEN" value="2000"/>
+</Property>
+
+<Property name="blockID">
+<Description>
+blockId of object containing error (if known)	</Description>
+<Type>id</Type>
+</Property>
+
+<Property name="ErrorTime">
+<Description>
+Time of the error</Description>
+<Type>%TimeStamp</Type>
+<InitialExpression>$ZDT($H,3)</InitialExpression>
+</Property>
+
+<Method name="GetCount">
+<Description>
+Returns a count of errors</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	&sql(SELECT COUNT(*) INTO :count FROM ErrorLog)
+	
+	Quit count
+]]></Implementation>
+</Method>
+
+<Method name="Reset">
+<Description>
+Reset the error log</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[	Kill ^DocBook.ErrorLogD
+]]></Implementation>
+</Method>
+
+<Method name="ResetForFile">
+<Description>
+Reset the error log for a given file</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:cdata</FormalSpec>
+<Implementation><![CDATA[
+	Set f = file // !!!
+
+	&sql(DELETE FROM ErrorLog WHERE SourceFile = :f)
+]]></Implementation>
+</Method>
+
+<Method name="AddError">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:cdata,type:cdata,content:cdata="",id:id=""</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+	Set a = file,b = type, c = content, i = id  // !!!
+
+	&sql(INSERT INTO ErrorLog (SourceFile, Type, content, blockID)
+				VALUES (:a, :b, :c, :i))
+
+	Quit SQLCODE
+]]></Implementation>
+</Method>
+
+<Method name="List">
+<Description>
+List the error log</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	&sql(DECLARE sql1 CURSOR FOR
+			SELECT %ID,SourceFile,Type,ErrorTime,content,blockID
+			INTO :id,:file,:type,:time,:content,:bid
+			FROM ErrorLog )
+
+	&sql(OPEN sql1)
+	&sql(FETCH sql1)
+	While (SQLCODE = 0) {
+		Write !,"ERROR ",id," [",file,"] --",time,!
+		Write type
+		Write:bid'="" "(",bid,")"
+		Write " ",$E(content,1,100),!
+		&sql(FETCH sql1)
+	}
+	&sql(CLOSE sql1)
+	
+	Write !,$$$T("Errors found: "), ..GetCount(), !
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ErrorLogD</DataLocation>
+<DefaultData>ErrorLogDefaultData</DefaultData>
+<IdLocation>^DocBook.ErrorLogD</IdLocation>
+<IndexLocation>^DocBook.ErrorLogI</IndexLocation>
+<StreamLocation>^DocBook.ErrorLogS</StreamLocation>
+<Data name="ErrorLogDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>ErrorTime</Value>
+</Value>
+<Value name="3">
+<Value>SourceFile</Value>
+</Value>
+<Value name="4">
+<Value>Type</Value>
+</Value>
+<Value name="5">
+<Value>content</Value>
+</Value>
+<Value name="6">
+<Value>blockID</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

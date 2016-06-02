@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.ConfigUtils">
+<Description><![CDATA[
+Utility methods for setting and getting parameters used when loading files
+into DOCBOOK. These supplement methods in <class>DocBook.ConfigUtils</class>.
+NB: The DocBook Manager does not use these following parameters: 
+EXPIRES (default caching of page served by DocBook),
+VARYBYPARAM (related to caching), 
+URL (does not appear to be used), and 
+TRACE (for debugging).]]></Description>
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%Library.RegisteredObject</Super>
+<TimeCreated>58822,45005</TimeCreated>
+
+<Method name="GetParam">
+<Description>
+GETS the value of the given parameter (or a default value if the parameter is not set).</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>paramname:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set paramname=$$$UPPER(paramname)
+
+    //branch for each parameter. 
+    //DBMBUILDVERSION
+    if (paramname = "CASESENSITIVESEARCH") {
+        set default=1
+
+    } elseif (paramname="COMPONENTSVIAFILEMGR")  {
+        set default=0
+
+    } elseif (paramname="DBMBUILDDIR")   {
+        set default=$$$DEFAULTDBMBUILDDIR
+
+    } elseif (paramname="ENTITYCHECK")   {
+        set default=0
+
+    } elseif (paramname="EXPORTBASEDIR")     {
+        set default=##class(DocBook.Manager.Utils).AppendToPath($system.Util.InstallDirectory(),"DocBookMgr")
+
+    } elseif (paramname="IGNORECOLORERROR") {
+        set default=0
+
+    } elseif (paramname="INCLREMARK") {
+        set default=0
+
+    } elseif (paramname="INDEXCLASS") {
+        if ..GetParam("LOCALE")="en-us" {
+            set default="DocBook.IndexedTextE"
+        } else {
+            set default="DocBook.IndexedTextJ"
+        }
+
+    } elseif (paramname="LOCALE") {
+        set default="en-us"
+
+    } elseif (paramname="PAGESIZE") {
+        set default=100
+
+    } elseif (paramname="PDFCHECK") {
+        set default=0
+
+    } elseif (paramname="SHOWALL") {
+        set default=0
+
+    } elseif (paramname="SHOWPORTALOPTIONS") {
+        set default=1
+
+    } elseif (paramname="PERFORCEROOT") {
+        set default="c:\Perforce"
+
+    } elseif (paramname="SUPPRESSFRAMEWARNING") {
+        set default=0
+
+    } elseif (paramname="TRACE") {
+        set default=0
+
+    } elseif (paramname="WIDECHARCHECK") {
+        set default=0
+
+    } else {
+        set default=0
+    }
+    set returnvalue=$GET(^DocBook.Config(paramname),default)
+    if ((paramname="DBMBUILDDIR") && (returnvalue="")) {
+        set returnvalue=$$$DEFAULTDBMBUILDDIR
+    }
+    quit returnvalue
+]]></Implementation>
+</Method>
+
+<Method name="SetParam">
+<Description><![CDATA[
+Sets the given parameter. The parameters and their allowed values are as follows:
+<ul>
+<li>CASESENSITIVESEARCH - boolean value</li>
+<li>COMPONENTSVIAFILEMGR - boolean </li>
+<li>DBMBUILDDIR - string - base directory from which to reload DBM source files</li>
+<li>ENTITYCHECK - boolean value</li>
+<li>EXPORTBASEDIR - string - base directory to export XML files into for PDF generation </li>
+<li>IGNORECOLORERROR - boolean value</li>
+<li>INCLREMARK - boolean value</li>
+<li>INDEXCLASS - string value -- depends on LOCALE -- should not set directly</li>
+<li>INDEXREBUILD - boolean value</li>
+<li>LOCALE - either "en-us" or "ja-jp" -- when you set this, we also set INDEXCLASS</li>
+<li>PAGESIZE - integer value</li>
+<li>PDFCHECK - boolean value</li>
+<li>PERFORCEROOT - string value, absolute path</li>
+<li>SHOWALL - boolean value</li>
+<li>SHOWPORTALOPTIONS - boolean value</li>
+<li>SUPPRESSFRAMEWARNING - boolean value</li>
+<li>SHOWALL - boolean value</li>
+<li>TRACE - boolean value</li>
+<li>WIDECHARCHECK - boolean value</li>
+</ul>]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>paramname:%String="",paramvalue:%String=""</FormalSpec>
+<Implementation><![CDATA[
+    if (paramname="") {
+        quit
+    } else {
+        set paramname=$$$UPPER(paramname)
+        set ^DocBook.Config(paramname)=paramvalue
+        if (paramname="LOCALE") {
+            if (paramvalue="ja-jp") {
+                set ^DocBook.Config("INDEXCLASS")="DocBook.IndexedTextJ"
+                set ^DocBook.Config("WIDECHARCHECK")=0
+            } else {
+                set ^DocBook.Config("INDEXCLASS")="DocBook.IndexedTextE"
+            }
+
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="BackupParams">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    set dbmdir=..GetParam("EXPORTBASEDIR")
+    set savedir=##class(DocBook.Manager.Utils).AppendToPath(dbmdir,"BACKUP")
+    do ##class(%File).CreateDirectoryChain(savedir)
+    set parmexportfile=##class(DocBook.Manager.Utils).AppendToPath(savedir,"DocBook.Config.xml")
+    
+    //use job instead of do because this method writes to the current device!!!
+    job ##class(%SYSTEM.OBJ).Export("^DocBook.Config.gbl",parmexportfile)
+
+    set exportfile2=##class(DocBook.Manager.Utils).AppendToPath(savedir,"DocBook.PDFGroups.xml")
+    job ##class(%SYSTEM.OBJ).Export("^DocBook.PDFGroups.gbl",exportfile2)
+    
+    do ##class(DocBook.Manager.PerforceUtils).WriteDBMSourceSyncBat()
+]]></Implementation>
+</Method>
+
+<Method name="ClearPath">
+<Description>
+Clears the search path and extra sources</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Clearing DocBook search path...",verbose)
+    kill ^DocBook.Config("SOURCE")
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Clearing extra sources for DocBook content...",verbose)
+    kill ^DocBook.Config("EXTRASOURCE")
+]]></Implementation>
+</Method>
+
+<Method name="AddPathItem">
+<Description>
+Add a path item: Either add a complete directory to the search path
+or add a book directory or article to the extra items.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pathitem:%String,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set pathitem=$ZSTRIP(pathitem,"<>"," ")
+    set first6=$$$UPPER($E(pathitem,1,6))
+    if (first6="EXTRA:") {
+        set extraitem=$E(pathitem,7,*)
+        if verbose { write "Adding extra source: "_extraitem,! }
+        set ^DocBook.Config("EXTRASOURCE",$I(^DocBook.Config("EXTRASOURCE"))) = pathitem
+    } else {
+        set firsttwo=$E(pathitem,1,2)
+        if ((firsttwo="\\") || (firsttwo="//")){
+            set right=$E(pathitem,2,*)
+            set pathitem=##class(DocBook.Manager.Utils).AppendToPath(..GetParam("PERFORCEROOT"),right)
+        }
+        if verbose { write "Adding: "_pathitem,! }
+        set ^DocBook.Config("SOURCE",$I(^DocBook.Config("SOURCE"))) = pathitem
+    }
+]]></Implementation>
+</Method>
+
+<Method name="DisplayPath">
+<Description>
+Writes out the path. Useful in the Terminal. Not used by the UI.</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+   if ($G(^DocBook.Config("SOURCE"),0) = 0 ) {
+       write "There are no directories on the DocBook search path", !
+   } else {
+       write "The following directories are currently on the DocBook search path:", !
+       for i=1:1:$G(^DocBook.Config("SOURCE"),0) {
+           write $G(^DocBook.Config("SOURCE",i),0), !
+       }
+   }
+   if ($G(^DocBook.Config("EXTRASOURCE"),0) = 0 ) {
+       write "There are no extra sources for DocBook content", !
+   } else {
+       write "The following extra sources are available for DocBook content:", !
+       for i=1:1:$G(^DocBook.Config("EXTRASOURCE"),0) {
+           write $G(^DocBook.Config("EXTRASOURCE",i),0), !
+       }
+   }
+]]></Implementation>
+</Method>
+
+<Method name="SetPathFromList">
+<Description>
+Used by the Zen method SetPathFromList(). </Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>list,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ..ClearPath()
+    set count=$LL(list)
+    for i=1:1:count {
+        set pathitem=$LI(list,i)
+        set pathitem=$ZSTRIP(pathitem,"<>"," ")
+        // pathitem should include :\ which would be part of any Windows absolute path
+        // come up with some better test later
+        //add path items only if they are ok
+        set ok= ((pathitem [ ":\") || (pathitem [ ":/")) 
+        if ok  {
+            do ..AddPathItem(pathitem,verbose)
+        }
+    
+    }
+    do ##class(DocBook.Manager.PerforceUtils).WriteP4SyncBat(verbose)
+    //also generate FORCE version of .bat file
+    do ##class(DocBook.Manager.PerforceUtils).WriteP4SyncBat(verbose,1)
+]]></Implementation>
+</Method>
+
+<Method name="EnableChecks">
+<Description><![CDATA[
+Used by the Zen method RestoreDefaultParams(). 
+<p>This method enables ENTITYCHECK, PDFCHECK, WIDECHARCHECK
+so that we DO check those items.
+<p>It also disables IGNORECOLORERROR and SUPPRESSFRAMEWARNING
+so that we DO NOT suppress reporting of those problems.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if verbose { 
+        write !, "Enabling entity checking"
+        write !, "Enabling PDF checking"
+        write !, "Enabling wide character checking"
+        write !, "Enabling reporting of colorization (syntax) errors"
+        write !, "Enabling reporting of frame warnings"
+    }
+    //use 1 for the first bunch so that we enable these checks
+    do ..SetParam("ENTITYCHECK",1)
+    do ..SetParam("PDFCHECK",1)
+    do ..SetParam("WIDECHARCHECK",1)
+
+    //use 0 for the next ones so that we do NOT ignore or suppress reporting 
+    do ..SetParam("IGNORECOLORERROR",0)
+    do ..SetParam("SUPPRESSFRAMEWARNING",0)
+]]></Implementation>
+</Method>
+
+<Method name="DisableChecks">
+<Description><![CDATA[
+Convenience method; disables key checks.
+This method disables ENTITYCHECK, PDFCHECK, WIDECHARCHECK
+so that we DO NOT check those items.
+<p>It also enables IGNORECOLORERROR and SUPPRESSFRAMEWARNING
+so that we SUPPRESS reporting of those problems.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean</FormalSpec>
+<Implementation><![CDATA[
+    if verbose { 
+        write !, "Disabling entity checking"
+        write !, "Disabling PDF checking"
+        write !, "Disabling wide character checking"
+        write !, "Suppressing reporting of colorization (syntax) errors"
+        write !, "Suppressing reporting of frame warnings"
+    }
+    do ..SetParam("ENTITYCHECK",0)
+    do ..SetParam("PDFCHECK",0)
+    do ..SetParam("WIDECHARCHECK",0)
+    
+    do ..SetParam("IGNORECOLORERROR",1)
+    do ..SetParam("SUPPRESSFRAMEWARNING",1)
+]]></Implementation>
+</Method>
+
+<Method name="RestoreDefaultParams">
+<Description><![CDATA[
+Utility method specific to InterSystems doc group. 
+This method sets the INDEXCLASS and INCLREMARK parameters to default values 
+and then calls <method>EnableChecks</method>.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+ do ..SetParam("INDEXREBUILD",1)
+ do ..SetParam("INCLREMARK",0)
+ do ..SetParam("SHOWALL",0)
+ do ..EnableChecks(verbose)
+]]></Implementation>
+</Method>
+
+<Method name="ClearConfig">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if verbose {
+        write !, "Killing ^DocBook.Config..."
+    }
+    set keep=..GetParam("INDEXCLASS")
+    kill ^DocBook.Config
+    if verbose {
+        write !, "Restoring required INDEXCLASS parameter... "
+    }
+    do ..SetParam("INDEXCLASS",keep)
+]]></Implementation>
+</Method>
+
+<Method name="GetEXTRASOURCE">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    ; init the subscript name
+    set subscript = """EXTRASOURCE"""
+    
+    ; init the result
+    set result = ""
+    
+    ; find out where it is
+    set prefix = ##class(DocBook.ConfigUtils).LocateGlobal(subscript)
+    quit:(prefix = "") result
+    
+    ; see if there are any
+    set ref = prefix _ subscript _ ")"
+    set state = $DATA(@ref)
+    quit:($DATA(@ref) < 10) result
+    
+    ; iterate over them
+    set curkey = """"""
+    set ref = prefix _ subscript _ "," _ curkey _ ")"
+    set curkey = $ORDER(@ref)
+    while (curkey '= "")
+    {
+        set ref = prefix _ subscript _ "," _ """" _ curkey _ """" _ ")"
+        set candidate = $GET(@ref)
+        set curkey = $ORDER(@ref)
+        
+        set candidate = $ZSTRIP(candidate,"<>W")
+        continue:($LENGTH(candidate) = 0)
+        continue:($EXTRACT(candidate,1) = "#")
+        set result = result _ $LISTBUILD(candidate)
+    }
+        
+    quit result
+]]></Implementation>
+</Method>
+</Class>
+</Export>

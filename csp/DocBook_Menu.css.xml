@@ -1,0 +1,613 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="DocBook_Menu.css" application="/csp/docbook/" default="1"><![CDATA[
+html, body {
+    -webkit-text-size-adjust: none !important; /* Prevent font scaling in landscape */
+}
+
+BODY {
+    background: #C0C0C0;
+    background-image: url(images/grad-halfgray-10x500.png);
+    background-repeat: repeat-x;
+    font-family: Verdana;
+    line-height: 110%;
+}
+
+.menu DIV.Title {
+    font-size: 10pt;
+    color: darkblue;
+    font-weight: bold;
+}
+
+.menu A.CSPMenuItem1 {
+    color: darkblue;
+    font-weight: bold;
+    font-family: Verdana;
+    text-decoration: none;
+}
+
+.menu A.CSPMenuItem2 {
+    color: darkblue;
+    font-family: Verdana;
+    text-decoration: none;
+}
+
+.menu A.CSPMenuItem3 {
+    color: darkblue;
+    font-family: Verdana;
+    text-decoration: none;
+}
+
+    .menu A.CSPMenuItem1:hover,
+    .menu A.CSPMenuItem2:hover,
+    .menu A.CSPMenuItem3:hover {
+        color: red;
+    }
+
+    .menu A.CSPMenuItem1:visited,
+    .menu A.CSPMenuItem2:visited,
+    .menu A.CSPMenuItem3:visited {
+        color: darkblue;
+    }
+
+.menu .Title A,
+.menu .Title A:visited {
+    color: darkblue;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+    .menu .Title A:hover {
+        color: red;
+        text-decoration: none;
+    }
+
+.menu INPUT {
+    color: darkblue;
+    font-size: 0.8em;
+}
+
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,300);
+
+@font-face {
+    font-family: "DINProLight";
+    src: url('fonts/DINPro-Light.woff') format('woff'), url('fonts/DINPro-Light.otf') format("opentype");
+    font-style: normal;
+    font-weight: normal;
+}
+
+.book {
+    position: absolute;
+    top: 51px;
+    bottom: 0px;
+    left: 25%;
+    right: 0px;
+    padding-top: 10px;
+    padding-left: 30px;
+    padding-right: 230px;
+    padding-bottom: 20px;
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+.menu {
+    font-family: "DINProLight", 'Open Sans' !important;
+    margin: 0 !important;
+    background: #3a3633;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    display: block;
+    overflow: hidden;
+}
+
+.desktop .menu {
+    right: 75%;
+}
+
+.mobile .menu {
+    right: 0;
+}
+
+.mobile .menu.collapsed {
+    height: 50px !important;
+    display: block;
+    overflow: hidden;
+}
+
+.menu-container .BookHeader.hid {
+    display: none;
+}
+
+.desktop .BookHeader.hid {
+    right: 75%;
+}
+
+.mobile .menu.expanded .BookHeader {
+    display: none;
+}
+
+.mobile .BookHeader.hid {
+    display: block;
+}
+
+.BookHeader {
+    position: absolute;
+    top: 0px;
+    left: 0;
+    right: 0;
+    z-index: 200;
+}
+
+.desktop .menu {
+overflow:auto!important;
+}
+.mobile .menu.expanded {
+    overflow: auto;
+    position: fixed;
+    padding-top: 0px;
+}
+
+.mobile.start-page .menu.expanded {
+    padding-top: 0px;
+}
+
+.menu-container a:hover, .menu-container a:focus {
+    text-decoration: none !important;
+}
+
+.menu-container .menuH {
+    display: none;
+    position: absolute;
+    right: 8px;
+    top: 9px;
+    padding: 10px;
+    background: #3a3633;
+}
+
+.mobile .menu-container .menuH {
+    display: block;
+}
+
+.menu-container .menuH .line {
+    background: #fff;
+    height: 2px;
+    width: 18px;
+    margin-bottom: 3px;
+    border-radius: 2px;
+}
+
+.menu-container DIV.Title {
+    padding: 12px;
+    background: #3a3633;
+    font-weight: bold;
+    font-family: 'Open Sans';
+    font-weight: normal;
+    display: block;
+    font-size: 16px;
+    color: #fff;
+    border: solid transparent;
+    border-width: 1px 0;
+    box-shadow: inset 1px 1px 0 rgba(0,0,0,.1),inset 0 -1px 0 rgba(0,0,0,.07);
+    width: 100%;
+    margin: 0 !important;
+    border-bottom: 1px solid #525151;
+}
+
+    .menu-container DIV.Title a {
+        color: #fff;
+    }
+
+
+.menu-container div.Title {
+    width: auto !important;
+}
+
+.menu-container .Title a,
+.menu-container .Title a:visited {
+    color: #fff !important;
+}
+
+.menu-container hr {
+    display: none;
+}
+
+.menu > div[nowrap]:not([id]) {
+    position: relative;
+    background: #3a3633;
+    padding-left: 30px;
+}
+
+.menu > div[nowrap][id] {
+    position: relative;
+}
+
+.menu > div[nowrap]:not([id]) img {
+    display: none;
+}
+
+.menu > div[nowrap]:not([id]) a {
+    padding: 13px 0;
+    margin-left: 5px;
+    color: #fff !important;
+    font-family: "DINProLight", 'Open Sans';
+    font-size: 14px;
+    font-weight: normal;
+    display: block;
+}
+
+    .menu > div[nowrap]:not([id]) a nobr {
+        white-space: pre-wrap !important;
+    }
+
+    .menu > div[nowrap]:not([id]) a.CSPExpandor {
+        position: absolute;
+        top: 5px;
+        left: 4px;
+        background: url('nav-expand.svg') center center no-repeat;
+        height: 0px;
+        width: 23px;
+        fill: #fff !important;
+      
+    }
+
+        .menu > div[nowrap]:not([id]) a.CSPExpandor.expand {
+            background: url('nav-collapse.svg') center 5px no-repeat;
+        }
+
+        .menu > div[nowrap]:not([id]) a.CSPExpandor.collapse {
+            background: url('nav-expand.svg') center 5px no-repeat;
+        }
+
+.start-page.mobile .menu > div[nowrap]:not([id]) a.CSPExpandor.expand,
+.start-page.mobile .menu > div[nowrap]:not([id]) a.CSPExpandor.collapse,
+.start-page.mobile .menu > div[nowrap]:not([id]) a.CSPExpandor {
+    right: 0;
+    width: auto;
+    background-size: 23px auto;
+    background-position: 0px 5px;
+}
+
+.menu > div[nowrap]:not([id]) a.CSPExpandor > img {
+    -webkit-filter: sepia(100%);
+    filter: sepia(100%);
+    width: 18px;
+    display: none;
+}
+
+.menu > div[nowrap][id] div[nowrap] {
+    background: #403f3d;
+    position: relative;
+}
+
+    .menu > div[nowrap][id] div[nowrap] a {
+        color: #fff !important;
+        font-weight: normal;
+        font-family: "DINProLight", 'Open Sans';
+        position: relative;
+        line-height: 30px !important;
+    }
+
+    .menu > div[nowrap][id] div[nowrap]:not([id]) img {
+        display: none;
+    }
+
+    .menu > div[nowrap][id] div[nowrap]:not([id]) a {
+        display: block;
+        margin-left: 45px;
+        line-height: 22px!important;
+        padding-bottom: 10px;
+        padding-top: 10px;
+        font-size: 13px;
+    }
+
+    .menu > div[nowrap][id] div[nowrap]:not([id]) nobr {
+        white-space: normal;
+        white-space: pre-wrap;
+    }
+
+    .menu > div[nowrap]:not([id]) a:hover,
+    .menu > div[nowrap][id] div[nowrap] a:hover {
+        /* color:#92d9fa!important;*/
+        color: #fff !important;
+    }
+
+.menu > div[nowrap]:not([id]):hover::before {
+    content: "";
+    background: #fff;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}
+
+.menu > div[nowrap]:not([id])::before {
+    /* content: ""; */
+    background: #fff;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}
+
+.menu > div[nowrap][id] div[nowrap]:hover::before,
+.menu .active::before {
+    content: "";
+    background: #fff;
+    top: 0;
+    position: absolute;
+    left: 0px;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}
+
+.menu .active:focus,
+.menu .active a:focus,
+.menu-container .CSPMenuItem1 {
+    outline: 0;
+}
+
+.menu-container .searchButton {
+    background: url("searchIcon.png") #70bd34 no-repeat 11px 16px;
+    color: #fff !important;
+    padding: 15px 10px;
+    position: relative;
+}
+
+    .menu-container .searchButton input {
+        color: #fff;
+        border: none;
+        background: none;
+        margin-left: 30px;
+        font-family: "DINProLight", 'Open Sans';
+        outline: 0;
+        width: calc(100% - 80px);
+        width: -webkit-calc(100% - 80px);
+        width: -moz-calc(100% - 80px);
+        width: -ms-calc(100% - 80px);
+    }
+
+.menu .searchButton a {
+    color: #fff !important;
+    font-size: 14px;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    background: rgba(255,255,255,0.3);
+    padding: 4px 14px;
+    cursor: pointer;
+    position: absolute;
+    right: 5px;
+    top: 12px;
+}
+
+
+.mobile .menu-container .searchButton {
+    background: url("searchIcon.png") #70bd34 no-repeat 11px 21px;
+}
+
+
+.mobile .menu .searchButton a {
+    top: 17px;
+}
+
+
+.menu-container .backButton {
+    font-size: 12px;
+    vertical-align: top;
+    display: inline-block;
+    background: rgba(255,255,255,0.3);
+    border-radius: 5px;
+    padding-right: 3px;
+    margin-right: 8px;
+    padding: 4px 9px;
+    margin-bottom: 10px;
+}
+
+.menu-container DIV.Title {
+    padding: 0 12px 12px 12px;
+}
+
+a[name='TreeTop'] {
+    display: block;
+    height: 0;
+}
+
+.BookHeader + hr + a[name='TreeTop'] {
+    display: block;
+    height: 51px;
+}
+
+.menu-container DIV.Title.TopOfList {
+    font-size: 14px;
+    padding-bottom: 70px !important;
+    display: block;
+    border-bottom: none;
+    border-top: 1px solid #444;
+    box-shadow: none;
+    font-family: "DINProLight", 'Open Sans';
+}
+
+.menu-container .Title span {
+    display: inline-block;
+    margin-top: 13px;
+    line-height: 24px !important;
+}
+
+.menu-container .Title a,
+.menu-container .Title a:visited {
+    margin: 0;
+    margin-top: 12px;
+    margin-right: 8px;
+    display: inline-block;
+}
+
+::-webkit-input-placeholder {
+    color: #e5e5e5;
+}
+
+::-moz-placeholder {
+    color: #e5e5e5;
+}
+/* Firefox 19+ */
+:-moz-placeholder {
+    color: #e5e5e5;
+}
+/* Firefox 18- */
+:-ms-input-placeholder {
+    color: #e5e5e5;
+}
+
+.menu.expanded {
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+DIV.Title.BookHeader {
+    margin-right: 0px !important;
+}
+
+body.start-page .BookHeader {
+    display: none !important;
+}
+
+.mobile DIV.Title.BookHeader {
+    margin-right: 0px !important;
+}
+
+.mobile.start-page .BookHeader,
+.mobile.start-page .book {
+    display: none;
+}
+
+.mobile .menu,
+.mobile .BookHeader {
+    right: 0;
+}
+
+.mobile .Title span {
+    display: inline-block;
+    margin-top: 13px;
+    line-height: 24px !important;
+}
+
+.mobile .BookHeader span {
+    overflow: hidden;
+    width: calc(100vw - 130px);
+    width: -webkit-calc(100vw - 130px);
+    width: -moz-calc(100vw - 130px);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
+}
+
+.start-page a[name='TreeTop'] {
+    display: none;
+}
+.Title.TopOfList{
+position:relative;
+}
+
+.class-reference-book,
+.Title.TopOfList .class-reference-menu{
+color:#fff!important;
+    background: rgba(255,255,255,0.3);
+    padding: 5px 7px;
+    border-radius: 5px;
+    position: absolute;
+    right: 0;
+    top: -4px;
+    font-size: 13px;
+    font-family: 'Open Sans';
+}
+
+.class-reference-book {
+font-weight:initial;
+}
+
+a[href].class-reference-book:hover,
+a[href].class-reference-book:focus,
+a[href].class-reference-book{
+	top:12px;
+right:10px;
+color:#fff!important;
+letter-spacing:0;
+text-decoration:none!important;
+}
+
+.mobile .class-reference-book{
+display:none;
+}
+
+.hide-show-left-menu{
+display:block;
+width:20px;
+height:20px;
+position:absolute;
+left:12px;
+top:17px;
+font-size:1px;
+color:#fff!important;
+text-indent: -9999px;
+background: url('back.svg') no-repeat;
+
+}
+.hide-show-left-menu.right{
+background: url('next.svg') no-repeat;
+}
+/*
+.desktop .menu.hide-menu{
+right:100%;
+transition:all 0.5s;
+}
+.desktop .menu.show-menu{
+right:75%;
+transition:all 0.5s;
+}*/
+.desktop .book.hide-menu,
+.desktop .book.hide-menu .category-name-container{
+left:0%;
+transition:all 0.5s;
+}
+
+
+.desktop .book.show-menu,
+.desktop .book.show-menu .category-name-container{
+left:25%;
+transition:all 0.5s;
+}
+
+.reset-and-go-home-page {
+    color: #fff!important;
+    background: rgba(255,255,255,0.3);
+    padding: 5px 10px;
+    border-radius: 5px;
+    position: absolute;
+    right: 120px;
+    top: -4px;
+
+    font-size: 13px;
+    font-family: 'Open Sans';
+}
+
+.class-reference-menu{
+text-align:center;
+width:100px;
+}
+.reset-and-go-home-page{
+text-align:center;
+
+}
+
+.Title.TopOfList a:hover,
+.Title.TopOfList a:focus,
+.Title.TopOfList a:active {
+color:#fff!important;
+}]]></CSP>
+</Export>

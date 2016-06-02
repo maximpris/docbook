@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.anchor">
+<Description>
+Provides a target for page-level help from the management portal</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.block</Super>
+<TimeCreated>58696,41768</TimeCreated>
+
+<Property name="target">
+<Description>
+The normalied value of the anchor target</Description>
+<Type>cdata</Type>
+<Parameter name="MAXLEN" value="32000"/>
+</Property>
+
+<Method name="Interpret">
+<Internal>1</Internal>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    set attrs = ..tagattrs
+    
+    set text = ""
+    for i = 1 : 5 : $LISTLENGTH(attrs)
+    {
+        if ($ZCONVERT($LIST(attrs, (i + 1)), "U") = "XREFLABEL")
+        {
+            set text = $LIST(attrs, (i + 4))
+            quit
+        }
+    }
+    
+    if (text = "")
+    {
+        Quit $$$ERROR($$$GeneralError,$$$T("Missing xreflabel value"))
+    }
+    
+    set ..target = ##class(DocBook.PortalUtils).Normalize(text)
+    set ..content = $$$T("Help follows for the Management Portal page: ")
+                  _ ##class(DocBook.PortalUtils).Display(..target)
+    quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRenderContent">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+    Write "<!-- --------------------------------------- -->", !
+    Write "<A name=""", $TRANSLATE(..target, ", ", "-_"), """>", "</A>", !
+
+    ;Write "<BR CLEAR=""ALL"">", !
+    ;Write "<DIV CLASS=""anchor"">", !
+    ;Write "<TABLE CELLSPACING=0 CELLPADDING=3 ALIGN=""RIGHT"">", !
+    ;Write "<TBODY>", !
+    ;Write "<TR>", !
+    ;Write "<TD CLASS=""anchor"" ALIGN=""LEFT"">", !
+    ;Write "<NOBR>", $$$T("Help follows for the Management Portal page: ") "</NOBR>", !
+    ;Write "<BR>", !
+    ;Write "<NOBR>", "&nbsp;&nbsp;", ##class(DocBook.PortalUtils).Display(..target), "&nbsp;&nbsp;", "</NOBR>", !
+    ;Write "</TD>", !
+    ;Write "</TR>", !
+    ;Write "</TBODY>", !
+    ;Write "</TABLE>", !
+    ;Write "</DIV>"
+    ;Write "<BR CLEAR=""ALL"">", !
+    
+    Write "<!-- --------------------------------------- -->", !
+    quit
+    
+]]></Implementation>
+</Method>
+
+<Method name="XMLRender">
+<Description>
+Render the contents of this block as DocBook XML</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+    set attrs = ..tagattrs
+    set displayattrs = ..FmtAttrs(attrs)
+    
+    Write "<", ..%ClassName(), " ", displayattrs, "/>",!
+
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DefaultData>anchorDefaultData</DefaultData>
+<Data name="anchorDefaultData">
+<Structure>listnode</Structure>
+<Subscript>"anchor"</Subscript>
+<Value name="1">
+<Value>target</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

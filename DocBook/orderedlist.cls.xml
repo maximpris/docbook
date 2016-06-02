@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.orderedlist">
+<Description>
+Represents a numbered list.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.container</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Method name="HTMLRenderPostChildren">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	Write "</ol>",!
+
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRenderPreChildren">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	Set typecode = "1"
+	If (..HasAttr("numeration", ..tagattrs))
+	{
+		Set fmt = ..GetAttrValue("numeration", ..tagattrs)
+		Set fmt = $ZCONVERT(fmt, "L")
+		Set:(fmt = "arabic") typecode = "1"
+		Set:(fmt = "loweralpha") typecode = "a"
+		//Set:(fmt = "upperalpha") typecode = "A"
+		//Set:(fmt = "lowerroman") typecode = "i"
+		//Set:(fmt = "upperroman") typecode = "I"
+	}
+	Write "<ol type=""", typecode, """>", !
+
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

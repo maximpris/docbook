@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.dbfloat">
+<Description>
+A simple floating point value.</Description>
+<ClassType>datatype</ClassType>
+<ClientDataType>DOUBLE</ClientDataType>
+<IncludeCode>DocBookMac</IncludeCode>
+<OdbcType>DOUBLE</OdbcType>
+<ProcedureBlock>0</ProcedureBlock>
+<SqlCategory>DOUBLE</SqlCategory>
+<TimeCreated>59241,40475</TimeCreated>
+</Class>
+</Export>

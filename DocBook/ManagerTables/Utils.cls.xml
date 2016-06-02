@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.Utils">
+<Description><![CDATA[
+Classes/tables in this package store data for use by the UI. It is very easy to display
+a table of data in Zen, if the underlying data is in a table! 
+<p>The classes/tables fall into the following categories:
+<ul>
+<li>Tables that provide information about files. 
+We regenerate these tables whenever the DocBook search path changes.
+These tables are <class>DocBook.ManagerTables.Files</class>, 
+<class>DocBook.ManagerTables.ImageFiles</class>, and
+<class>DocBook.ManagerTables.SETFiles</class>.
+</li>
+<li>Tables that we can regenerate only on demand (because they are expensive/slow to regenerate).
+These are
+<class>DocBook.ManagerTables.Listings</class> and
+<class>DocBook.ManagerTables.Graphics</class> and
+<class>DocBook.ManagerTables.IndexTerms</class> and
+<class>DocBook.ManagerTables.Links</class> and
+<class>DocBook.ManagerTables.TOC</class> and
+<class>DocBook.ManagerTables.WideChars</class>. 
+The UI (<class>DocBook.Manager.Home</class>) provides buttons to regenerate these.
+</li>
+<li>Tables that are cheap/fast to regenerate. These are 
+<class>DocBook.ManagerTables.InterfaceTags</class>, and 
+<class>DocBook.ManagerTables.Pages</class>. 
+The UI (<class>DocBook.Manager.Home</class>) regenerates them every time you
+display a tab that uses them.
+</li>
+<li>A table that displays data that is hardcoded into DOCBOOK but that we 
+need to look at. This is <class>DocBook.ManagerTables.Taxonomy</class>.
+</li>
+</ul>]]></Description>
+<Super>%RegisteredObject</Super>
+<TimeCreated>63105,40781.309141</TimeCreated>
+
+<Method name="GlobalMissing">
+<Description>
+Utility method used by a couple of the classes in this package</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>globalname:%String,verbose:%Boolean</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    if ($DATA(@globalname) = 0) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Missing global: "_globalname,verbose)
+        set missing=1
+    } else {
+        set missing=0
+    }
+    quit missing
+]]></Implementation>
+</Method>
+
+<Method name="Initialize">
+<Description><![CDATA[
+The purpose of this method is to initialize the Manager tables. This method:
+<ul>
+<li>Makes sure that users have SELECT and UPDATE privileges on all the manager tables. 
+You cannot grant privileges on a table until the table exists, so we create dummy records,
+grant privileges, and then clear the tables.</li>
+<li>Builds the taxonomy table (which is based on hardcoded data anyway).</li>
+<li>Sets the applicable global node to specify the time stamp when this method was run.
+To get this time stamp, use the method <method>GetInitializedTimeStamp</method>.</li>
+</ul>]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Initializing the DocBook Manager...",verbose)
+    do ..ClearAll(verbose) //in case we already have data in our tables
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Creating dummy records so that we have stub tables...",verbose)
+
+    set record=##class(DocBook.ManagerTables.Listings).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.DBContents).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.DrupalNodes).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.Files).%New()
+    do record.%Save()
+
+    //no need for this because the image file rescan automatically does this one, too
+    //set record=##class(DocBook.ManagerTables.Graphics).%New() 
+    //do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.ImageFiles).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.Files).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.FirstTerms).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.IndexTerms).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.Log).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.ObsoletePDFs).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.Pages).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.PDFGroups).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.SETFiles).%New()
+    do record.%Save()
+    
+    set record=##class(DocBook.ManagerTables.Taxonomy).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.TOC).%New()
+    do record.%Save()
+
+    set record=##class(DocBook.ManagerTables.WideChars).%New()
+    do record.%Save()
+    
+    do ..Grant(verbose)
+    
+    //next steps empties the tables and kills ^DocBookManager
+    do ..ClearAll(verbose,1)
+    
+    //set initialization time stamp 
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Setting the initialization time stamp...",verbose)
+    set ^DocBookManager("Initialized")=$zdt($h,3)
+    
+    do ..ReloadSavedParms(verbose)
+    
+    //do the taxo table, which we only need to do once because the data is hardcoded anyway
+    do ##class(DocBook.ManagerTables.Taxonomy).Rebuild(verbose)
+    //do the file-related tables; these will be empty unless the paths have been set (which they could be, 
+    //from before setting up the DocBook Manager
+    do ##class(DocBook.ManagerTables.Files).Rebuild(verbose)
+    //this next step also rebuilds the graphics table
+    do ##class(DocBook.ManagerTables.ImageFiles).Rebuild(verbose)
+    do ##class(DocBook.ManagerTables.SETFiles).Rebuild(verbose)
+
+    //this cache is updated when we load files, but we need to initialize it
+    do ##class(DocBook.ManagerTables.DBContents).Rebuild(verbose)
+
+    do ##class(DocBook.ManagerTables.Listings).Rebuild(verbose)
+    //do ##class(DocBook.ManagerTables.Graphics).Rebuild(verbose) ; done by imagefile scan
+    do ##class(DocBook.ManagerTables.IndexTerms).Rebuild(verbose)
+    do ##class(DocBook.ManagerTables.FirstTerms).Rebuild(verbose)
+    do ##class(DocBook.ManagerTables.Links).Rebuild(verbose)
+    do ##class(DocBook.ManagerTables.TOC).Rebuild(verbose)
+
+    //do ##class(DocBook.ManagerTables.DrupalNodes).Rebuild(verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","DONE initializing the DocBook Manager",verbose)
+]]></Implementation>
+</Method>
+
+<Method name="GetInitializedTimeStamp">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("Initialized"),"never")
+]]></Implementation>
+</Method>
+
+<Method name="GetAreWeInitialized">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    if $D(^DocBookManager) {
+        quit 1
+    } else {
+        quit 0
+    }
+]]></Implementation>
+</Method>
+
+<Method name="Grant">
+<Description><![CDATA[
+Grant SELECT and UPDATE privileges to manager tables. Used by <method>Initialize</method>.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    //more than we need (we just need SELECT)
+    do ..GrantToTable("DocBook.anchor",verbose)
+    do ..GrantToTable("DocBook.programlisting",verbose) 
+    do ..GrantToTable("DocBook.container",verbose)
+    do ..GrantToTable("DocBook.book",verbose) //(need this table for LoadAll() 
+    do ..GrantToTable("DocBook.article",verbose) //(need this table for LoadAll() 
+    do ..GrantToTable("DocBook.db_set",verbose) //(need this table for LoadAll() 
+    
+    //we select and insert to these tables
+    do ..GrantToTable("DocBook_ManagerTables.Listings",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.DBContents",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.DrupalNodes",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.Files",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.FirstTerms",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.Graphics",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.ImageFiles",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.IndexTerms",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.InterfaceTags",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.Links",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.Log",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.ObsoletePDFs",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.Pages",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.PDFGroups",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.SETFiles",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.Taxonomy",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.TOC",verbose)
+    do ..GrantToTable("DocBook_ManagerTables.WideChars",verbose)
+]]></Implementation>
+</Method>
+
+<Method name="GrantToTable">
+<Description>
+Grant SELECT and UPDATE privileges to the given table.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>tablename:%String,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    /// SELECT *****************************************************************
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Granting SELECT on "_tablename_" to all users (*)",verbose)
+    set statement = ##class(%SQL.Statement).%New()
+    set status = statement.%Prepare("GRANT SELECT ON "_tablename_" TO *")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+    do statement.%Execute()
+
+    // the special user UnknownUser is apparently NOT included in the wildcard
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Granting SELECT on "_tablename_" to UnknownUser",verbose)
+    set statement = ##class(%SQL.Statement).%New()
+    set status = statement.%Prepare("GRANT SELECT ON "_tablename_" TO UnknownUser")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+    do statement.%Execute()
+
+
+    /// UPDATE *****************************************************************
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Granting UPDATE on "_tablename_" to all users (*)",verbose)
+    set statement = ##class(%SQL.Statement).%New()
+    set status = statement.%Prepare("GRANT UPDATE ON "_tablename_" TO *")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+    do statement.%Execute()
+
+    // the special user UnknownUser is apparently NOT included in the wildcard
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Granting UPDATE on "_tablename_" to UnknownUser",verbose)
+    set statement = ##class(%SQL.Statement).%New()
+    set status = statement.%Prepare("GRANT UPDATE ON "_tablename_" TO UnknownUser")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+    do statement.%Execute()
+]]></Implementation>
+</Method>
+
+<Method name="ClearAll">
+<Description>
+Use this during testing to make sure we build caches at the right time.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0,killInitGlobal:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Clearing DocBook manager tables...",verbose)
+    do ##class(DocBook.ManagerTables.Listings).%KillExtent()
+    do ##class(DocBook.ManagerTables.DBContents).%KillExtent()
+    do ##class(DocBook.ManagerTables.DrupalNodes).%KillExtent()
+    do ##class(DocBook.ManagerTables.Files).%KillExtent()
+    do ##class(DocBook.ManagerTables.FirstTerms).%KillExtent()
+    do ##class(DocBook.ManagerTables.Graphics).%KillExtent()
+    do ##class(DocBook.ManagerTables.ImageFiles).%KillExtent()
+    do ##class(DocBook.ManagerTables.IndexTerms).%KillExtent()
+    do ##class(DocBook.ManagerTables.InterfaceTags).%KillExtent()
+    do ##class(DocBook.ManagerTables.Links).%KillExtent()
+    do ##class(DocBook.ManagerTables.Log).%KillExtent()
+    do ##class(DocBook.ManagerTables.ObsoletePDFs).%KillExtent()
+    do ##class(DocBook.ManagerTables.Pages).%KillExtent()
+    do ##class(DocBook.ManagerTables.PDFGroups).%KillExtent()
+    do ##class(DocBook.ManagerTables.SETFiles).%KillExtent()
+    do ##class(DocBook.ManagerTables.Taxonomy).%KillExtent()
+    do ##class(DocBook.ManagerTables.TOC).%KillExtent()
+    do ##class(DocBook.ManagerTables.WideChars).%KillExtent()
+    
+    //kill the global that records when all these tables were last populated
+    if killInitGlobal {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Killing ^DocBookManager (which stores time stamps)...",verbose)
+        kill ^DocBookManager
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ShowTimes">
+<Description>
+Writes output showing the time stamps for the most recent updates of the tables in this package.
+Useful to help validate that the UI is doing what it is supposed to!</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    write !, "System initialization:     ", ..GetInitializedTimeStamp()
+    write !, "Taxonomy scan:             ", ##class(DocBook.ManagerTables.Taxonomy).GetTimeStamp()
+    write !
+    write !, "Most recent file scans"
+    write !, "Books and articles:        ", ##class(DocBook.ManagerTables.Files).GetTimeStamp()
+    write !, "SETs:                      ", ##class(DocBook.ManagerTables.SETFiles).GetTimeStamp()
+    write !, "Image files:               ", ##class(DocBook.ManagerTables.ImageFiles).GetTimeStamp()
+
+    write !!, "Other most recent automatic scans"
+    write !, "Page help:                 ", ##class(DocBook.ManagerTables.Pages).GetTimeStamp()
+    write !, "Interface tags:            ", ##class(DocBook.ManagerTables.InterfaceTags).GetTimeStamp()
+
+    write !!,"Most recent on-demand scans"
+    write !, "Graphics:                  ", ##class(DocBook.ManagerTables.Graphics).GetTimeStamp()
+    //run the on-demand database scans
+    write !, "Links:                     ", ##class(DocBook.ManagerTables.Links).GetTimeStamp()
+    write !, "Program listings:          ", ##class(DocBook.ManagerTables.Listings).GetTimeStamp()
+    write !, "Table of contents:         ", ##class(DocBook.ManagerTables.TOC).GetTimeStamp()
+    write !, "Wide characters:           ", ##class(DocBook.ManagerTables.WideChars).GetTimeStamp()
+
+    write !
+]]></Implementation>
+</Method>
+
+<Method name="ReloadSavedParms">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    //reload any saved configuration data
+    set dbmdir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+    set savedir=##class(DocBook.Manager.Utils).AppendToPath(dbmdir,"BACKUP")
+    set parmexportfile=##class(DocBook.Manager.Utils).AppendToPath(savedir,"DocBook.Config.xml")
+    if ##class(%File).Exists(parmexportfile) {
+        do ##class(DocBook.Manager.ConfigUtils).ClearConfig()
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Loading config data from "_parmexportfile,verbose)
+        //use job because this method is verbose
+        job ##class(%SYSTEM.OBJ).Load(parmexportfile)
+    }
+    set exportfile2=##class(DocBook.Manager.Utils).AppendToPath(savedir,"DocBook.PDFGroups.xml")
+    if ##class(%File).Exists(exportfile2) {
+        do ##class(DocBook.Manager.ConfigUtils).ClearConfig()
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Config","Loading PDF group data from "_exportfile2,verbose)
+        //use job because this method is verbose
+        job ##class(%SYSTEM.OBJ).Load(exportfile2)
+    }
+]]></Implementation>
+</Method>
+</Class>
+</Export>

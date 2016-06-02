@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.chapter">
+<Description>
+This class represents a DocBook chapter.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.component</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Method name="GetBannerInfo">
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+	Set info.title = ..title
+	
+	If (..book '= "") {
+		Set info.booktitle = ..book.title
+	}
+	Else {
+		Set info.booktitle = ""
+	}
+
+	//!!! this is not really the chapter no!
+	Set info.chap = ..blockpos + 1
+	
+	// find prev/next chapter
+	Do ..GetNextPrevInfo(info)
+]]></Implementation>
+</Method>
+
+<Method name="GetGotoList">
+<Internal>1</Internal>
+<FormalSpec><![CDATA[&gtl:cdata]]></FormalSpec>
+<Implementation><![CDATA[
+
+	Set id = ..%Id()
+
+	// list all of the sect1 blocks
+	&sql(DECLARE G1Cursor CURSOR FOR
+		SELECT ID,blockid, title
+		INTO :sid, :key, :title
+		FROM sect1
+		WHERE container = :id
+	)
+
+	&sql(OPEN G1Cursor)
+	&sql(FETCH G1Cursor)
+
+	Set num = 1
+	While (SQLCODE = 0) {
+		Set gtl(num) = $LB("#" _ key,title)
+		&sql(FETCH G1Cursor)
+		Set num = num + 1
+	}
+
+	&sql(CLOSE G1Cursor)
+	
+	Quit
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

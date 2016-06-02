@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/xsl/xhtml/axdocbook-updates.xsl" application="/csp/docbook/" default="1"><![CDATA[
+<?xml version="1.0" encoding="utf-8"?>
+<!--Copyright Arbortext, Inc., 1999-2002-->
+
+<xsl:stylesheet
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  version="1.0">
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!-- This file contains updates/fixes (as opposed to customizations)  -->
+<!-- to the official DocBook XSL 1.50 HTML stylesheets.               -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!--  We add a line to the formal.object template (in formal.xsl)     -->
+<!--  to fix a bug where the LoT entry's link doesn't work (fixed     -->
+<!--  in some 1.51.? version of the official stylesheets).            -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<xsl:template name="formal.object">
+  <xsl:param name="placement" select="'before'"/>
+
+  <div xmlns="http://www.w3.org/1999/xhtml" class="{name(.)}">
+    <!-- the fix was to add the with-param to the following call-template -->
+    <xsl:call-template name="anchor">
+      <xsl:with-param name="conditional" select="0"/>
+    </xsl:call-template>
+    <xsl:choose>
+      <xsl:when test="$placement = 'before'">
+        <xsl:call-template name="formal.object.heading"/>
+        <xsl:apply-templates/>
+        <xsl:if test="$spacing.paras != 0"><p/></xsl:if>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:if test="$spacing.paras != 0"><p/></xsl:if>
+        <xsl:apply-templates/>
+        <xsl:call-template name="formal.object.heading"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </div>
+</xsl:template>
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!--  We add a when-case to the emphasis template (in inline.xsl)     -->
+<!--  to fix the fact that uses of emphasis' role attr to pass on     -->
+<!--  style also erroneously emitted <em>...</em> tags.               -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<xsl:template match="emphasis">
+  <span xmlns="http://www.w3.org/1999/xhtml">
+    <xsl:choose>
+      <xsl:when test="@role and $emphasis.propagates.style != 0">
+        <xsl:attribute name="class">
+          <xsl:value-of select="@role"/>
+        </xsl:attribute>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:attribute name="class">
+          <xsl:text>emphasis</xsl:text>
+        </xsl:attribute>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:call-template name="anchor"/>
+
+    <xsl:call-template name="simple.xlink">
+      <xsl:with-param name="content">
+        <xsl:choose>
+          <xsl:when test="@role = 'bold'">
+            <!-- backwards compatibility: make bold into b elements, but -->
+            <!-- don't put bold inside figure, example, or table titles -->
+            <xsl:choose>
+              <xsl:when test="local-name(..) = 'title'
+                              and (local-name(../..) = 'figure'
+                              or local-name(../..) = 'example'
+                              or local-name(../..) = 'table')">
+                <xsl:apply-templates/>
+              </xsl:when>
+              <xsl:otherwise>
+                <b><xsl:apply-templates/></b>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:when>
+          <!-- *** start of added lines to avoid unwanted emphasizing *** -->
+          <xsl:when test="@role and $emphasis.propagates.style != 0">
+            <xsl:apply-templates/>
+          </xsl:when>
+          <!-- *** end of added lines to avoid unwanted emphasizing *** -->
+          <xsl:otherwise>
+            <em><xsl:apply-templates/></em>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:with-param>
+    </xsl:call-template>
+  </span>
+</xsl:template>
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!--  Here is a template for equation (mode=label.markup)             -->
+<!--  that corrects the fact that equations w/o titles                -->
+<!--  were getting counted.                                           -->
+<!--  This should be fixed in Norm's latest stylesheets.              -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<xsl:template match="equation" mode="label.markup">
+  <xsl:variable name="pchap"
+                select="ancestor::chapter
+                        |ancestor::appendix
+                        |ancestor::article[ancestor::book]"/>
+
+  <xsl:variable name="prefix">
+    <xsl:if test="count($pchap) &gt; 0">
+      <xsl:apply-templates select="$pchap" mode="label.markup"/>
+    </xsl:if>
+  </xsl:variable>
+
+  <xsl:choose>
+    <xsl:when test="@label">
+      <xsl:value-of select="@label"/>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:choose>
+        <xsl:when test="count($pchap)>0">
+          <xsl:if test="$prefix != ''">
+            <xsl:apply-templates select="$pchap" mode="label.markup"/>
+            <xsl:apply-templates select="$pchap" mode="intralabel.punctuation"/>
+          </xsl:if>
+          <xsl:number format="1" count="equation[title]" from="chapter|appendix" level="any"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:number format="1" count="equation[title]" from="book|article" level="any"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
+</xsl:stylesheet>]]></CSP>
+</Export>

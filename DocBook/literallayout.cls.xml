@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.literallayout">
+<Description>
+Represents a chunk of text that must be rendered as is.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.block</Super>
+<TimeCreated>58696,41768</TimeCreated>
+
+<Method name="HTMLRenderContent">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+	Set mt = ""
+	//Set:(%ie||%ie6) mt = " oncontextmenu=""if (!event.ctrlKey){showContextMenu();return false;} else {menu1.style.display='none'}"""
+
+	set attrs = ..tagattrs
+	set class = "normal"
+	for i = 1 : 5 : $LISTLENGTH(attrs)
+	{
+		if ($ZCONVERT($LIST(attrs, (i + 1)), "U") = "CLASS")
+		{
+			set class = $LIST(attrs, (i + 4))
+			quit
+		}
+	}
+	set class = $ZCONVERT(class, "U")
+	
+	Write "<DIV CLASS=""literallayout""",mt,">",!
+	Write "<A name=""",..id,"""></A>",!
+	Write "<PRE CLASS=""", class, """>",..content,"</PRE>",!
+	Write "</DIV>",!
+
+]]></Implementation>
+</Method>
+
+<Method name="XMLRender">
+<Description>
+Render the contents of this block as DocBook XML</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+	set attrs = ..tagattrs
+	set class = "normal"
+	for i = 1 : 5 : $LISTLENGTH(attrs)
+	{
+		if ($ZCONVERT($LIST(attrs, (i + 1)), "U") = "CLASS")
+		{
+			set class = $LIST(attrs, (i + 4))
+			quit
+		}
+	}
+	set class = $ZCONVERT(class, "L")
+	
+	Write "<",..%ClassName()
+	Write:(class '= "") " class=""", class, """"
+	Write ">"
+	Write ..content
+	Write "</",..%ClassName(),">",!
+
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DefaultData>literallayoutDefaultData</DefaultData>
+<Data name="literallayoutDefaultData">
+<Subscript>"literallayout"</Subscript>
+<Value name="1">
+<Value>syntaxError</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

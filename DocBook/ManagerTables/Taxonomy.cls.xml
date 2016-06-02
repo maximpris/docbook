@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.Taxonomy">
+<Description><![CDATA[
+This class stores one record for each book or article. 
+For general comments, see <class>DocBook.ManagerTables.Utils</class>. ]]></Description>
+<IncludeCode>%occSAX,DocBookMac</IncludeCode>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="DocBookId">
+<Description>
+DocBookId for article or book</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100"/>
+</Property>
+
+<Property name="TaxoRole">
+<Description>
+Start all these property names with "Taxo" to avoid future annoyance with SQL,
+which has many reserved words.</Description>
+<Type>%String</Type>
+<Parameter name="XMLNAME" value="role"/>
+</Property>
+
+<Property name="TaxoProduct">
+<Type>%String</Type>
+<Parameter name="XMLNAME" value="product"/>
+</Property>
+
+<Property name="TaxoLevel">
+<Type>%String</Type>
+<Parameter name="XMLNAME" value="level"/>
+</Property>
+
+<Property name="TaxoBook">
+<Type>%String</Type>
+<Parameter name="XMLNAME" value="book"/>
+</Property>
+
+<Property name="TaxoApp">
+<Type>%String</Type>
+<Parameter name="XMLNAME" value="app"/>
+</Property>
+
+<Property name="TaxoLang">
+<Type>%String</Type>
+<Parameter name="XMLNAME" value="lang"/>
+</Property>
+
+<Method name="Rebuild">
+<Description>
+For this method, verbose is 0, 1, or 2.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.Taxonomy:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: Taxonomy scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of taxonomy items...",verbose)
+    do ..%KillExtent()
+    do ..Collect(verbose)
+
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE rebuilding taxonomy table",verbose)
+    set ^DocBookManager("LastTaxonomyScan")=$zdt($h,3)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="Initialized">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    if $D(^DocBookManager("LastTaxonomyScan")) {
+        set return=1 
+    } else {
+        set return=0 
+    }
+    quit return
+]]></Implementation>
+</Method>
+
+<Method name="GetTimeStamp">
+<Description>
+Returns time stamp of last time we scanned the taxonomy global (which we 
+should need to scan only once anyway because it is hardcoded into the DocBook application).</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastTaxonomyScan"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Method name="Collect">
+<Description>
+Copied from method of same name in DocBook.Taxonomy and modified.
+For this method, verbose is 0, 1, or 2.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    Set Doc = ""
+    Set Doc = $ORDER(^DocBook.BookList(Doc))
+    if (verbose=2) {
+        write !, "Doc:", Doc
+    }
+    While (Doc '= "")
+    {
+        if (verbose=2) {
+            write !, "in loop Doc:", Doc
+        }
+        set record = ..%New() //record in the table associated with this class
+        set record.DocBookId=Doc
+
+        Set Category = ""
+        Set Category = $ORDER(^DocBook.BookList(Doc, Category))
+        While (Category '= "")
+        {
+            if (verbose=2) {
+                write !,"    Category: ", Category
+            }
+            
+            
+            Set Value = ""
+            Set Value = $ORDER(^DocBook.BookList(Doc, Category, Value))
+            set valuelist=""
+            While (Value '= "")
+            {
+                if (verbose=2) {
+                    //write !,"        Value: ", Value
+                }
+                set valuelist=valuelist_","_Value
+                Set Value = $ORDER(^DocBook.BookList(Doc, Category, Value))
+            }
+
+            //now that we have the information, let's create a record
+            set valuelist=$ZSTRIP(valuelist,"<",",")
+            if (verbose=2) {
+                write !, "        value(s): ", valuelist 
+            }
+
+            if (Category="app") {
+                set record.TaxoApp=valuelist
+
+            } elseif (Category="book") {
+                set record.TaxoBook=valuelist
+
+            } elseif (Category="level") {
+                set record.TaxoLevel=valuelist
+    
+            } elseif (Category="lang") {
+                set record.TaxoLang=valuelist
+
+            } elseif (Category="product") {
+                set record.TaxoProduct=valuelist
+
+            } elseif (Category="role") {
+                set record.TaxoRole=valuelist
+
+            }
+
+            // go to the next category
+            Set Category = $ORDER(^DocBook.BookList(Doc, Category))
+        }
+        
+        set status= record.%Save()
+        if $$$ISERR(status) {
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.DocBookId,verbose)
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        }
+        // go to the next book or article
+        Set Doc = $ORDER(^DocBook.BookList(Doc))
+    }
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ManagerTa74DA.TaxonomyD</DataLocation>
+<DefaultData>TaxonomyDefaultData</DefaultData>
+<IdLocation>^DocBook.ManagerTa74DA.TaxonomyD</IdLocation>
+<IndexLocation>^DocBook.ManagerTa74DA.TaxonomyI</IndexLocation>
+<StreamLocation>^DocBook.ManagerTa74DA.TaxonomyS</StreamLocation>
+<ExtentSize>150</ExtentSize>
+<Data name="TaxonomyDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>DocBookId</Value>
+</Value>
+<Value name="3">
+<Value>TaxoRole</Value>
+</Value>
+<Value name="4">
+<Value>TaxoProduct</Value>
+</Value>
+<Value name="5">
+<Value>TaxoLevel</Value>
+</Value>
+<Value name="6">
+<Value>TaxoBook</Value>
+</Value>
+<Value name="7">
+<Value>TaxoApp</Value>
+</Value>
+<Value name="8">
+<Value>TaxoLang</Value>
+</Value>
+</Data>
+<Property name="%%CLASSNAME">
+<Selectivity>100.0000%</Selectivity>
+</Property>
+<Property name="DocBookId">
+<Selectivity>0.6667%</Selectivity>
+</Property>
+<Property name="TaxoApp">
+<Selectivity>6.5185%</Selectivity>
+<OutlierSelectivity>.413333:</OutlierSelectivity>
+</Property>
+<Property name="TaxoBook">
+<Selectivity>7.5000%</Selectivity>
+<OutlierSelectivity>.7:"Guides"</OutlierSelectivity>
+</Property>
+<Property name="TaxoLang">
+<Selectivity>1.8586%</Selectivity>
+<OutlierSelectivity>.386667:</OutlierSelectivity>
+</Property>
+<Property name="TaxoLevel">
+<Selectivity>9.3333%</Selectivity>
+<OutlierSelectivity>.626667:"Intermediate"</OutlierSelectivity>
+</Property>
+<Property name="TaxoProduct">
+<Selectivity>6.8889%</Selectivity>
+<OutlierSelectivity>.586667:"Cache"</OutlierSelectivity>
+</Property>
+<Property name="TaxoRole">
+<Selectivity>1.7949%</Selectivity>
+<OutlierSelectivity>.766667:"Development"</OutlierSelectivity>
+</Property>
+</Storage>
+</Class>
+</Export>

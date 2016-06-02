@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.refdescriptor">
+<Description>
+The name of the contents of a refentry.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.block</Super>
+<TimeCreated>58696,41768</TimeCreated>
+
+<Method name="HTMLRenderContent">
+<Description>
+Render the contents of this block</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	quit:($LENGTH($ZSTRIP(..content, "<>W")) = 0)
+	Write "<DIV CLASS=""refdescriptor"">"
+	Write ..content
+	Write "</DIV>",!
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

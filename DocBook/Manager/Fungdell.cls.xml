@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.Fungdell">
+<Super>%RegisteredObject</Super>
+<TimeCreated>63232,38005.156749</TimeCreated>
+
+<Method name="Setup">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+   //first specify config settings
+   do ##class(DocBook.Manager.ConfigUtils).RestoreDefaultParams(verbose)
+   do ##class(DocBook.Manager.ConfigUtils).SetParam("SHOWALL",1) ; for Josh 
+   do ##class(DocBook.Manager.ConfigUtils).ClearPath(verbose)
+   do ##class(DocBook.Manager.ConfigUtils).AddISCDir("internal","default")
+   
+   //now clear databases & load files
+   do ##class(DocBook.Manager.LoadUtils).LoadAll(verbose,1)
+]]></Implementation>
+</Method>
+</Class>
+</Export>

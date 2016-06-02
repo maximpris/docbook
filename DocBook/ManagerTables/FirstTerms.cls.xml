@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.FirstTerms">
+<Description><![CDATA[
+This class stores one record for each <firstterm> tag in the DocBook database.
+For general comments, see <class>DocBook.ManagerTables.Utils</class>. ]]></Description>
+<IncludeCode>%occSAX,DocBookMac</IncludeCode>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="FirstTerm">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="ShortContent">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="2000"/>
+</Property>
+
+<Property name="ParentTopic">
+<Description>
+Parent DocBookId. Displayed in table</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="SourceFile">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Method name="Rebuild">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.FirstTerms:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: FirstTerms scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of first terms...",verbose)
+    do ..%KillExtent()
+    do ..CheckFirstTerms(verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE scanning first terms",verbose)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="CheckFirstTerms">
+<Description>
+Looks for first terms</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    &sql(DECLARE FirstTermCursor CURSOR FOR 
+            SELECT ID, blockid, content, sourceFile
+            INTO  :id ,:key, :text, :src
+            FROM DocBook.block
+            WHERE content [ '<firstterm') 
+
+    &sql(OPEN FirstTermCursor)
+    
+    &sql(FETCH FirstTermCursor)
+    
+    While (SQLCODE = 0) 
+    {
+        set offset = 1
+        set bgnpos = $FIND(text, "<firstterm", offset)
+        While (bgnpos > 0)
+        {
+            set record=..%New()
+            set bgnpos = $FIND(text, ">", bgnpos)
+            if (bgnpos = 0) {
+                //w !, "Malformed firstterm begin tag: ", src
+                Quit
+            }
+            set endpos = $FIND(text, "</firstterm>", bgnpos)
+            if (endpos = 0) {
+                //w !, "Missing firstterm end tag: ", src
+                Quit
+            }
+            set ref = $EXTRACT(text, bgnpos, (endpos - $LENGTH("</firstterm>") - 1))
+            set record.ParentTopic=key
+            set record.SourceFile=src
+            
+            set templist=$LISTFROMSTRING(text,"</firstterm>")
+            set cleantext=$LG(templist,$LISTLENGTH(templist))
+            set record.ShortContent=$EXTRACT(cleantext,1,2000)
+
+            set cleanup=$REPLACE(ref,"<primary>","")
+            set cleanup=$REPLACE(cleanup,"</primary>","")
+            set cleanup=$REPLACE(cleanup,"</secondary>","")
+            set cleanup=$REPLACE(cleanup,"<secondary>","->")
+            set record.FirstTerm=cleanup
+            
+            set status= record.%Save()
+            if $$$ISERR(status) {
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.SourceFile_" "_record.ParentTopic_" "_record.ShortContent,verbose)
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+            }
+        
+            set offset = endpos         
+            set bgnpos = $FIND(text, "<firstterm", offset)
+        } ; end while
+
+        &sql(FETCH FirstTermCursor)
+    }
+
+    &sql(CLOSE FirstTermCursor)
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.Manager74DA.FirstTermsD</DataLocation>
+<DefaultData>FirstTermsDefaultData</DefaultData>
+<IdLocation>^DocBook.Manager74DA.FirstTermsD</IdLocation>
+<IndexLocation>^DocBook.Manager74DA.FirstTermsI</IndexLocation>
+<StreamLocation>^DocBook.Manager74DA.FirstTermsS</StreamLocation>
+<Data name="FirstTermsDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>FirstTerm</Value>
+</Value>
+<Value name="3">
+<Value>ShortContent</Value>
+</Value>
+<Value name="4">
+<Value>ParentTopic</Value>
+</Value>
+<Value name="5">
+<Value>SourceFile</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

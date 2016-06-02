@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/xsl/fo/axdocbook-updates.xsl" application="/csp/docbook/" default="1"><![CDATA[
+<?xml version="1.0" encoding="utf-8"?>
+<!--Copyright Arbortext, Inc., 1999-2002-->
+
+<xsl:stylesheet
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:fo="http://www.w3.org/1999/XSL/Format"
+  xmlns:stbl="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Table"
+  xmlns:xtbl="com.nwalsh.xalan.Table"
+  version="1.0">
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!-- This file contains updates/fixes (as opposed to customizations)  -->
+<!-- to the official DocBook XSL 1.50 FO stylesheets.                 -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!--  We have copies of two table-related templates that correct      -->
+<!--  the fact that the "frame" attribute semantically defaults       -->
+<!--  to 'all' (the 1.50.0 code assumes it defaults to 'none').       -->
+<!--                                                                  -->
+<!--  NOTE:  Even after the "entry" template is corrected in the      -->
+<!--  distribution, we will still need to have a copy in our          -->
+<!--  customization layer with the additions that handle _cellfont.   -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<xsl:template name="empty.table.cell">
+  <xsl:param name="colnum" select="0"/>
+
+  <!--xsl:variable name="frame" select="ancestor::tgroup/parent::*/@frame"/-->
+  <!-- replace above with below so that an omitted 'frame' attribute
+       is treated as 'all'.          (pbg)                             -->
+  <xsl:variable name="frame">
+    <xsl:choose>
+      <xsl:when test="ancestor::tgroup/parent::*/@frame">
+        <xsl:value-of select="ancestor::tgroup/parent::*/@frame"/>
+      </xsl:when>
+      <xsl:otherwise>all</xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:variable name="rowsep">
+    <xsl:call-template name="inherited.table.attribute">
+      <xsl:with-param name="entry" select="NOT-AN-ELEMENT-NAME"/>
+      <xsl:with-param name="colnum" select="$colnum"/>
+      <xsl:with-param name="attribute" select="'rowsep'"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:variable name="colsep">
+    <xsl:call-template name="inherited.table.attribute">
+      <xsl:with-param name="entry" select="NOT-AN-ELEMENT-NAME"/>
+      <xsl:with-param name="colnum" select="$colnum"/>
+      <xsl:with-param name="attribute" select="'colsep'"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:variable name="lastrow">
+    <xsl:choose>
+      <xsl:when test="ancestor::thead">0</xsl:when>
+      <xsl:when test="ancestor::tfoot
+                      and not(ancestor::row/following-sibling::row)">1</xsl:when>
+      <xsl:when test="not(ancestor::tfoot)
+                      and ancestor::tgroup/tfoot">0</xsl:when>
+      <xsl:when test="not(ancestor::tfoot)
+                      and not(ancestor::tgroup/tfoot)
+                      and not(ancestor::row/following-sibling::row)">1</xsl:when>
+      <xsl:otherwise>0</xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:variable name="lastcol">
+    <xsl:choose>
+      <xsl:when test="$colnum &lt; ancestor::tgroup/@cols">0</xsl:when>
+      <xsl:otherwise>1</xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <fo:table-cell text-align="center"
+                 display-align="center"
+                 xsl:use-attribute-sets="table.cell.padding">
+    <xsl:choose>
+      <xsl:when test="$frame = 'all' or $frame = 'topbot' or $frame = 'bottom'">
+        <xsl:if test="$lastrow = 0">
+          <xsl:call-template name="border">
+            <xsl:with-param name="side" select="'bottom'"/>
+          </xsl:call-template>
+        </xsl:if>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:if test="$rowsep &gt; 0">
+          <xsl:call-template name="border">
+            <xsl:with-param name="side" select="'bottom'"/>
+          </xsl:call-template>
+        </xsl:if>
+      </xsl:otherwise>
+    </xsl:choose>
+
+    <xsl:choose>
+      <xsl:when test="$frame = 'all' or $frame = 'sides'">
+        <xsl:if test="$lastcol = 0">
+          <xsl:call-template name="border">
+            <xsl:with-param name="side" select="'right'"/>
+          </xsl:call-template>
+        </xsl:if>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:if test="$colsep &gt; 0">
+          <xsl:call-template name="border">
+            <xsl:with-param name="side" select="'right'"/>
+          </xsl:call-template>
+        </xsl:if>
+      </xsl:otherwise>
+    </xsl:choose>
+
+    <fo:block/> <!-- fo:table-cell should not be empty -->
+<!--
+    <xsl:text>[e,</xsl:text>
+    <xsl:value-of select="$lastrow"/>
+    <xsl:text>,</xsl:text>
+    <xsl:value-of select="$lastcol"/>
+    <xsl:text>]</xsl:text>
+-->
+  </fo:table-cell>
+</xsl:template>
+
+<xsl:template match="entry" name="entry">
+  <xsl:param name="col" select="1"/>
+  <xsl:param name="spans"/>
+
+  <xsl:variable name="row" select="parent::row"/>
+  <xsl:variable name="group" select="$row/parent::*[1]"/>
+  <!--xsl:variable name="frame" select="ancestor::tgroup/parent::*/@frame"/-->
+  <!-- replace above with below so that an omitted 'frame' attribute
+       is treated as 'all'.    (pbg)           *********             -->
+  <xsl:variable name="frame">
+    <xsl:choose>
+      <xsl:when test="ancestor::tgroup/parent::*/@frame">
+        <xsl:value-of select="ancestor::tgroup/parent::*/@frame"/>
+      </xsl:when>
+      <xsl:otherwise>all</xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:variable name="empty.cell" select="count(node()) = 0"/>
+
+  <xsl:variable name="named.colnum">
+    <xsl:call-template name="entry.colnum"/>
+  </xsl:variable>
+
+  <xsl:variable name="entry.colnum">
+    <xsl:choose>
+      <xsl:when test="$named.colnum &gt; 0">
+        <xsl:value-of select="$named.colnum"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$col"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:variable name="entry.colspan">
+    <xsl:choose>
+      <xsl:when test="@spanname or @namest">
+        <xsl:call-template name="calculate.colspan"/>
+      </xsl:when>
+      <xsl:otherwise>1</xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:variable name="following.spans">
+    <xsl:call-template name="calculate.following.spans">
+      <xsl:with-param name="colspan" select="$entry.colspan"/>
+      <xsl:with-param name="spans" select="$spans"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:variable name="rowsep">
+    <xsl:call-template name="inherited.table.attribute">
+      <xsl:with-param name="entry" select="."/>
+      <xsl:with-param name="colnum" select="$entry.colnum"/>
+      <xsl:with-param name="attribute" select="'rowsep'"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:variable name="colsep">
+    <xsl:call-template name="inherited.table.attribute">
+      <xsl:with-param name="entry" select="."/>
+      <xsl:with-param name="colnum" select="$entry.colnum"/>
+      <xsl:with-param name="attribute" select="'colsep'"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:variable name="valign">
+    <xsl:call-template name="inherited.table.attribute">
+      <xsl:with-param name="entry" select="."/>
+      <xsl:with-param name="colnum" select="$entry.colnum"/>
+      <xsl:with-param name="attribute" select="'valign'"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:variable name="align">
+    <xsl:call-template name="inherited.table.attribute">
+      <xsl:with-param name="entry" select="."/>
+      <xsl:with-param name="colnum" select="$entry.colnum"/>
+      <xsl:with-param name="attribute" select="'align'"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:variable name="char">
+    <xsl:call-template name="inherited.table.attribute">
+      <xsl:with-param name="entry" select="."/>
+      <xsl:with-param name="colnum" select="$entry.colnum"/>
+      <xsl:with-param name="attribute" select="'char'"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:variable name="charoff">
+    <xsl:call-template name="inherited.table.attribute">
+      <xsl:with-param name="entry" select="."/>
+      <xsl:with-param name="colnum" select="$entry.colnum"/>
+      <xsl:with-param name="attribute" select="'charoff'"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:variable name="lastrow">
+    <xsl:choose>
+      <xsl:when test="ancestor::thead">0</xsl:when>
+      <xsl:when test="ancestor::tfoot
+                      and not(ancestor::row/following-sibling::row)">1</xsl:when>
+      <xsl:when test="not(ancestor::tfoot)
+                      and ancestor::tgroup/tfoot">0</xsl:when>
+      <xsl:when test="not(ancestor::tfoot)
+                      and not(ancestor::tgroup/tfoot)
+                      and not(ancestor::row/following-sibling::row)">1</xsl:when>
+      <xsl:otherwise>0</xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:variable name="lastcol">
+    <xsl:choose>
+      <xsl:when test="$col &lt; ancestor::tgroup/@cols">0</xsl:when>
+      <xsl:otherwise>1</xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:choose>
+    <xsl:when test="$spans != '' and not(starts-with($spans,'0:'))">
+      <xsl:call-template name="entry">
+        <xsl:with-param name="col" select="$col+1"/>
+        <xsl:with-param name="spans" select="substring-after($spans,':')"/>
+      </xsl:call-template>
+    </xsl:when>
+
+    <xsl:when test="$entry.colnum &gt; $col">
+      <xsl:call-template name="empty.table.cell">
+        <xsl:with-param name="colnum" select="$col"/>
+      </xsl:call-template>
+      <xsl:call-template name="entry">
+        <xsl:with-param name="col" select="$col+1"/>
+        <xsl:with-param name="spans" select="substring-after($spans,':')"/>
+      </xsl:call-template>
+    </xsl:when>
+
+    <xsl:otherwise>
+      <fo:table-cell xsl:use-attribute-sets="table.cell.padding">
+        <xsl:call-template name="anchor"/>
+
+        <xsl:choose>
+          <xsl:when test="$frame = 'all' or $frame = 'topbot' or $frame = 'bottom'">
+            <xsl:if test="$lastrow = 0">
+              <xsl:call-template name="border">
+                <xsl:with-param name="side" select="'bottom'"/>
+              </xsl:call-template>
+            </xsl:if>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:if test="$rowsep &gt; 0">
+              <xsl:call-template name="border">
+                <xsl:with-param name="side" select="'bottom'"/>
+              </xsl:call-template>
+            </xsl:if>
+          </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:choose>
+          <xsl:when test="$frame = 'all' or $frame = 'sides'">
+            <xsl:if test="$lastcol = 0">
+              <xsl:call-template name="border">
+                <xsl:with-param name="side" select="'right'"/>
+              </xsl:call-template>
+            </xsl:if>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:if test="$colsep &gt; 0">
+              <xsl:call-template name="border">
+                <xsl:with-param name="side" select="'right'"/>
+              </xsl:call-template>
+            </xsl:if>
+          </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:if test="@morerows">
+          <xsl:attribute name="number-rows-spanned">
+            <xsl:value-of select="@morerows+1"/>
+          </xsl:attribute>
+        </xsl:if>
+
+        <xsl:if test="$entry.colspan &gt; 1">
+          <xsl:attribute name="number-columns-spanned">
+            <xsl:value-of select="$entry.colspan"/>
+          </xsl:attribute>
+        </xsl:if>
+
+        <xsl:if test="$valign != ''">
+          <xsl:attribute name="display-align">
+            <xsl:choose>
+              <xsl:when test="$valign='top'">before</xsl:when>
+              <xsl:when test="$valign='middle'">center</xsl:when>
+              <xsl:when test="$valign='bottom'">after</xsl:when>
+              <xsl:otherwise>
+                <xsl:message>
+                  <xsl:text>Unexpected valign value: </xsl:text>
+                  <xsl:value-of select="$valign"/>
+                  <xsl:text>, center used.</xsl:text>
+                </xsl:message>
+                <xsl:text>center</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:attribute>
+        </xsl:if>
+
+        <xsl:if test="$align != ''">
+          <xsl:attribute name="text-align">
+            <xsl:value-of select="$align"/>
+          </xsl:attribute>
+        </xsl:if>
+
+        <xsl:if test="$char != ''">
+          <xsl:attribute name="text-align">
+            <xsl:value-of select="$char"/>
+          </xsl:attribute>
+        </xsl:if>
+
+<!--
+        <xsl:if test="@charoff">
+          <xsl:attribute name="charoff">
+            <xsl:value-of select="@charoff"/>
+          </xsl:attribute>
+        </xsl:if>
+-->
+
+        <!-- ***** first added call to handle _cellfont ***** -->
+	<xsl:call-template name="just-after-table-cell-stag"/>
+        <!-- ***** end added line ***** -->
+
+        <fo:block>
+          <!-- are we missing any indexterms? -->
+          <xsl:if test="not(preceding-sibling::entry)
+                        and not(parent::row/preceding-sibling::row)">
+            <!-- this is the first entry of the first row -->
+            <xsl:if test="ancestor::thead or
+                          (ancestor::tbody
+                           and not(ancestor::tbody/preceding-sibling::thead
+                                   or ancestor::tbody/preceding-sibling::tbody))">
+              <!-- of the thead or the first tbody -->
+              <xsl:apply-templates select="ancestor::tgroup/preceding-sibling::indexterm"/>
+            </xsl:if>
+          </xsl:if>
+
+<!--
+    <xsl:text>[</xsl:text>
+    <xsl:value-of select="$lastrow"/>
+    <xsl:text>,</xsl:text>
+    <xsl:value-of select="$lastcol"/>
+    <xsl:text>]</xsl:text>
+-->
+
+          <!--
+          <xsl:text>(</xsl:text>
+          <xsl:value-of select="$rowsep"/>
+          <xsl:text>,</xsl:text>
+          <xsl:value-of select="$colsep"/>
+          <xsl:text>)</xsl:text>
+          -->
+          <xsl:choose>
+            <xsl:when test="$empty.cell">
+              <xsl:text>&#160;</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:apply-templates/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </fo:block>
+
+        <!-- ***** second added call to handle _cellfont ***** -->
+	<xsl:call-template name="just-before-table-cell-etag"/>
+        <!-- ***** end added line ***** -->
+
+      </fo:table-cell>
+
+      <xsl:choose>
+        <xsl:when test="following-sibling::entry">
+          <xsl:apply-templates select="following-sibling::entry[1]">
+            <xsl:with-param name="col" select="$col+$entry.colspan"/>
+            <xsl:with-param name="spans" select="$following.spans"/>
+          </xsl:apply-templates>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="finaltd">
+            <xsl:with-param name="spans" select="$following.spans"/>
+            <xsl:with-param name="col" select="$col+$entry.colspan"/>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!--  Here is a copy of the tgroup template that corrects             -->
+<!--  the fact that the assignment to the "width" attribute didn't    -->
+<!--  account for multiple tgroups.  This is fixed in Norm's latest   -->
+<!--  stylesheets.                                                    -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<xsl:template match="tgroup">
+  <xsl:variable name="explicit.table.width">
+    <xsl:call-template name="dbfo-attribute">
+      <xsl:with-param name="pis"
+                      select="../processing-instruction('dbfo')"/>
+      <xsl:with-param name="attribute" select="'table-width'"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:variable name="table.width">
+    <xsl:choose>
+      <xsl:when test="$explicit.table.width != ''">
+        <xsl:value-of select="$explicit.table.width"/>
+      </xsl:when>
+      <xsl:when test="$default.table.width = ''">
+        <xsl:text>100%</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$default.table.width"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:variable name="colspecs">
+    <xsl:choose>
+      <xsl:when test="$use.extensions != 0
+                      and $tablecolumns.extension != 0">
+        <xsl:call-template name="generate.colgroup.raw">
+          <xsl:with-param name="cols" select="@cols"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="generate.colgroup">
+          <xsl:with-param name="cols" select="@cols"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:if test="position() = 1">
+    <!-- If this is the first tgroup, output the width attribute for the -->
+    <!-- surrounding fo:table. (If this isn't the first tgroup, trying   -->
+    <!-- to output the attribute will cause an error.)                   -->
+    <xsl:attribute name="width">
+      <xsl:value-of select="$table.width"/>
+    </xsl:attribute>
+  </xsl:if>
+
+  <xsl:choose>
+    <xsl:when test="$use.extensions != 0
+                    and $tablecolumns.extension != 0">
+      <xsl:choose>
+        <xsl:when test="function-available('stbl:adjustColumnWidths')">
+          <xsl:copy-of select="stbl:adjustColumnWidths($colspecs)"/>
+        </xsl:when>
+        <xsl:when test="function-available('xtbl:adjustColumnWidths')">
+          <xsl:copy-of select="xtbl:adjustColumnWidths($colspecs)"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:message terminate="yes">
+            <xsl:text>No adjustColumnWidths function available.</xsl:text>
+          </xsl:message>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:copy-of select="$colspecs"/>
+    </xsl:otherwise>
+  </xsl:choose>
+
+  <xsl:apply-templates select="thead"/>
+  <xsl:apply-templates select="tfoot"/>
+  <xsl:apply-templates select="tbody"/>
+</xsl:template>
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!--  Here is a copy of the book and equation (mode=label.markup)     -->
+<!--  templates that correct the fact that equations w/o titles       -->
+<!--  were getting counted and put into the List of Equations.        -->
+<!--  This should be fixed in Norm's latest stylesheets.              -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<xsl:template match="book">
+  <xsl:variable name="preamble"
+                select="title|subtitle|titleabbrev|bookinfo"/>
+  <xsl:variable name="content"
+                select="*[not(self::title or self::subtitle
+                            or self::titleabbrev
+                            or self::bookinfo)]"/>
+  <xsl:variable name="id">
+    <xsl:call-template name="object.id"/>
+  </xsl:variable>
+  <xsl:variable name="master-reference">
+    <xsl:call-template name="select.pagemaster"/>
+  </xsl:variable>
+
+  <xsl:if test="$preamble">
+    <fo:page-sequence id="{$id}"
+                      hyphenate="{$hyphenate}"
+                      master-reference="{$master-reference}">
+      <xsl:attribute name="language">
+        <xsl:call-template name="l10n.language"/>
+      </xsl:attribute>
+      <xsl:if test="$double.sided != 0">
+        <xsl:attribute name="force-page-count">end-on-even</xsl:attribute>
+      </xsl:if>
+
+      <xsl:apply-templates select="." mode="running.head.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <xsl:apply-templates select="." mode="running.foot.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <fo:flow flow-name="xsl-region-body">
+        <xsl:call-template name="book.titlepage"/>
+      </fo:flow>
+    </fo:page-sequence>
+  </xsl:if>
+
+  <xsl:apply-templates select="dedication" mode="dedication"/>
+
+  <xsl:variable name="toc.params">
+    <xsl:call-template name="find.path.params">
+      <xsl:with-param name="table" select="normalize-space($generate.toc)"/>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:if test="contains($toc.params, 'toc')">
+    <fo:page-sequence hyphenate="{$hyphenate}"
+                      format="i"
+                      master-reference="{$master-reference}">
+      <xsl:attribute name="language">
+        <xsl:call-template name="l10n.language"/>
+      </xsl:attribute>
+      <xsl:if test="$double.sided != 0">
+        <xsl:attribute name="force-page-count">end-on-even</xsl:attribute>
+      </xsl:if>
+
+      <xsl:apply-templates select="." mode="running.head.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <xsl:apply-templates select="." mode="running.foot.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <fo:flow flow-name="xsl-region-body">
+        <xsl:call-template name="division.toc"/>
+      </fo:flow>
+    </fo:page-sequence>
+  </xsl:if>
+
+  <xsl:if test="contains($toc.params,'figure') and .//figure">
+    <fo:page-sequence hyphenate="{$hyphenate}"
+                      format="i"
+                      master-reference="{$master-reference}">
+      <xsl:attribute name="language">
+        <xsl:call-template name="l10n.language"/>
+      </xsl:attribute>
+      <xsl:if test="$double.sided != 0">
+        <xsl:attribute name="force-page-count">end-on-even</xsl:attribute>
+      </xsl:if>
+
+      <xsl:apply-templates select="." mode="running.head.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <xsl:apply-templates select="." mode="running.foot.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <fo:flow flow-name="xsl-region-body">
+        <xsl:call-template name="list.of.titles">
+          <xsl:with-param name="titles" select="'figure'"/>
+          <xsl:with-param name="nodes" select=".//figure"/>
+        </xsl:call-template>
+      </fo:flow>
+    </fo:page-sequence>
+  </xsl:if>
+
+  <xsl:if test="contains($toc.params,'table') and .//table">
+    <fo:page-sequence hyphenate="{$hyphenate}"
+                      format="i"
+                      master-reference="{$master-reference}">
+      <xsl:attribute name="language">
+        <xsl:call-template name="l10n.language"/>
+      </xsl:attribute>
+      <xsl:if test="$double.sided != 0">
+        <xsl:attribute name="force-page-count">end-on-even</xsl:attribute>
+      </xsl:if>
+
+      <xsl:apply-templates select="." mode="running.head.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <xsl:apply-templates select="." mode="running.foot.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <fo:flow flow-name="xsl-region-body">
+        <xsl:call-template name="list.of.titles">
+          <xsl:with-param name="titles" select="'table'"/>
+          <xsl:with-param name="nodes" select=".//table"/>
+        </xsl:call-template>
+      </fo:flow>
+    </fo:page-sequence>
+  </xsl:if>
+
+  <xsl:if test="contains($toc.params,'example') and .//example">
+    <fo:page-sequence hyphenate="{$hyphenate}"
+                      format="i"
+                      master-reference="{$master-reference}">
+      <xsl:attribute name="language">
+        <xsl:call-template name="l10n.language"/>
+      </xsl:attribute>
+      <xsl:if test="$double.sided != 0">
+        <xsl:attribute name="force-page-count">end-on-even</xsl:attribute>
+      </xsl:if>
+
+      <xsl:apply-templates select="." mode="running.head.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <xsl:apply-templates select="." mode="running.foot.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <fo:flow flow-name="xsl-region-body">
+        <xsl:call-template name="list.of.titles">
+          <xsl:with-param name="titles" select="'example'"/>
+          <xsl:with-param name="nodes" select=".//example"/>
+        </xsl:call-template>
+      </fo:flow>
+    </fo:page-sequence>
+  </xsl:if>
+
+  <xsl:if test="contains($toc.params,'equation') and .//equation">
+    <fo:page-sequence hyphenate="{$hyphenate}"
+                      format="i"
+                      master-reference="{$master-reference}">
+      <xsl:attribute name="language">
+        <xsl:call-template name="l10n.language"/>
+      </xsl:attribute>
+      <xsl:if test="$double.sided != 0">
+        <xsl:attribute name="force-page-count">end-on-even</xsl:attribute>
+      </xsl:if>
+
+      <xsl:apply-templates select="." mode="running.head.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <xsl:apply-templates select="." mode="running.foot.mode">
+        <xsl:with-param name="master-reference" select="$master-reference"/>
+      </xsl:apply-templates>
+      <fo:flow flow-name="xsl-region-body">
+        <xsl:call-template name="list.of.titles">
+          <xsl:with-param name="titles" select="'equation'"/>
+          <!-- Fix is to add [title] to next line  ***********  -->
+          <xsl:with-param name="nodes" select=".//equation[title]"/>
+        </xsl:call-template>
+      </fo:flow>
+    </fo:page-sequence>
+  </xsl:if>
+
+  <xsl:apply-templates select="$content"/>
+</xsl:template>
+
+<xsl:template match="equation" mode="label.markup">
+  <xsl:variable name="pchap"
+                select="ancestor::chapter
+                        |ancestor::appendix
+                        |ancestor::article[ancestor::book]"/>
+
+  <xsl:variable name="prefix">
+    <xsl:if test="count($pchap) &gt; 0">
+      <xsl:apply-templates select="$pchap" mode="label.markup"/>
+    </xsl:if>
+  </xsl:variable>
+
+  <xsl:choose>
+    <xsl:when test="@label">
+      <xsl:value-of select="@label"/>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:choose>
+        <xsl:when test="count($pchap)>0">
+          <xsl:if test="$prefix != ''">
+            <xsl:apply-templates select="$pchap" mode="label.markup"/>
+            <xsl:apply-templates select="$pchap" mode="intralabel.punctuation"/>
+          </xsl:if>
+          <xsl:number format="1" count="equation[title]" from="chapter|appendix" level="any"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:number format="1" count="equation[title]" from="book|article" level="any"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
+
+</xsl:stylesheet>]]></CSP>
+</Export>

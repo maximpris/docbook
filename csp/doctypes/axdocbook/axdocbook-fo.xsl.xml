@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/axdocbook-fo.xsl" application="/csp/docbook/" default="1"><![CDATA[
+<?xml version="1.0" encoding="utf-8"?>
+<!--Copyright Arbortext, Inc., 1999-2002-->
+<!DOCTYPE xsl:stylesheet>
+
+<?APT StylesheetID Title="DocBook XSL-FO" CompositionTypes="print,pdf,xsl"?>
+
+<xsl:stylesheet
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:fo="http://www.w3.org/1999/XSL/Format"
+  version="1.0">
+
+<!-- ================================================================ 
+
+     This file is the root file for the axdocbook doctype's XSL FO
+     stylesheet.  It provides a customization layer on top of the
+     official DocBook XSL FO stylesheets distributed by the OASIS
+     DocBook Technical Committee.
+
+     ================================================================ -->
+
+<xsl:import href="../xdocbook/xsl/fo/docbook.xsl"/>
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!-- Import a library file that defines processing for Epic PIs.      -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<xsl:import href="../../lib/xsl/fo/pi.xsl"/>
+<xsl:param name="Use-atievent-elements" select="''"/>
+
+<!-- Provide some defaults for some variables used by the previously  -->
+<!-- imported stylesheet that handles Epic processing instructions.   -->
+
+<xsl:param name="fg2bg_colorizer">
+  <xsl:text> bgreen=#c0ffc0; gray3=#d0d0d0; green=#c0ffc0;</xsl:text>
+  <xsl:text> lime=#e0ffe0; bviolet=#ffc0ff; gray4=#c0c0c0;</xsl:text>
+  <xsl:text> maroon=#c08080; navy=#a0a0c0; bred=#ffc0cb;</xsl:text>
+  <xsl:text> borange=#ffc097; gray5=#b0b0b0; olive=#cccc00;</xsl:text>
+  <xsl:text> red=#ffc0cb; byellow=#ffffc0; bwhite=#ffffff;</xsl:text>
+  <xsl:text> bbrown=#deb887; bblack=#808080; black=#808080;</xsl:text>
+  <xsl:text> brown=#deb887; teal=#00e0e0; violet=#ffc0ff;</xsl:text>
+  <xsl:text> white=#ffffff; bblue=#c0c0ff; blue=#c0c0ff;</xsl:text>
+  <xsl:text> orange=#ffc097; aqua=#d0ffff; gray1=#f0f0f0;</xsl:text>
+  <xsl:text> bgray=#d0d0d0; gray2=#e0e0e0; gray=#d0d0d0; yellow=#ffffc0;</xsl:text>
+</xsl:param>
+
+<xsl:param name="fg_colorizer">
+  <xsl:text> lime=#00ff00; green=#008000; gray3=#c0c0c0;</xsl:text>
+  <xsl:text> navy=#000080; maroon=#800000; gray4=#b0b0b0;</xsl:text>
+  <xsl:text> red=#ff0000; olive=#808000; gray5=#808080;</xsl:text>
+  <xsl:text> white=#ffffff; violet=#ff00ff; teal=#008080;</xsl:text>
+  <xsl:text> brown=#804000; black=#000000; orange=#ff8000;</xsl:text>
+  <xsl:text> blue=#0000ff; gray1=#e0e0e0; aqua=#00ffff;</xsl:text>
+  <xsl:text> yellow=#ffff00; gray=#c0c0c0; gray2=#d0d0d0;</xsl:text>
+</xsl:param>
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!-- Include a library file that defines some version info variables. -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<xsl:include href="../../lib/xsl/common/version.xsl"/>
+
+<!-- =================================================================
+     The next template emits a comment giving version info
+     and then calls the real template for / from docbook.xsl. 
+     As of 2001 June 14, our Xalan serializer doesn't emit
+     comments, so this comment is never sent to the resulting FO file.
+     ================================================================= -->
+
+<xsl:template match="/">
+<xsl:comment> **********************************************************
+	<xsl:value-of select="$generator-product-name"/>
+	<xsl:text> </xsl:text>
+	<xsl:value-of select="$generator-version-no"/>
+     ********************************************************** </xsl:comment>
+    <xsl:apply-imports/>
+</xsl:template>
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!-- Make sure PI's controlling output escaping are passed through    -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<xsl:template match="processing-instruction('javax.xml.transform.disable-output-escaping')">
+    <xsl:copy-of select="."/>
+</xsl:template>
+
+<xsl:template match="processing-instruction('javax.xml.transform.enable-output-escaping')">
+    <xsl:copy-of select="."/>
+</xsl:template>
+
+
+<!-- ================================================================ 
+     The DocBook stylesheets have been setup to allow for specialized
+     "template-driven" customization of certain things such as the titlepage.
+     See http://nwalsh.com/docs/articles/dbdesign/#selfcust for a discussion.
+     Our files related to "template-driven" customizations reside in a 
+     "xsl/templates" subdirectory of the directory in which this file is found.  
+
+     In the fo sub-subdirectory therein, one will generally find a
+     foo.templates.xml file (e.g., titlepage.templates.xml) which is
+     the "source" file describing a certain desired result.  That file
+     is used as the input XML file for an XSLT transformation whose input
+     XSL file is the corresponding one in ../xsldocbook10/templates (e.g.,
+     titlepage.xsl).  The resulting foo.templates.xsl file generated by this
+     XSLT run (e.g., titlepage.templates.xsl) is put into the templates/fo
+     subdirectory.  That file is then included immediately below.
+
+     Currently, our template-driven customizations consist of the following:
+     * one for titlepage whose modifications are the following:
+       - copies graphics in the input onto the resulting titlepage
+     ================================================================ -->
+
+<xsl:include href="xsl/templates/fo/titlepage.templates.xsl"/>
+
+<!-- ================================================================ -->
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!-- Here we include overriding templates that update those in        -->
+<!-- the distributed stylesheets.                                     -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+<!-- ================================================================ -->
+
+<xsl:include href="xsl/fo/axdocbook-updates.xsl"/>
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!-- We augment the emphasis template so that we can support          -->
+<!-- our extended role values of 'red' and 'blue' as well as          -->
+<!-- roles of italic and strong.                                      -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<xsl:template match="emphasis">
+  <xsl:variable name="depth">
+    <xsl:call-template name="dot.count">
+      <xsl:with-param name="string"><xsl:number level="multiple"/></xsl:with-param>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:choose>
+    <xsl:when test="@role='bold'">
+      <xsl:call-template name="inline.boldseq"/>
+    </xsl:when>
+    <xsl:when test="@role='underline'">
+      <fo:inline text-decoration="underline">
+        <xsl:call-template name="inline.charseq"/>
+      </fo:inline>
+    </xsl:when>
+    <xsl:when test="@role='strikethrough'">
+      <fo:inline text-decoration="line-through">
+        <xsl:call-template name="inline.charseq"/>
+      </fo:inline>
+    </xsl:when>
+    <!-- begin ATI addition -->
+    <xsl:when test="@role='blue'">
+      <fo:inline color="blue">
+        <xsl:call-template name="inline.charseq"/>
+      </fo:inline>
+    </xsl:when>
+    <xsl:when test="@role='red'">
+      <fo:inline color="red">
+        <xsl:call-template name="inline.charseq"/>
+      </fo:inline>
+    </xsl:when>
+    <xsl:when test="@role='strong'">
+      <xsl:call-template name="inline.boldseq"/>
+    </xsl:when>
+    <xsl:when test="@role='italic'">
+      <xsl:call-template name="inline.italicseq"/>
+    </xsl:when>
+    <!-- end ATI addition -->
+    <xsl:otherwise>
+      <xsl:choose>
+        <xsl:when test="$depth mod 2 = 1">
+          <fo:inline font-style="normal">
+            <xsl:apply-templates/>
+          </fo:inline>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="inline.italicseq"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!-- Set use.extensions=1 so that we take advantage of extensions,    -->
+<!-- but only do this if the appropriate extension functions are      -->
+<!-- really available for the current XSLT processor.                 -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<xsl:param name="use.extensions" 
+	xmlns:stbl="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Table"
+	xmlns:xtbl="com.nwalsh.xalan.Table">
+  <xsl:choose>
+    <xsl:when test="function-available('stbl:convertLength')">1</xsl:when>
+    <xsl:when test="function-available('xtbl:convertLength')">1</xsl:when>
+    <xsl:otherwise>0</xsl:otherwise>
+  </xsl:choose>
+</xsl:param>
+
+<!-- ================================================================ -->
+<!--                                                                  -->
+<!-- Here down, we take advantage of various variables in             -->
+<!-- the DocBook stylesheet code to make customizations.              -->
+<!--                                                                  -->
+<!-- ================================================================ -->
+
+<!-- Set toc generation parameter -->
+<xsl:param name="generate.toc">
+set       toc
+book      toc,figure,table,example,equation
+/preface  toc
+/chapter  toc
+/appendix toc
+/article  toc
+/section  toc
+/part     toc,figure,example,table,equation
+/reference toc,figure,example,table,equation
+</xsl:param>
+
+<!-- set up for sections to be auto numbered and include chapter number -->
+<xsl:param name="section.autolabel" select="1"/>
+<xsl:param name="section.label.includes.component.label" select="1"/>
+
+<!-- set left and right page margins to match the FOSI -->
+<xsl:param name="page.margin.inner" select="'1in'"/>
+<xsl:param name="page.margin.outer" select="'1in'"/>
+
+<!-- set the ulink.hyphenate parameter to the zero width space -->
+<xsl:param name="ulink.hyphenate" select="'&#x200B;'"/>
+
+</xsl:stylesheet>
+]]></CSP>
+</Export>

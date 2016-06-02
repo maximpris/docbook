@@ -1,0 +1,2434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.DrupalNodes">
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%Persistent</Super>
+<TimeCreated>63837,84421.241373</TimeCreated>
+
+<Property name="blockid">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="3000"/>
+</Property>
+
+<Index name="blockidIDX">
+<PrimaryKey>1</PrimaryKey>
+<Properties>blockid</Properties>
+</Index>
+
+<Property name="blocktype">
+<Type>%String</Type>
+</Property>
+
+<Index name="blocktypeIDX">
+<Type>bitmap</Type>
+<Properties>blocktype</Properties>
+</Index>
+
+<Property name="title">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="3000"/>
+</Property>
+
+<Property name="content">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="300000"/>
+</Property>
+
+<Property name="product">
+<Type>%String</Type>
+</Property>
+
+<Index name="productIDX">
+<Type>bitmap</Type>
+<Properties>product</Properties>
+</Index>
+
+<Property name="keywords">
+<Description>
+comma-separated list</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Property name="derivedkeywords">
+<Description>
+comma-separated list</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Property name="detaillevel">
+<Type>%String</Type>
+</Property>
+
+<Index name="detaillevelIDX">
+<Type>bitmap</Type>
+<Properties>detaillevel</Properties>
+</Index>
+
+<Property name="usecases">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="500"/>
+</Property>
+
+<Index name="usecaseIDX">
+<Type>bitmap</Type>
+<Properties>usecases</Properties>
+</Index>
+
+<Property name="rank">
+<Type>%Integer</Type>
+</Property>
+
+<Index name="rankIDX">
+<Type>bitmap</Type>
+<Properties>rank</Properties>
+</Index>
+
+<Method name="Rebuild">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0,classify:%Boolean=1</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Starting to build Drupal nodes...",verbose)
+    kill $$$DocGbl
+    do ..%KillExtent()
+
+    &SQL(Declare Books Cursor for
+        select blockid
+           into :bookID
+           from DocBook.book
+    )
+    &SQL(Open Books)
+    &SQL(Fetch Books)
+    While SQLCODE=0 {
+        if verbose {
+            write "Book: ",bookID,?15,"---->"
+            if $e(bookID)="T",0 {
+                write "  Skip",!
+        }
+        } else {
+            do ..GenerateNodes(bookID,verbose)
+            if verbose { 
+                write "  Done",!
+            }
+        }
+        &SQL(Fetch Books)   
+    }
+    &SQL(Close Books)
+
+    //
+    // Add support for Articles
+    /*
+    &SQL(Declare Art Cursor for
+        select blockid
+           into :articleID
+           from DocBook.article
+    )
+    &SQL(Open Art)
+    &SQL(Fetch Art)
+    While SQLCODE=0 {
+        write "Article: ",articleID,?25,"---->"
+        if 0 {
+            write "  Skip",!
+        } else {
+            do ..GenerateNodes(articleID)
+            write "  Done",!
+        }
+        &SQL(Fetch Art) 
+    }
+    &SQL(Close Art)
+    */
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Done building Drupal nodes...",verbose)
+    if classify {
+        do ..Classify(verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GenerateNodes">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>bookBlockID:%String,verbose:%Boolean</FormalSpec>
+<PublicList>typesForKey</PublicList>
+<Implementation><![CDATA[
+    New typesForKey
+    // Find all blocks for a book
+    // 
+    &SQL(Declare Doc2 Cursor for
+        Select ID, blockid, title, content, x__classname, container, blockpos, component, book
+            into :id, :blockID, :title, :content, :blockType, :container, :blockpos, :component, :book 
+            from DocBook.block
+            where 
+                book->blockID = :bookBlockID
+              OR blockID = :bookBlockID 
+        )
+    
+
+    kill $$$DocGbl(bookBlockID)
+    
+    &SQL( Open Doc2 )
+    //
+    for  {
+        &SQL( Fetch Doc2)
+        quit:(SQLCODE'=0)
+        set blockType = $p(blockType,"~",*-1)
+        set blockTypeShort = $p(blockType,".",2)
+        
+        //continue:(blockTypeShort = "set")
+        //continue:(blockTypeShort = "part")
+        continue:(blockTypeShort = "partintro")
+        if container '= "",blockTypeShort'="book" {
+            set containerType = $g($$$DocGbl(bookBlockID,"block",container,"blockType"))
+        } else {
+            set containerType = ""
+        }
+        continue:((containerType="")&&(blockTypeShort'="book"))
+        continue:(containerType = "partintro")
+
+        //continue:(blockTypeShort = "book")
+
+        //set docKey = blockID
+        //set prefix = ..GetPrefixForDocKey(id)
+        //set docKey = prefix_"#"_blockID
+        set docKey = ..GetDocKeyForBlock(id)
+
+        set title = title
+        //Clean-up text in title
+        set title = ..CleanUpTitle(title)
+        //
+
+        //set content2 = $replace(content,$c(10),"<br>")
+        //set content2 = $replace(content,$c(9)," ")
+        set cleanedupContent = ..CleanUpText(content,blockTypeShort)
+
+        if $g(container)'="",blockTypeShort'="book" {
+            set $$$DocGbl(bookBlockID,"container",container,blockpos)=id
+        }
+        set $$$DocGbl(bookBlockID,"block",id,"blockID")=blockID
+        set $$$DocGbl(bookBlockID,"block",id,"title")=title
+        set $$$DocGbl(bookBlockID,"block",id,"content")=cleanedupContent
+        set $$$DocGbl(bookBlockID,"block",id,"contentOrig")=content
+        set $$$DocGbl(bookBlockID,"block",id,"docKey")=docKey
+        set $$$DocGbl(bookBlockID,"block",id,"blockType")=blockTypeShort
+        set $$$DocGbl(bookBlockID,"block",id,"container")=container
+
+        if blockTypeShort="book" set book=id
+        set $$$DocGbl(bookBlockID,"block",id,"book")=$g(book)
+
+        if blockTypeShort="chapter" set chapter=id
+        set $$$DocGbl(bookBlockID,"block",id,"chapter")=$g(chapter)
+
+    }
+    &SQL( Close Doc2 )
+
+    try {
+        //  refsect1,ressect2,refsect3 are not keys for nodes. They are part of refentry
+        //set typesForKey = "book,article,preface,chapter,appendix,sect1,sect2,sect3,sect4,reference,refentry,glossary"
+        set typesForKey = "book,article,chapter,appendix,sect1,sect2,reference,refentry,glossary"
+        // http://docs.intersystems.com/cache20152/csp/docbook/DocBook.UI.Page.cls?KEY=GIC
+        //set linkURLbase = "http://docs.intersystems.com/ensemble_latest/csp/docbook/DocBook.UI.Page.cls?KEY="
+        //set linkText = "Click here to view the related documention."
+
+        set delim = $c(9)
+        set EMDASH = $c(8212)
+        set rightArrow = $c(9654)
+    
+        // titleArrow is rightArrow with fixed spaces
+        set titleArrow = $c(160)_$c(160)_rightArrow_$c(160)_$c(160)
+    
+        set containerID=""
+        for {
+            set containerID=$o($$$DocGbl(bookBlockID,"container",containerID))
+            quit:containerID=""
+            set id = containerID
+            // Is the container a "main" node 
+            set blockType = $$$DocGbl(bookBlockID,"block",id,"blockType")
+            if typesForKey[blockType {
+                set blockID = $$$DocGbl(bookBlockID,"block",id,"blockID")
+
+                //use 0 write id_"::"_blockID,!
+
+                set title = $$$DocGbl(bookBlockID,"block",id,"title")
+                set docKey = $$$DocGbl(bookBlockID,"block",id,"docKey")
+                set bookID = $$$DocGbl(bookBlockID,"block",id,"book")
+                set bookTitle = $$$DocGbl(bookBlockID,"block",bookID,"title")
+                
+                set content = ""
+                
+                do ..GetContentForKey(bookBlockID,containerID,.content)
+
+                //set linkURL = linkURLbase_docKey
+                //set linkContent = "<p>"_"<strong><a href='"_linkURL_"' target='_blank'>"_linkText_"</a></strong></p><br/>"
+                //set newcontent = linkContent_content  
+                set newcontent = content
+
+                //
+                // title prefix
+                //set title =  "DOC:("_blockID_")  "_title
+                //set title = "DOC:"_bookBlockID_":  "_title
+                //set title = "DocBook: "_title
+
+                set chapterTitle = ""
+                if $e(blockType,1,4) = "sect" {
+                    set chapterTitle = ..GetChapterTitleForSect(id)
+                }
+
+                // Determine title based on book, chapter, section
+                if blockType = "book" {
+                    set NEWtitle = title
+                } elseif chapterTitle = "" {
+                    set NEWtitle = bookTitle_titleArrow_title
+                } else {
+                    set NEWtitle = bookTitle_titleArrow_chapterTitle_titleArrow_title
+                }
+                
+                //set exportLine=blockID_delim_NEWtitle_delim_newcontent_delim_docKey
+                //set $$$DocGbl(bookBlockID,"export",blockID)=exportLine
+                
+                if verbose {
+                    write !, blockID
+                }
+                set node=..%New()
+                set node.blockid=blockID
+                set node.blocktype=blockType
+                set node.title=title
+                set node.content=newcontent
+                set status=node.%Save()
+                if $$$ISERR(status) { do $system.OBJ.DisplayError(status) }
+            }
+        }
+    } catch {
+         write $ze,!
+    }
+]]></Implementation>
+</Method>
+
+<Method name="MakeExportFile">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>bookBlockID,headingFlag:%Boolean=1</FormalSpec>
+<Implementation><![CDATA[
+    set delim = $c(9)
+
+    set dir = "C:\TEMP\NodesForDrupal\"
+    //set file = dir_"ExportBookNew_"_bookBlockID_".txt"
+    set file = dir_bookBlockID_"_ExportBook.txt"
+    // Create new file: UTF encoding
+    try {
+        close file
+        open file:"WNSK\UTF8\" else  write "Can't Open file: "_file,!
+        
+        if headingFlag {
+            use file
+            //write "ID"_delim_"title"_delim_"content"_delim_"dockey",!
+            do ..FileHeading(delim)
+            use 0
+        }
+    
+        set blockID=""
+        for {
+            set blockID = $o($$$DocGbl(bookBlockID,"export",blockID))
+            quit:blockID=""
+            set line = $$$DocGbl(bookBlockID,"export",blockID)
+            use file
+            write line,!
+            use 0
+        }
+    } catch {
+         use 0 write $ze,!
+    }
+    close file
+]]></Implementation>
+</Method>
+
+<Method name="MakeExportFileGroups">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    set dir = "Z:\FromPC\joe\Community Portal\Doc Stuff\Exports\"
+    set dirOut = "Z:\FromPC\joe\Community Portal\Doc Stuff\Exports\Groups\"
+
+    /*
+    set statement=##class(%SQL.Statement).%New()
+    set status=statement.%PrepareClassQuery("%File","FileSet")
+    if $$$ISERR(status) { do $system.OBJ.DisplayError(status) }
+    set resultset=statement.%Execute(dir,"G*")
+    while resultset.%Next() {
+        write !, resultset.%Get("Name")
+    }
+    */
+    //quit
+    
+    //set groupList="B*,D2*,E*,GB*,GC*,GD*-GO*,GR*-GZ*,I*,R*,T*,Z*"
+    //set groupList="B*,D2*,E*,GB*,GC*,GD**,GR*,I*,R*,T*,Z*"
+    set groupList="B*,D2*,E*"
+    set groupCount = $l(groupList,",")
+    for i=1:1:groupCount {
+        set group=$p(groupList,",",i)
+        if group["-" {
+            set groupStart = $p(group,"-",1)
+            set groupEnd = $p(group,"-",2)
+        } else {
+            set groupStart = group
+            set groupEnd = group
+        }
+        // Open a new file for the group
+        set groupFile = dirOut_"Export_Group_"_i_".txt"
+        close groupFile
+        B
+        open groupFile:"WNSK\UTF8\" else  write "Can't Open file: "_groupFile,!
+        // Get files with name matching group pattern
+        set statement = ##class(%SQL.Statement).%New()
+        set status=statement.%PrepareClassQuery("%File","FileSet")
+        if $$$ISERR(status) { do $system.OBJ.DisplayError(status) }
+        set resultset=statement.%Execute(dir,group)
+        while resultset.%Next() {
+            write !, resultset.%Get("Name")
+        }
+        close groupFile
+        
+        write !!,".......................",!! read xxx
+        // For each file get contents and add to new file
+        
+    }
+]]></Implementation>
+</Method>
+
+<Method name="FileHeading">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>delim</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    if $g(delim)="" set delim=$c(9)
+    write "ID"_delim_"title"_delim_"content"_delim_"dockey",!
+]]></Implementation>
+</Method>
+
+<Method name="GetContentForKey">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>bookBlockID,blockID,content</FormalSpec>
+<PublicList>typesForKey</PublicList>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+        //
+
+        //write "BlockID: ",blockID,!
+
+        set typesForKey = "book,article,chapter,appendix,sect1,sect2,reference,refentry,glossary"
+        //set typesForContent="para,programlisting,itemizedlist,itemizedlist,orderedlist"
+
+        set mainBlockType = $$$DocGbl(bookBlockID,"block",blockID,"blockType")
+        set newcontent = $$$DocGbl(bookBlockID,"block",blockID,"content")
+        set title = $$$DocGbl(bookBlockID,"block",blockID,"title")
+
+        // We don't need glossentry content since we aleady have it, we just need the nested blocks
+        //if mainBlockType = "glossentry" set newcontent = ""
+        
+        if $g(title)'="" {
+            set title = ..CleanUpTitle(title)
+            set title = ##class(%CSP.Page).EscapeHTML(title)
+            if (mainBlockType = "sect1")  {
+                set title = "<h3><strong>"_title_"</strong></h3>"
+            } elseif mainBlockType = "sect2" {
+                set title = "<h3><strong>"_title_"</strong></h3>"
+            } elseif mainBlockType = "sect3" {
+                set title = "<h4><strong>"_title_"</strong></h4>"
+            } elseif mainBlockType = "sect4" {
+                set title = "<h5><strong>"_title_"</strong></h5>"
+            } else {
+                set title = "<strong>"_title_"</strong>"
+            }
+            set content = content_title
+        }
+        
+        if $g(newcontent)'="" {
+            set newcontent = ..CleanUpText(newcontent,mainBlockType)
+            if mainBlockType = "glossentry" { 
+                set newcontent="<strong>"_newcontent_"</strong><br>"
+            } else {
+                set newcontent = "<p>"_newcontent_"</p>"
+            }
+            set content = content_newcontent
+        }
+
+        if mainBlockType = "itemizedlist" {
+            set content = content_"<ul>"
+        }
+        if mainBlockType = "orderedlist" {
+            set content = content_"<ol>"
+        }
+        if mainBlockType = "listitem" {
+            set content = content_"<li>"
+        }
+        if mainBlockType = "important" {
+            set content = content_"<br><strong>Important:</strong><br>"
+        }
+        if mainBlockType = "note" {
+            set content = content_"<br><strong>Note:</strong><br>"
+        }
+        if mainBlockType = "caution" {
+            set content = content_"<br><strong>Caution:</strong><br>"
+        }
+        if mainBlockType = "tip" {
+            set content = content_"<br><strong>Tip:</strong><br>"
+        }
+        if mainBlockType = "refsynopsisdiv" {
+            set content = content_"<br><strong>Synopsis:</strong><br>"
+        }
+        // Get the content from nested blocks
+        
+        set stopContainer=0
+        set blockpos = ""
+        for {
+            set blockpos=$o($$$DocGbl(bookBlockID,"container",blockID,blockpos))
+            if blockpos="" set stopContainer=1 
+            quit:stopContainer
+            set id=$$$DocGbl(bookBlockID,"container",blockID,blockpos)
+            set blockType = $$$DocGbl(bookBlockID,"block",id,"blockType")
+            if blockType = "figure" continue
+            //if blockType = "table" continue
+            //if blockType = "informaltable" continue
+            if blockType = "anchor" continue
+            if typesForKey[blockType {
+                set stopContainer = 1
+            }
+            quit:stopContainer
+            set newcontent = $$$DocGbl(bookBlockID,"block",id,"content")
+            
+            // Don't need content for refname since we have that as the title for refentry
+            if blockType = "refname" set newcontent = ""
+            if blockType = "glossentry" set newcontent = ""
+            
+            if $g(newcontent)'="" {
+                set newcontent = ..CleanUpText(newcontent,blockType)                
+                set container = $G($$$DocGbl(bookBlockID,"block",id,"container"))
+                if container '= "" {
+                    set containerType = $$$DocGbl(bookBlockID,"block",container,"blockType")
+                } else {
+                    set containerType = ""
+                }
+
+                // set style depending on container type
+                set style = ""
+                if containerType = "important" {
+                    set style = " style='margin-left: 40px;'"
+                }
+                if containerType = "note" {
+                    set style = " style='margin-left: 40px;'"
+                } 
+                if containerType = "caution" {
+                    set style = " style='margin-left: 40px;'"
+                } 
+                if containerType = "tip" {
+                    set style = " style='margin-left: 40px;'"
+                } 
+                if containerType = "glossdef" {
+                    set style = " style='margin-left: 40px;'"
+                } 
+                                
+
+                
+                if blockType = "programlisting" {
+                    set newcontent = "<pre>"_newcontent_"</pre>"                                
+                }
+                elseif blockType = "synopsis" {
+                    set newcontent = "<pre>"_newcontent_"</pre>"                                
+                }
+                elseif blockType = "literallayout" {
+                    set newcontent = "<pre>"_newcontent_"</pre>"                                
+                }
+                elseif (blockType = "table") || (blockType = "informaltable"){
+                    set newcontent = ..ConvertTable(newcontent)                             
+                }
+                else {
+                    set newcontent = "<p"_style_">"_newcontent_"</p>"           
+                }
+                set content = content_newcontent
+            }
+            //If the id is a container, get it's content
+            if $d($$$DocGbl(bookBlockID,"container",id)) {
+                do ..GetContentForKey(bookBlockID,id,.content)
+            }
+
+        }
+        if mainBlockType = "itemizedlist" {
+            set content = content_"</ul>"
+        }
+        if mainBlockType = "orderedlist" {
+            set content = content_"</ol>"
+        }
+        if mainBlockType = "listitem" {
+            set content = content_"</li>"
+        }
+]]></Implementation>
+</Method>
+
+<Method name="GetDocKeyForBlock">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocID</FormalSpec>
+<PublicList>typesForKey</PublicList>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    //For a documentation block ID, get KEY to be used in the URL to access it
+    //
+    //Return the KEY for the blockID or the container that contains the blockID
+    //Can return KEY for these block types in typesForKey
+    //      
+    //  refsect1,ressect2,refsect3 are not keys for nodes. They are part of refentry
+    //set typesForKey = "book,article,preface,chapter,appendix,sect1,sect2,sect3,sect4,reference,refentry,glossary,qandaentry"  
+    set typesForKey = "book,article,chapter,appendix,sect1,sect2,reference,refentry,glossary,qandaentry"    
+    set typesNeedPrefix = "sect1,sect2,sect3,sect4,glossentry,qandaentry"
+    &SQL(select ID, blockID, title,container, x__classname, component
+         into :ID, :blockID, :title, :container, :blockType, :component
+        from DocBook.Block
+        where ID = :DocID
+    )
+    
+    //if $g(container) = "" set container = component  //JKGzzzz
+
+    set blockType = $p(blockType,"~",*-1)
+    set blockTypeShort = $p(blockType,".",2)
+    if $f(typesForKey,blockTypeShort) {
+        set docKey = blockID
+        set title = title
+        // Add the prefix?
+        //???If the container is not a book, chapter, or article
+        if $f(typesNeedPrefix,blockTypeShort) {
+            set prefix = ..GetPrefixForDocKey(container)
+            set docKey = $g(prefix)_"#"_docKey
+        }
+    } else {
+        
+        // Get the doc key from container
+        //set docKey = ..GetDocKeyForBlock(container)
+    }
+    quit $g(docKey)
+]]></Implementation>
+</Method>
+
+<Method name="GetPrefixForDocKey">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocID</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    //
+    &SQL(select ID, blockID, container, x__classname
+         into :ID, :blockID, :container, :blockType
+        from DocBook.Block
+        where ID = :DocID
+    )
+    
+    if $g(container) = "" set container = component
+    
+    set typesForPrefix = "chapter,book,article,appendix,glossary"
+    set blockType = $p(blockType,"~",*-1)
+    set blockTypeShort = $p(blockType,".",2)
+    if $f(typesForPrefix,blockTypeShort) { 
+        set prefix = blockID
+    } else {
+        // Get the prefix
+        set prefix = ..GetPrefixForDocKey(container)
+    }
+    
+    quit prefix
+]]></Implementation>
+</Method>
+
+<Method name="GetChapterTitleForSect">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocID</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    //
+    if $g(DocID)="" quit ""
+     
+    &SQL(select ID, blockID, container, x__classname, title
+         into :ID, :blockID, :container, :blockType, :title
+        from DocBook.Block
+        where ID = :DocID
+    )
+        
+    //set typesForPrefix = "chapter,book,article,appendix,glossary"
+    set blockType = $p(blockType,"~",*-1)
+    set blockTypeShort = $p(blockType,".",2)
+    
+    if blockTypeShort="chapter" { 
+        set chapterTitle = title
+    } else {
+        // Get the prefix
+        set chapterTitle = ..GetChapterTitleForSect(container)
+    }
+    set chapterTitle = ..CleanUpTitle(chapterTitle)
+    quit chapterTitle
+]]></Implementation>
+</Method>
+
+<Method name="FindLF">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set id=""
+    for {
+        set id=$o($$$DocGbl(id))
+        quit:id=""
+        set content = $$$DocGbl(id,"content")
+        if content[$c(10) {
+            write id,!
+            write $$$DocGbl(id,"blockID"),!!
+            //write content,!
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="CleanUpTitle">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+        //translate EMDASH to double dash
+        set EMDASH = $c(8212)       
+        set text = $tr(text,EMDASH,"--")
+        set text = $tr(text,$c(10)," ")
+        set text = ..RemoveSpecialTags(text)
+        set text = ##class(%CSP.Page).UnescapeHTML(text)
+        quit text
+]]></Implementation>
+</Method>
+
+<Method name="CleanUpText">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text,blockType</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+        //Clean-up text
+        
+        //translate EMDASH to double dash
+        set EMDASH = $c(8212)       
+        set text = $tr(text,EMDASH,"--")
+
+        //translate LF to <br/> for line of code
+        //translate LF to space otherwise
+        if (blockType= "programlisting") || (blockType= "literallayout") {
+            set text = $replace(text,$c(10),"<br>")
+        } else {
+            set text = $replace(text,$c(10)," ")        
+        }
+        
+        //translate TAB to SPACE
+        set text = $replace(text,$c(9)," ")
+
+
+        //remove <indexterm> tags and content
+        set text = ..RemoveTag(text,"<indexterm>",1)
+
+        if '((blockType= "programlisting") || (blockType= "literallayout")) {       
+            // translate special tags
+            set text = ..TranslateSpecialTags(text)
+        }
+        //set text = ##class(%CSP.Page).UnescapeHTML(text)
+
+        quit text
+]]></Implementation>
+</Method>
+
+<Method name="TranslateSpecialTags">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    // translate special tags
+    set text = $replace(text,"<methodname>","<strong>")
+    set text = $replace(text,"</methodname>","</strong>")
+    set text = $replace(text,"<classname>","<strong>")
+    set text = $replace(text,"</classname>","</strong>")
+    set text = $replace(text,"<literal>","<strong>")
+    set text = $replace(text,"</literal>","</strong>")
+    set text = $replace(text,"<command>","<strong>")
+    set text = $replace(text,"</command>","</strong>")
+    set text = $replace(text,"<function>","<strong>")
+    set text = $replace(text,"</function>","</strong>")
+
+    set text = $replace(text,"<property>","<em>")
+    set text = $replace(text,"</property>","</em>")
+    set text = $replace(text,"<varname>","<em>")
+    set text = $replace(text,"</varname>","</em>")
+    set text = $replace(text,"<emphasis>","<em>")
+    set text = $replace(text,"</emphasis>","</em>")
+    set text = $replace(text,"<firstterm>","<em>")
+    set text = $replace(text,"</firstterm>","</em>")
+    set text = $replace(text,"<replaceable>","<em>")
+    set text = $replace(text,"</replaceable>","</em>")
+
+    //set text = $replace(text," moreinfo=""none""","")
+
+    set text = $replace(text,"<citetitle>","<em>")
+    set text = $replace(text,"</citetitle>","</em>")
+    set text = $replace(text,"<filename>","<strong>")
+    set text = $replace(text,"</filename>","</strong>")
+    set text = $replace(text,"<guilabel>","<strong>")
+    set text = $replace(text,"</guilabel>","</strong>")
+    set text = $replace(text,"<guibutton>","<strong>")
+    set text = $replace(text,"</guibutton>","</strong>")
+    set text = $replace(text,"<guimenu>","<strong>")
+    set text = $replace(text,"</guimenu>","</strong>")
+    set text = $replace(text,"<guimenuitem>","<strong>")
+    set text = $replace(text,"</guimenuitem>","</strong>")
+    set text = $replace(text,"<guiicon>","<strong>")
+    set text = $replace(text,"</guiicon>","</strong>")
+    set text = $replace(text,"<guisubmenu>","<strong>")
+    set text = $replace(text,"</guisubmenu>","</strong>")
+    set text = $replace(text,"<keycap>","<strong>")
+    set text = $replace(text,"</keycap>","</strong>")
+            
+    //remove <ulink> and </ulink>"
+    set text = ..RemoveTag(text,"<ulink>")
+
+    //remove <link> and </link>"
+    set text = ..RemoveTag(text,"<link>")
+
+    //remove <filename> and </filename>"
+    set text = ..RemoveTag(text,"<filename>")
+
+    quit text
+]]></Implementation>
+</Method>
+
+<Method name="RemoveSpecialTags">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    // Remove special tags
+    set text = ..RemoveTag(text,"<methodname>")
+    set text = ..RemoveTag(text,"<classname>")
+    set text = ..RemoveTag(text,"<literal>")
+    set text = ..RemoveTag(text,"<command>")
+    set text = ..RemoveTag(text,"<function>")
+
+    set text = ..RemoveTag(text,"<property>")
+    set text = ..RemoveTag(text,"<varname>")
+    set text = ..RemoveTag(text,"<emphasis>")
+    set text = ..RemoveTag(text,"<firstterm>")
+    set text = ..RemoveTag(text,"<replaceable>")
+
+    set text = ..RemoveTag(text,"<citetitle>")
+    set text = ..RemoveTag(text,"<filename>")
+    set text = ..RemoveTag(text,"<guilabel>")
+    set text = ..RemoveTag(text,"<guibutton>")
+    set text = ..RemoveTag(text,"<guimenu>")
+    set text = ..RemoveTag(text,"<guimenuitem>")
+    set text = ..RemoveTag(text,"<guiicon>")
+    set text = ..RemoveTag(text,"<guisubmenu>")
+    set text = ..RemoveTag(text,"<keycap>")
+            
+    //remove <ulink> and </ulink>"
+    set text = ..RemoveTag(text,"<ulink>")
+
+    //remove <link> and </link>"
+    set text = ..RemoveTag(text,"<link>")
+
+
+    quit text
+]]></Implementation>
+</Method>
+
+<Method name="RemoveTag">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text,tag,removeContent:%Boolean=0</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    // If removeContent is true, remove the text between start and end tags
+    
+    set tagEnd = $e(tag,1)_"/"_$e(tag,2,*)
+
+    if 'removeContent {
+        for {
+            set tagStart=$e(tag,1,*-1)
+            set pos1 = $f(text,tagStart)
+            quit:pos1=0
+            set pos2 = $f(text,">",pos1)
+            set text = $e(text,1,pos1-($l(tagStart)+1))_$e(text,pos2,*)
+        }
+        set text = $replace(text,tagEnd,"")
+    } else {
+        for {
+            set tagStart=$e(tag,1,*-1)
+            set pos1 = $f(text,tagStart)
+            quit:pos1=0
+            set pos2 = $f(text,tagEnd,pos1)
+            set text = $e(text,1,pos1-($l(tagStart)+1))_$e(text,pos2,*)
+        }
+    
+    }
+    
+    quit text
+]]></Implementation>
+</Method>
+
+<Method name="GetDataFromTag">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text,tag</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    
+    set tagEnd = $e(tag,1)_"/"_$e(tag,2,*)
+
+    set tagStart=$e(tag,1,*-1)
+    set pos1 = $f(text,tagStart)
+    quit:pos1=0
+    set pos2 = $f(text,">",pos1)
+    set pos3 = $f(text,tagEnd,pos2)
+    set data = $e(text,pos2,pos3-$l(tagEnd)-1)
+    
+    quit data
+]]></Implementation>
+</Method>
+
+<Method name="GetIndexTerms">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+
+    //do ..RemoveTag(indexString,"<indexterm>",1)
+
+    set tagStart="<indexterm"
+    set tagEnd="</indexterm>"
+    set startPos=1
+    set indexTerms = ""
+    for {
+        set pos1=$f(text,tagStart,startPos)
+        quit:pos1=0
+        set pos2=$f(text,tagEnd,pos1)
+        set indexString =$e(text,pos1-10,pos2-1)
+        set startPos = pos2
+
+        //write indexString,!
+        
+        set prPos1=$f(indexString,"<primary")
+        set prPos2=$f(indexString,"</primary>",prPos1)
+        set prString=$e(indexString,prPos1-9,prPos2)
+        set prIndex = ..GetDataFromTag(prString,"<primary>")
+        set indexTerms=indexTerms_$lb(prIndex)
+        //write "primary: ",prIndex,!
+    
+        
+        set secPos1=$f(indexString,"<secondary")
+        set secPos2=$f(indexString,"</secondary>",secPos1)
+        set secString=$e(indexString,prPos1-9,secPos2)
+        set secIndex = ..GetDataFromTag(secString,"<secondary>")
+        set indexTerms=indexTerms_$lb(secIndex)
+        //write "secondary: ",secIndex,!    
+    }
+    quit indexTerms
+]]></Implementation>
+</Method>
+
+<Method name="ConvertTable">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>tableIn</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    // Convert the DocBook table to a talbe that Drupal can use
+    //
+    
+    set tableOut = "<p>"_">>>>>>>>>>(table content TBD)<<<<<<<<<<<"_"</p>"
+    quit tableOut
+]]></Implementation>
+</Method>
+
+<Method name="ScanContent">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text,origFlag:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set book=""
+    set count=0
+    if origFlag {
+        set contentState="contentOrig"
+    }
+     else  {
+        set contentState="content"      
+    }
+    for {
+        set book=$o($$$DocGbl(book))
+        quit:book=""
+        set id =""
+        for {
+            set id=$o($$$DocGbl(book,"block",id))
+            quit:id=""
+            set content = $$$DocGbl(book,"block",id,contentState)
+            set title = $$$DocGbl(book,"block",id,"title")
+            set docKey = $$$DocGbl(book,"block",id,"docKey")
+
+            if (content[text) || (title[text) {
+                write id,":  ",!
+                write "docKey: ",!,docKey,!
+                write "title: ",!,title,!
+                write "content: ",!,content,!! 
+                set count=count+1
+                //set new = ..RemoveTag(content,"<primary>")
+                //set new = ..RemoveTag(new,"<indexterm>",1)
+                //write new,!!
+                if '(count#5) write !,".........",! read x
+            }
+        }   
+    }
+    write !!,"Count: ",count,!
+]]></Implementation>
+</Method>
+
+<Method name="ContentCount">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    set bookCount=0,nodeCount=0
+    set book=""
+    for {
+        set book=$o($$$DocGbl(book))
+        quit:book=""
+        set bookCount=bookCount+1
+        set id =""
+        for {
+            set id=$o($$$DocGbl(book,"export",id))
+            quit:id=""
+            set nodeCount=nodeCount+1
+        }   
+    }
+    Write "Book Count: ",bookCount,!
+    Write "Node Count: ",nodeCount,!
+]]></Implementation>
+</Method>
+
+<Method name="FindEmptyContent">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    set bookCount=0,emptyCount=0
+    set book=""
+    for {
+        set book=$o($$$DocGbl(book))
+        quit:book=""
+        set bookCount=bookCount+1
+        set id =""
+        for {
+            set id=$o($$$DocGbl(book,"export",id))
+            quit:id=""
+            set line = $$$DocGbl(book,"export",id)
+            set content = $p(line,$c(9),3)
+            if content = "" set emptyCount=emptyCount+1
+
+        }   
+    }
+    //Write "Book Count: ",bookCount,!
+    Write "Empty Count: ",emptyCount,!
+]]></Implementation>
+</Method>
+
+<Method name="SetProduct">
+<Implementation><![CDATA[
+    //set product
+    if ..StartsWith(..blockid,"I") {
+        set ..product="all" 
+    } elseif ..StartsWith(..blockid,"E") {
+        set ..product="Ensemble" 
+    } elseif ..StartsWith(..blockid,"H") || ..StartsWith(..blockid,"F") {
+        set ..product="HealthConnect"
+    } elseif ..StartsWith(..blockid,"GEMS") {
+        set ..product="Enterprise Manager"
+    } else {
+        set ..product="Cache"
+    }
+]]></Implementation>
+</Method>
+
+<Method name="SetDetailLevel">
+<Implementation><![CDATA[
+    //set default detail level (2=intermediate)
+    set ..detaillevel=2
+
+    //first classify all book and article blocks (some overridden later)
+    if (..blockid '[ "_") {
+        if ..StartsWith(..blockid,"A") {
+            set ..detaillevel=1
+        } else {
+            set ..detaillevel="book"
+        }
+    } 
+
+    if ..StartsWith(..blockid,"ITECHREF") 
+    || ..StartsWith(..blockid,"EGIN"
+                                                        ){
+        set ..detaillevel=1 //this book is a special case
+
+    } elseif ..StartsWith(..blockid,"EPREP") 
+    || ..StartsWith(..blockid,"GIC") 
+    || ..StartsWith(..blockid,"GZEN") 
+    || ..StartsWith(..blockid,"GVGS") 
+    {
+        set ..detaillevel=1
+
+    } elseif ..StartsWith(..blockid,"EBPLR") 
+    || ..StartsWith(..blockid,"EERR") 
+    || ..StartsWith(..blockid,"GCTM") 
+    || ..StartsWith(..blockid,"R") 
+    || ..StartsWith(..blockid,"D2R")
+    || ..StartsWith(..blockid,"HEREF")
+    {
+        set ..detaillevel=3
+
+    } // end
+
+    if ((..blockid [ "intro") 
+        || ((..blockid [ "basics") && (..blockid '[ "D2ANLY"))
+        || (..blockid [ "overview") 
+        || (..blockid [ "preface") 
+        ) {
+        set ..detaillevel=1
+        
+        if (..blockid [ "binary_intro") {
+            set ..detaillevel=2
+        }
+    } 
+
+
+    if (..blockid = "GCOS_cmds_iowrite") {
+        set ..detaillevel=1
+    }
+    if (..blockid [ "D2MODEL_concepts") {
+        set ..detaillevel=1
+    }
+    if (..blockid [ "D2MODEL_summary") {
+        set ..detaillevel=1
+    }
+    if (..blockid [ "cubeorientation") {
+        set ..detaillevel=1
+    }
+    if (..blockid [ "D2RMDX_appx") {
+        set ..detaillevel=1
+    }
+    if (..blockid = "subjareaclass") {
+        set ..detaillevel=3
+    }
+    if (..blockid = "cubeclass") {
+        set ..detaillevel=3
+    }
+    if (..blockid [ "GCTM") {
+        set ..detaillevel=3
+    }
+]]></Implementation>
+</Method>
+
+<Method name="SetRank">
+<Implementation><![CDATA[
+    set ..rank=50 //a starting place
+    /// RANK = 0 *********************************************************
+    if ..StartsWith(..blockid,"GORIENT")
+    || ..StartsWith(..blockid,"EGIN")
+    || ..StartsWith(..blockid,"ITECHREF")
+    || ..StartsWith(..blockid,"ISP")
+    {
+        set ..rank=0
+
+        /// RANK = 40 *********************************************************
+    } elseif ..StartsWith(..blockid,"ALOCK")
+    || ..StartsWith(..blockid,"ATRY")
+    || ..StartsWith(..blockid,"AVMEM")
+    || ..StartsWith(..blockid,"ASEC")
+    || ..StartsWith(..blockid,"ECONFIG")
+    || ..StartsWith(..blockid,"EGBP")
+    || ..StartsWith(..blockid,"EGDV")
+    || ..StartsWith(..blockid,"EGMG")
+    || ..StartsWith(..blockid,"EGRN")
+    || ..StartsWith(..blockid,"EMONITOR")
+    || ..StartsWith(..blockid,"EPREP")
+    || ..StartsWith(..blockid,"GCI")
+    || ..StartsWith(..blockid,"GCOS")
+    || ..StartsWith(..blockid,"GCRN")
+    || ..StartsWith(..blockid,"GCAS")
+    || ..StartsWith(..blockid,"GCM")
+    || ..StartsWith(..blockid,"GGBL")
+    || ..StartsWith(..blockid,"GHA")
+    || ..StartsWith(..blockid,"GIC")
+    || ..StartsWith(..blockid,"GOBJ")
+    || ..StartsWith(..blockid,"GOBJ")
+    || ..StartsWith(..blockid,"GSA")
+    || ..StartsWith(..blockid,"GSQL")
+    || ..StartsWith(..blockid,"RCOS")
+    || ..StartsWith(..blockid,"RCPF")
+    || ..StartsWith(..blockid,"ROBJ")
+    || ..StartsWith(..blockid,"RSQL")
+    {
+        set ..rank=40
+
+        /// RANK = 45 *********************************************************
+    } elseif ..StartsWith(..blockid,"EBUS") 
+    || ..StartsWith(..blockid,"EBPL") //accounts for EBPLR also
+    || ..StartsWith(..blockid,"EDTL")
+    || ..StartsWith(..blockid,"EESB")
+    || ..StartsWith(..blockid,"EGWF")
+    || ..StartsWith(..blockid,"GCSP")
+    || ..StartsWith(..blockid,"GCDI")
+    || ..StartsWith(..blockid,"GCGI")
+    || ..StartsWith(..blockid,"GDDM")
+    || ..StartsWith(..blockid,"GJSON")
+    || ..StartsWith(..blockid,"GREST")
+    || ..StartsWith(..blockid,"GXML")
+    || ..StartsWith(..blockid,"GSOAP")
+    || ..StartsWith(..blockid,"GREST")
+    || ..StartsWith(..blockid,"RCSP")
+    {
+        set ..rank=45
+
+        /// RANK = 50 *********************************************************
+    } elseif ..StartsWith(..blockid,"APMM") 
+    || ..StartsWith(..blockid,"ASEM")
+    || ..StartsWith(..blockid,"D2")
+    || ..StartsWith(..blockid,"EACT")
+    || ..StartsWith(..blockid,"EAST")
+    || ..StartsWith(..blockid,"EDICOM")
+    || ..StartsWith(..blockid,"EEDI")
+    || ..StartsWith(..blockid,"EEMA")
+    || ..StartsWith(..blockid,"EEER")
+    || ..StartsWith(..blockid,"EFIL")
+    || ..StartsWith(..blockid,"EFTP")
+    || ..StartsWith(..blockid,"EHL7")
+    || ..StartsWith(..blockid,"EHTTP")
+    || ..StartsWith(..blockid,"EITK")
+    || ..StartsWith(..blockid,"EJVG")
+    || ..StartsWith(..blockid,"EMQS")
+    || ..StartsWith(..blockid,"ENTG")
+    || ..StartsWith(..blockid,"EPUSH")
+    || ..StartsWith(..blockid,"EREST")
+    || ..StartsWith(..blockid,"ESAP")
+    || ..StartsWith(..blockid,"ESOAP")
+    || ..StartsWith(..blockid,"ESQL")
+    || ..StartsWith(..blockid,"ETCP")
+    || ..StartsWith(..blockid,"EX12")
+    || ..StartsWith(..blockid,"EXML")
+    || ..StartsWith(..blockid,"GEMS")
+    || ..StartsWith(..blockid,"GIKNOW")
+    || ..StartsWith(..blockid,"GIOD")
+    || ..StartsWith(..blockid,"GNET")
+    || ..StartsWith(..blockid,"GRPT")
+    || ..StartsWith(..blockid,"GSOAPSEC")
+    || ..StartsWith(..blockid,"GSTD")
+    || ..StartsWith(..blockid,"GSTU")
+    || ..StartsWith(..blockid,"GTER")
+    || ..StartsWith(..blockid,"GZ")
+    || ..StartsWith(..blockid,"RACS")
+    || ..StartsWith(..blockid,"RERR")
+    || ..StartsWith(..blockid,"RGOT")
+    || ..StartsWith(..blockid,"T")
+    || ..StartsWith(..blockid,"Z")
+    {
+        set ..rank=50
+
+        /// RANK = 1000 *********************************************************
+    } elseif ..StartsWith(..blockid,"B") 
+    || ..StartsWith(..blockid,"GB")
+    || ..StartsWith(..blockid,"GCHW")
+    || ..StartsWith(..blockid,"GCTM")
+    || ..StartsWith(..blockid,"GDOC")
+    || ..StartsWith(..blockid,"GISQ")
+    || ..StartsWith(..blockid,"GMSM")
+    || ..StartsWith(..blockid,"GTSQ")
+    || ..StartsWith(..blockid,"GV")
+    || ..StartsWith(..blockid,"RBAS")
+    || ..StartsWith(..blockid,"RV")
+    {
+        set ..rank=1000
+    } // end of giant if
+
+    //overrides
+    if ..StartsWith(..blockid,"TVQS") {
+        set ..rank=1000
+    }
+    
+    if (..blockid [ "GOBJ_populate") || (..blockid [ "GOBJ_cb") 
+    || (..blockid [ "GOBJ_gen") || (..blockid [ "GOBJ_dict") || (..blockid [ "GOBJ_projection") {
+        set ..rank=..rank+5
+    }
+    
+    if (..StartsWith(..blockid,"ECONFIG_entrprise")) {
+        set ..rank=..rank+5
+    }
+
+
+    if ..blockid="GCNV" || ..StartsWith(..blockid,"GCNV_") {
+        set ..rank=40
+    }
+    if ..StartsWith(..blockid,"GCNVA") {
+        set ..rank=51
+    }
+    //override what we did before
+    if (..StartsWith(..blockid,"GCNV") || ..StartsWith(..blockid,"GCRN") || ..StartsWith(..blockid,"EGRN")) {
+        //write !, "got here: "_..blockid
+        set ..rank=..rank+1
+        if (..blockid [ "1502") || (..blockid [ "2015_2") || (..blockid [ "2015.2"){
+            set ..rank=..rank+2
+        } elseif (..blockid [ "1501") || (..blockid [ "2015_1") || (..blockid [ "2015.1"){
+            set ..rank=..rank+3
+        } elseif (..blockid [ "1401") || (..blockid [ "2014_1")|| (..blockid [ "2014.1"){
+            set ..rank=..rank+4
+        } elseif (..blockid [ "1301") || (..blockid [ "2013_1")|| (..blockid [ "2013.1"){
+            set ..rank=..rank+5
+        } elseif (..blockid [ "1202") || (..blockid [ "2012_2")|| (..blockid [ "2012.2"){
+            set ..rank=..rank+6
+        } elseif (..blockid [ "1201") || (..blockid [ "2012_1") || (..blockid [ "2012.1") {
+            set ..rank=..rank+7
+        } elseif (..blockid [ "1101") || (..blockid [ "2011_1") || (..blockid [ "2011.1"){
+            set ..rank=..rank+8
+        } elseif (..blockid [ "1002") || (..blockid [ "2010_2") || (..blockid [ "2010.2"){
+            set ..rank=..rank+9
+        } elseif (..blockid [ "1001") || (..blockid [ "2010_1") || (..blockid [ "2010.1"){
+            set ..rank=..rank+10
+        } elseif (..blockid [ "901") || (..blockid [ "2009_1") || (..blockid [ "2009.1"){
+            set ..rank=..rank+11
+        } elseif (..blockid [ "802") || (..blockid [ "2008_2") || (..blockid [ "2008.2"){
+            set ..rank=..rank+12
+        } elseif (..blockid [ "801")  || (..blockid [ "2008_1") || (..blockid [ "2008.1"){
+            set ..rank=..rank+13
+        } elseif (..blockid [ "701")  || (..blockid [ "2007_1") || (..blockid [ "2007.1"){
+            set ..rank=..rank+14
+        } elseif ((..blockid [ "502")||(..blockid [ "R52")) {
+            set ..rank=..rank+14
+        } elseif ((..blockid [ "501")||(..blockid [ "R51")) {
+            set ..rank=..rank+16
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="SetUseCases">
+<Implementation><![CDATA[
+    /// appdev *********************************************************
+    if ..StartsWith(..blockid,"ALOCK")
+    || ..StartsWith(..blockid,"APMML")
+    || ..StartsWith(..blockid,"ASEM")
+    || ..StartsWith(..blockid,"ATRY")
+    || ..StartsWith(..blockid,"AVMEM")
+    || ..StartsWith(..blockid,"B")
+    || ..StartsWith(..blockid,"D2ANLY")
+    || ..StartsWith(..blockid,"D2CLIENT")
+    || ..StartsWith(..blockid,"D2DASH")
+    || ..StartsWith(..blockid,"D2DT")
+    || ..StartsWith(..blockid,"D2GMDX")
+    || ..StartsWith(..blockid,"D2IMP")
+    || ..StartsWith(..blockid,"D2MOD")
+    || ..StartsWith(..blockid,"D2RMDX")
+    || ..StartsWith(..blockid,"D2RPT")
+    || ..StartsWith(..blockid,"EACT")
+    || ..StartsWith(..blockid,"EAST")
+    || ..StartsWith(..blockid,"EBPL")
+    || ..StartsWith(..blockid,"EBUS")
+    || ..StartsWith(..blockid,"EDICOM")
+    || ..StartsWith(..blockid,"EDTL")
+    || ..StartsWith(..blockid,"EEDI")
+    || ..StartsWith(..blockid,"EEMA")
+    || ..StartsWith(..blockid,"EESB")
+    || ..StartsWith(..blockid,"EFIL")
+    || ..StartsWith(..blockid,"EFTP")
+    || ..StartsWith(..blockid,"EGBP")
+    || ..StartsWith(..blockid,"EGDV")
+    || ..StartsWith(..blockid,"EGDV")
+    || ..StartsWith(..blockid,"EGWF")
+    || ..StartsWith(..blockid,"EHL7")
+    || ..StartsWith(..blockid,"EHTTP")
+    || ..StartsWith(..blockid,"EITK")
+    || ..StartsWith(..blockid,"EJVG")
+    || ..StartsWith(..blockid,"EMQS")
+    || ..StartsWith(..blockid,"ENTG")
+    || ..StartsWith(..blockid,"EPUSH")
+    || ..StartsWith(..blockid,"EREST")
+    || ..StartsWith(..blockid,"ESAP")
+    || ..StartsWith(..blockid,"ESOAP")
+    || ..StartsWith(..blockid,"ESQL")
+    || ..StartsWith(..blockid,"ETCP")
+    || ..StartsWith(..blockid,"EX12")
+    || ..StartsWith(..blockid,"EXML")
+    || ..StartsWith(..blockid,"GB")
+    || ..StartsWith(..blockid,"GCHW")
+    || ..StartsWith(..blockid,"GCOS")
+    || ..StartsWith(..blockid,"GCSP")
+    || ..StartsWith(..blockid,"GGBL")
+    || ..StartsWith(..blockid,"GIKNOW")
+    || ..StartsWith(..blockid,"GIOD")
+    || ..StartsWith(..blockid,"GISQ")
+    || ..StartsWith(..blockid,"GJSON")
+    || ..StartsWith(..blockid,"GMSM")
+    || ..StartsWith(..blockid,"GNET")
+    || ..StartsWith(..blockid,"GOBJ")
+    || ..StartsWith(..blockid,"GORIENT")
+    || ..StartsWith(..blockid,"GREST")
+    || ..StartsWith(..blockid,"GRPT")
+    || ..StartsWith(..blockid,"GSOAP")
+    || ..StartsWith(..blockid,"GSQL")
+    || ..StartsWith(..blockid,"GSTD")
+    || ..StartsWith(..blockid,"GTER")
+    || ..StartsWith(..blockid,"GTSQ")
+    || ..StartsWith(..blockid,"GV")
+    || ..StartsWith(..blockid,"GXML")
+    || ..StartsWith(..blockid,"GZ")
+    || ..StartsWith(..blockid,"RBAS")
+    || ..StartsWith(..blockid,"RCOS")
+    || ..StartsWith(..blockid,"RCSP")
+    || ..StartsWith(..blockid,"ROBJ")
+    || ..StartsWith(..blockid,"RSQL")
+    || ..StartsWith(..blockid,"RV")
+    || ..StartsWith(..blockid,"TBAS")
+    || ..StartsWith(..blockid,"TCMP")
+    || ..StartsWith(..blockid,"TCOS")
+    || ..StartsWith(..blockid,"TCSP")
+    || ..StartsWith(..blockid,"TELP")
+    || ..StartsWith(..blockid,"TLKP")
+    || ..StartsWith(..blockid,"THL7")
+    || ..StartsWith(..blockid,"TJAV")
+    || ..StartsWith(..blockid,"TJLP")
+    || ..StartsWith(..blockid,"TQKS")
+    || ..StartsWith(..blockid,"TSOA")
+    || ..StartsWith(..blockid,"TTEP")
+    || ..StartsWith(..blockid,"TUNT")
+    || ..StartsWith(..blockid,"TVQS")
+    || ..StartsWith(..blockid,"TWEB")
+    || ..StartsWith(..blockid,"TXML")
+    || ..StartsWith(..blockid,"TZEN")
+    || ..StartsWith(..blockid,"Z")
+    { 
+        do ..AppendUseCase("appdev")
+
+    /// end user *********************************************************
+    } elseif ..StartsWith(..blockid,"D2USER")
+    {
+        do ..AppendUseCase("end user")
+
+    /// all *********************************************************
+    } elseif ..StartsWith(..blockid,"D2GS")
+          || ..StartsWith(..blockid,"EGIN")
+          || ..StartsWith(..blockid,"GIC")
+          || ..StartsWith(..blockid,"ITECHREF")
+          || ..StartsWith(..blockid,"RGOT")
+          || ..StartsWith(..blockid,"GDOC")
+          || ..StartsWith(..blockid,"GCTM")
+          || ..StartsWith(..blockid,"EERR")
+          || ..StartsWith(..blockid,"RERR")
+          || ..StartsWith(..blockid,"ASEC")
+          || ..StartsWith(..blockid,"GCAS")
+          || ..StartsWith(..blockid,"TSQS")
+    {
+        do ..AppendUseCase("all")
+
+    /// installation (and some upgrade) *********************************************************
+    } elseif ..StartsWith(..blockid,"GCRN")
+    || ..StartsWith(..blockid,"ISP")
+    {
+        do ..AppendUseCase("installation")
+
+    } elseif ..StartsWith(..blockid,"GCI") {
+        if ..blockid [ "upgrade" {
+            do ..AppendUseCase("upgrade")
+        } else {
+            do ..AppendUseCase("installation")
+        }
+    } elseif ..StartsWith(..blockid,"EGRN") {
+        if ..blockid [ "compatibility" {
+            do ..AppendUseCase("upgrade")
+        } else {
+            do ..AppendUseCase("installation")
+        }
+
+    /// upgrade *********************************************************
+    } elseif ..StartsWith(..blockid,"GCNV")
+    || ..StartsWith(..blockid,"ERGN")
+    {
+        do ..AppendUseCase("upgrade")
+
+    /// configuration *********************************************************
+    } elseif ..StartsWith(..blockid,"ECONFIG")
+    || ..StartsWith(..blockid,"GCGI")
+    || ..StartsWith(..blockid,"GSA")
+    || ..StartsWith(..blockid,"GHA")
+    || ..StartsWith(..blockid,"GCDI")
+    || ..StartsWith(..blockid,"GDDM")
+    || ..StartsWith(..blockid,"RACS")
+    || ..StartsWith(..blockid,"RCPF")
+    {
+        do ..AppendUseCase("configuration")
+
+    /// operation *********************************************************
+    } elseif ..StartsWith(..blockid,"EGMG")
+    || ..StartsWith(..blockid,"EMONITOR")
+    || ..StartsWith(..blockid,"GCM")
+    || ..StartsWith(..blockid,"GSA")
+    || ..StartsWith(..blockid,"GSTU")
+    || ..StartsWith(..blockid,"GEMS")
+    {
+        do ..AppendUseCase("operation")
+
+    /// migration *********************************************************
+    } elseif ..StartsWith(..blockid,"GISQ")
+          || ..StartsWith(..blockid,"GMSM")
+    {
+        do ..AppendUseCase("migration")
+
+    /// planning *********************************************************
+    } elseif ..StartsWith(..blockid,"EPREP")
+    {
+        do ..AppendUseCase("planning")
+
+    /// testing *********************************************************
+    } elseif ..StartsWith(..blockid,"TTEP")
+          || ..StartsWith(..blockid,"TUNT")
+    {
+        do ..AppendUseCase("testing")
+
+    } // end
+]]></Implementation>
+</Method>
+
+<Method name="SetKeywordsByBook">
+<Implementation><![CDATA[
+    /// A *********************************************************
+    if ..StartsWith(..blockid,"ALOCK") {
+        set ..keywords="ObjectScript"
+
+    } elseif ..StartsWith(..blockid,"APMM") {
+        set ..keywords="PMML"
+
+    } elseif ..StartsWith(..blockid,"ASEC") {
+        set ..keywords="security"
+        if (..blockid [ "csp") {
+            do ..AppendKeyword("CSP")
+        }
+
+    } elseif ..StartsWith(..blockid,"ASEM") {
+        set ..keywords="ObjectScript"
+
+    } elseif ..StartsWith(..blockid,"ATRY") {
+        set ..keywords="ObjectScript"
+
+    } elseif ..StartsWith(..blockid,"ASEC") {
+        set ..keywords="security"
+
+    } elseif ..StartsWith(..blockid,"AVMEM") {
+        set ..keywords="ObjectScript"
+
+    } elseif ..StartsWith(..blockid,"BGAX") {
+        set ..keywords="ActiveX,COM"
+
+    /// B *********************************************************
+    } elseif ..StartsWith(..blockid,"BGCL") {
+        set ..keywords="callout"
+
+    } elseif ..StartsWith(..blockid,"BGJD") {
+        set ..keywords="JDBC,Hibernate"
+
+    } elseif ..StartsWith(..blockid,"BGNT") {
+        set ..keywords=".NET"
+
+    } elseif ..StartsWith(..blockid,"BGOD") {
+        set ..keywords="ODBC"
+
+    } elseif ..StartsWith(..blockid,"BLAX") {
+        set ..keywords="ActiveX,Visual Basic"
+
+    } elseif ..StartsWith(..blockid,"BLJV") {
+        set ..keywords="Java"
+
+    } elseif ..StartsWith(..blockid,"BXCI") {
+        set ..keywords="callin"
+
+    } elseif ..StartsWith(..blockid,"BXJS") {
+        set ..keywords="Node.js"
+
+    } elseif ..StartsWith(..blockid,"BXJV") {
+        set ..keywords="Java"
+
+    } elseif ..StartsWith(..blockid,"BXNT") {
+        set ..keywords=".NET"
+
+    /// D *********************************************************
+    } elseif ..StartsWith(..blockid,"D2") {
+        set ..keywords="DeepSee"
+        if (..blockid [ "MDX") {
+            do ..AppendKeyword("MDX")
+        }
+        if (..blockid [ "security") {
+            do ..AppendKeyword("security")
+        }
+        if (..blockid [ "iknow") {
+            do ..AppendKeyword("iKnow")
+        }
+        if ..StartsWith(..blockid, "D2RPT") {
+            set ..keywords="DeepSee Visual Reporting"
+        }
+
+        if ..StartsWith(..blockid,"D2CLIENT") {
+            do ..AppendKeyword("REST")
+            do ..AppendKeyword("JSON")
+        }
+        if ..StartsWith(..blockid,"D2MODEL")  & ..blockid [ "recipe"{
+            do ..AppendKeyword("MDX")
+        }
+
+    /// E *********************************************************
+    } elseif ..StartsWith(..blockid,"EACT") {
+        set ..keywords="EDIFACT,virtual documents"
+
+    } elseif ..StartsWith(..blockid,"EAST") {
+        set ..keywords="ASTM,virtual documents"
+
+    } elseif ..StartsWith(..blockid,"EBUS") {
+        set ..keywords="business rules"
+
+    } elseif ..StartsWith(..blockid,"EBPL") {
+        set ..keywords="BPL"
+
+    } elseif ..StartsWith(..blockid,"EBPLR") {
+        set ..keywords="BPL"
+
+    } elseif ..StartsWith(..blockid,"EDICOM") {
+        set ..keywords="DICOM"
+
+    } elseif ..StartsWith(..blockid,"EDTL") {
+        set ..keywords="DTL"
+
+    } elseif ..StartsWith(..blockid,"EEDI") {
+        set ..keywords="virtual documents"
+
+    } elseif ..StartsWith(..blockid,"EEMA") {
+        set ..keywords="email"
+
+    } elseif ..StartsWith(..blockid,"EERR") {
+        set ..keywords="troubleshooting"
+
+    } elseif ..StartsWith(..blockid,"EESB") {
+        set ..keywords=""
+
+    } elseif ..StartsWith(..blockid,"EFIL") {
+        set ..keywords="files"
+
+    } elseif ..StartsWith(..blockid,"EFTP") {
+        set ..keywords="FTP"
+
+    } elseif ..StartsWith(..blockid,"EFTP") {
+        set ..keywords="FTP"
+
+    } elseif ..StartsWith(..blockid,"EGIN") {
+        if (..blockid [ "rule") {
+            do ..AppendKeyword("business rules")
+        }
+
+    } elseif ..StartsWith(..blockid,"EGRN") {
+        if (..blockid [ "rule") {
+            do ..AppendKeyword("business rules")
+        }
+
+    } elseif ..StartsWith(..blockid,"EGWF") {
+        set ..keywords=""
+
+    } elseif ..StartsWith(..blockid,"EHL7") {
+        set ..keywords="HL7"
+        if ($$$UPPER(..blockid) [ "EHL2") {
+            set ..keywords="HL7,virtual documents"
+        }
+
+    } elseif ..StartsWith(..blockid,"EHTTP") {
+        set ..keywords="HTTP"
+
+    } elseif ..StartsWith(..blockid,"EITK") {
+        set ..keywords="NHS"
+
+    } elseif ..StartsWith(..blockid,"EJVG") {
+        set ..keywords="Java"
+
+    } elseif ..StartsWith(..blockid,"EMONITOR") {
+        if (..blockid [ "rule") {
+            do ..AppendKeyword("business rules")
+        }
+
+    } elseif ..StartsWith(..blockid,"EMQS") {
+        set ..keywords="MQ Series"
+
+    } elseif ..StartsWith(..blockid,"ENTG") {
+        set ..keywords=".NET"
+
+    } elseif ..StartsWith(..blockid,"EPREP") {
+
+    } elseif ..StartsWith(..blockid,"EPUSH") {
+        set ..keywords="push notifications"
+
+    } elseif ..StartsWith(..blockid,"EREST") {
+        set ..keywords="REST"
+
+    } elseif ..StartsWith(..blockid,"ESAP") {
+        set ..keywords="SAP"
+
+    } elseif ..StartsWith(..blockid,"ESOAP") {
+        set ..keywords="SOAP"
+
+    } elseif ..StartsWith(..blockid,"ESQL") {
+        set ..keywords="SQL"
+
+    } elseif ..StartsWith(..blockid,"ETCP") {
+        set ..keywords="TCP"
+
+    } elseif ..StartsWith(..blockid,"EX12") {
+        set ..keywords="X12,virtual documents"
+
+    } elseif ..StartsWith(..blockid,"EXML") {
+        set ..keywords="XML,virtual documents"
+
+    /// G *********************************************************
+    } elseif ..StartsWith(..blockid,"GBAS") {
+        set ..keywords="Basic"
+
+    } elseif ..StartsWith(..blockid,"GBCD") {
+        set ..keywords="Cache Direct"
+
+    } elseif ..StartsWith(..blockid,"GBCP") {
+        set ..keywords="C++"
+
+    } elseif ..StartsWith(..blockid,"GBJJ") {
+        set ..keywords="Java"
+
+    } elseif ..StartsWith(..blockid,"GBMP") {
+        set ..keywords=".NET,ADO.NET"
+
+    } elseif ..StartsWith(..blockid,"GBPL") {
+        set ..keywords="Perl"
+
+    } elseif ..StartsWith(..blockid,"GBPY") {
+        set ..keywords="Python"
+
+    } elseif ..StartsWith(..blockid,"GCAS") {
+        set ..keywords="security"
+
+    } elseif ..StartsWith(..blockid,"GCGI") {
+        set ..keywords="CSP"
+
+    } elseif ..StartsWith(..blockid,"GCI") {
+
+    } elseif ..StartsWith(..blockid,"GCM") {
+
+    } elseif ..StartsWith(..blockid,"GCDI") {
+        set ..keywords="networking"
+
+    } elseif ..StartsWith(..blockid,"GCHW") {
+        set ..keywords=""
+
+    } elseif ..StartsWith(..blockid,"GCTM") {
+        set ..keywords=""
+
+    } elseif ..StartsWith(..blockid,"GCNV") {
+
+    } elseif ..StartsWith(..blockid,"GCOS") {
+        set ..keywords="ObjectScript"
+
+    } elseif ..StartsWith(..blockid,"GCRN") {
+
+    } elseif ..StartsWith(..blockid,"GCSP") {
+        set ..keywords="CSP"
+
+    } elseif ..StartsWith(..blockid,"GDDM") {
+        set ..keywords="ECP"
+
+    } elseif ..StartsWith(..blockid,"GDOC") {
+        set ..keywords=""
+
+    } elseif ..StartsWith(..blockid,"GEMS") {
+        set ..keywords=""
+
+    } elseif ..StartsWith(..blockid,"GGBL") {
+        set ..keywords="ObjectScript"
+
+    } elseif ..StartsWith(..blockid,"GHA") {
+        set ..keywords="high availability"
+
+    } elseif ..StartsWith(..blockid,"GIKNOW") {
+        set ..keywords="iKnow"
+
+    } elseif ..StartsWith(..blockid,"GIOD") {
+        set ..keywords="ObjectScript"
+
+    } elseif ..StartsWith(..blockid,"GISQ") {
+        set ..keywords="ISQL,migration"
+
+    } elseif ..StartsWith(..blockid,"GJSON") {
+        set ..keywords="ObjectScript,JSON"
+
+    } elseif ..StartsWith(..blockid,"GMSM") {
+        set ..keywords="MSM,migration"
+
+    } elseif ..StartsWith(..blockid,"GNET") {
+        set ..keywords=""
+
+    } elseif ..StartsWith(..blockid,"GOBJ") {
+        set ..keywords="class definitions"
+
+        if (..blockid [ "specialcos") {
+            do ..AppendKeyword("ObjectScript")
+        }
+        if (..blockid [ "persother" ) {
+            do ..AppendKeyword("SQL")
+        }
+        if (..blockid [ "rls" ) {
+            do ..AppendKeyword("security")
+        }
+        if (..blockid [ "query" ) {
+            do ..AppendKeyword("SQL")
+        }
+        if (..blockid [ "fk" ) {
+            do ..AppendKeyword("SQL")
+        }
+        if (..blockid [ "ident_notes" ) {
+            do ..AppendKeyword("SQL")
+        }
+        if (..blockid [ "indices" ) {
+            do ..AppendKeyword("SQL")
+        }
+        if (..blockid [ "queries" ) {
+            do ..AppendKeyword("SQL")
+        }
+        if (..blockid [ "xdata" ) {
+            do ..AppendKeyword("XML")
+        }
+
+    } elseif ..StartsWith(..blockid,"GORIENT") {
+        set ..keywords="ObjectScript"
+        if (..blockid [ "class" ) {
+            do ..AppendKeyword("class definitions")
+        }
+        if (..blockid [ "studio" ) {
+            do ..AppendKeyword("Studio")
+        }
+        if (..blockid [ "terminal" ) {
+            do ..AppendKeyword("Terminal")
+        }
+
+    } elseif ..StartsWith(..blockid,"GREST") {
+        set ..keywords="REST"
+
+    } elseif ..StartsWith(..blockid,"GRPT") {
+        set ..keywords="Zen Reports"
+
+    } elseif ..StartsWith(..blockid,"GSOAP") {
+        set ..keywords="SOAP"
+        if (..blockid [ "GSOAPSEC") {
+            do ..AppendKeyword("security")
+        }
+
+    } elseif ..StartsWith(..blockid,"GSQL") {
+        set ..keywords="SQL"
+
+    } elseif ..StartsWith(..blockid,"GSTD") {
+        set ..keywords="Studio"
+
+    } elseif ..StartsWith(..blockid,"GSTU") {
+        if (..blockid [ "convert") {
+            do ..AppendKeyword("migration")
+        }
+
+    } elseif ..StartsWith(..blockid,"GTER") {
+        set ..keywords="Terminal"
+
+    } elseif ..StartsWith(..blockid,"GTSQ") {
+        set ..keywords="TSQL"
+
+    } elseif ..StartsWith(..blockid,"GV") {
+        set ..keywords="MVBasic"
+
+    } elseif ..StartsWith(..blockid,"GXML") {
+        set ..keywords="XML"
+
+    } elseif ..StartsWith(..blockid,"GZAP") {
+        set ..keywords="Zen"
+
+    } elseif ..StartsWith(..blockid,"GZCP") {
+        set ..keywords="Zen"
+
+    } elseif ..StartsWith(..blockid,"GZEN") {
+        set ..keywords="Zen"
+
+
+    /// I *********************************************************
+    } elseif ..StartsWith(..blockid,"ISP") {
+
+    /// R *********************************************************
+    } elseif ..StartsWith(..blockid,"RACS") {
+        set ..keywords=""
+
+    } elseif ..StartsWith(..blockid,"RBAS") {
+        set ..keywords="Basic"
+
+    } elseif ..StartsWith(..blockid,"RCOS") {
+        set ..keywords="ObjectScript"
+
+    } elseif ..StartsWith(..blockid,"RCPF") {
+        set ..keywords="CPF"
+
+    } elseif ..StartsWith(..blockid,"RCSP") {
+        set ..keywords="CSP"
+
+    } elseif ..StartsWith(..blockid,"RERR") {
+
+    } elseif ..StartsWith(..blockid,"RGOT") {
+        set ..keywords=""
+
+    } elseif ..StartsWith(..blockid,"ROBJ") {
+        set ..keywords="class definitions"
+
+    } elseif ..StartsWith(..blockid,"RSQL") {
+        set ..keywords="SQL"
+
+    } elseif ..StartsWith(..blockid,"RV") {
+        set ..keywords="MVBasic"
+
+
+    /// T *********************************************************
+    } elseif ..StartsWith(..blockid,"TBAS") {
+        set ..keywords="Basic"
+
+    } elseif ..StartsWith(..blockid,"TCMP") {
+        set ..keywords=".NET"
+
+    } elseif ..StartsWith(..blockid,"TCOS") {
+        set ..keywords="ObjectScript"
+
+    } elseif ..StartsWith(..blockid,"TCSP") {
+        set ..keywords="CSP"
+
+    } elseif ..StartsWith(..blockid,"TELP") {
+        set ..keywords=""
+
+    } elseif ..StartsWith(..blockid,"THL7") {
+        set ..keywords="HL7"
+
+    } elseif ..StartsWith(..blockid,"TJAV") {
+        set ..keywords="Java,JDBC"
+
+    } elseif ..StartsWith(..blockid,"TJLP") {
+        set ..keywords="Java"
+
+    } elseif ..StartsWith(..blockid,"TLKP") {
+        set ..keywords=""
+
+    } elseif ..StartsWith(..blockid,"TQKS") {
+        set ..keywords="ObjectScript"
+
+    } elseif ..StartsWith(..blockid,"TSOA") {
+        set ..keywords="SOAP"
+
+    } elseif ..StartsWith(..blockid,"TSQS") {
+        set ..keywords="security"
+
+    } elseif ..StartsWith(..blockid,"TTEP") {
+        set ..keywords="testing"
+
+    } elseif ..StartsWith(..blockid,"TUNT") {
+        set ..keywords="ObjectScript,class definitions,testing"
+
+    } elseif ..StartsWith(..blockid,"TVQS") {
+        set ..keywords="MVBasic"
+
+    } elseif ..StartsWith(..blockid,"TWEB") {
+        set ..keywords="CSP,ObjectScript"
+
+    } elseif ..StartsWith(..blockid,"TXML") {
+        set ..keywords="XML"
+
+    } elseif ..StartsWith(..blockid,"TZEN") {
+        set ..keywords="Zen"
+
+    /// Z *********************************************************
+    } elseif ..StartsWith(..blockid,"Z") {
+        set ..keywords="Zen Mojo"
+
+    } // end
+]]></Implementation>
+</Method>
+
+<Method name="SetMoreKeywords">
+<Implementation><![CDATA[
+    if (($$$UPPER(..blockid) [ "SQL") 
+    && ($$$UPPER(..blockid) '["TSQL") && ($$$UPPER(..blockid) '["ISQL")
+    && ($$$UPPER(..blockid) '["GATEWAY") && ($$$UPPER(..blockid) '["CONNECT")
+    && ($$$UPPER(..blockid) '["EMONITOR") 
+    && ($$$UPPER(..blockid) '["GIKNOW")) {
+        do ..AppendKeyword("SQL")
+    }
+ 
+    if (($$$UPPER(..title) [ "SQL") 
+    && ($$$UPPER(..title) '[ "ISQL")
+    && ($$$UPPER(..title) '[ "TSQL")
+    ) {
+        do ..AppendKeyword("SQL")
+    }
+
+    if (($$$UPPER(..title) [ "CLASS QUER")) {
+        do ..AppendKeyword("SQL")
+    }
+
+
+    if (($$$UPPER(..blockid) [ "TSQL") && ($$$UPPER(..title) '[ "GETSQL")) {
+        do ..AppendKeyword("TSQL")
+    }
+
+    if (($$$UPPER(..title) [ "ISQL")) {
+        do ..AppendKeyword("ISQL")
+    }
+
+    if (($$$UPPER(..title) [ "BUSINESS RULE")) {
+        do ..AppendKeyword("business rules")
+    }
+
+    if ($$$UPPER(..title) [ "DICOM") {
+        do ..AppendKeyword("DICOM")
+    }
+
+    if ($$$UPPER(..title) [ "ACTIVEX") {
+        do ..AppendKeyword("ActiveX")
+    }
+
+    if ($$$UPPER(..title) [ "MDX") {
+        do ..AppendKeyword("MDX")
+    }
+
+    if ($$$UPPER(..title) [ "PERL") {
+        do ..AppendKeyword("Perl")
+    }
+
+    if ($$$UPPER(..title) [ "PYTHON") {
+        do ..AppendKeyword("Python")
+    }
+
+    if ($$$UPPER(..title) [ "SAML") {
+        do ..AppendKeyword("SAML")
+    }
+
+    if ($$$UPPER(..title) [ "NODEJS") {
+        do ..AppendKeyword("node.js")
+    }
+
+    if ($$$UPPER(..title) [ "ASTM") {
+        do ..AppendKeyword("ASTM")
+    }
+
+    if (($$$UPPER(..title) [ "FTP") || (..title [ "FTP")){
+        do ..AppendKeyword("FTP")
+    }
+
+    if ($$$UPPER(..title) [ "EMAIL") {
+        do ..AppendKeyword("email")
+    }
+
+    if (($$$UPPER(..title) [ "ODBC")|| (..title [ "ODBC")) {
+        do ..AppendKeyword("ODBC")
+    }
+
+    if (($$$UPPER(..title) [ "SSH")|| (..title [ "SSH")) {
+        do ..AppendKeyword("SSH")
+    }
+
+    if (($$$UPPER(..title) [ "JDBC")|| (..title [ "JDBC")) {
+        do ..AppendKeyword("JDBC")
+    }
+
+    if (($$$UPPER(..title) [ "HL7")|| (..title [ "HL7")) {
+        do ..AppendKeyword("HL7")
+    }
+
+    if (($$$UPPER(..title) [ "DTL")|| (..title [ "DTL")) {
+        do ..AppendKeyword("DTL")
+    }
+
+    if ($$$UPPER(..title) [ "TCP") {
+        do ..AppendKeyword("TCP")
+    }
+
+    if (($$$UPPER(..title) [ "X12")|| (..title [ "X12")) {
+        do ..AppendKeyword("X12")
+    }
+
+    if ($$$UPPER(..title) [ "HTTP") {
+        do ..AppendKeyword("HTTP")
+    }
+
+    if ($$$UPPER(..title) [ "MIME") {
+        do ..AppendKeyword("MIME")
+    }
+
+    if (..title [ "JSON"){
+        do ..AppendKeyword("JSON")
+    }
+
+    if (($$$UPPER(..title) [ "XML") 
+        &&($$$UPPER(..title) '[ "RESERVED") 
+        &&($$$UPPER(..title) '[ "DO NOT NEED") ){
+        do ..AppendKeyword("XML")
+    }
+
+    if ($$$UPPER(..title) [ "MQ"){
+        do ..AppendKeyword("MQ Series")
+    }
+
+    if ($$$UPPER(..title) [ "XSL") {
+        do ..AppendKeyword("XSLT")
+    }
+
+    if ($$$UPPER(..title) [ "XPATH") {
+        do ..AppendKeyword("XPATH")
+    }
+
+    if ($$$UPPER(..title) [ "SSL") {
+        do ..AppendKeyword("SSL/TLS")
+        do ..AppendKeyword("security")
+    }
+
+    if ($$$UPPER(..title) [ "AUTHORIZ") || ($$$UPPER(..title) [ "AUTHEN") 
+    || ($$$UPPER(..title) [ "AUDIT") || ($$$UPPER(..title) [ "X.509")
+    || ($$$UPPER(..title) [ "PRIVILEGE") || ($$$UPPER(..blockid) [ "SECURITY")
+    || ($$$UPPER(..title) [ "ENCRYPT") || ($$$UPPER(..title) [ "CREDENTIAL"){
+        do ..AppendKeyword("security")
+    }
+
+    if ($$$UPPER(..title) [ "DEEPSEE") {
+        do ..AppendKeyword("DeepSee")
+    }
+
+    if (($$$UPPER(..title) [ "SOAP") || (..title [ "SOAP")){
+        do ..AppendKeyword("SOAP")
+    }
+
+    if ($$$UPPER(..title) [ "REST") {
+        if ($$$UPPER(..blockid) '[ "FOREST") && ($$$UPPER(..blockid) '[ "DBREST") 
+        && ($$$UPPER(..title) '[ "RESTAR") && ($$$UPPER(..title) '[ "RESTR")
+        && ($$$UPPER(..title) '[ "RESTOR") && ($$$UPPER(..title) '[ "AT REST") {
+            do ..AppendKeyword("REST")
+        }
+    }
+
+    if ((($$$UPPER(..title) [ "CLUSTER") || ($$$UPPER(..blockid) [ "CLUSTER"))
+        && ($$$UPPER(..title)'="D2USER_analysis_cluster")){
+        do ..AppendKeyword("clusters")
+    }
+
+    if ($$$UPPER(..title) [ "JOURNAL")|| ($$$UPPER(..blockid) [ "WIJ"){
+        do ..AppendKeyword("journaling")
+    }
+
+    if (($$$UPPER(..title) [ "MIRROR") && ($$$UPPER(..blockid) '[ "GBCD") && ($$$UPPER(..title) '[ "SYSTEMMIRROR")){
+        do ..AppendKeyword("mirroring")
+    }
+
+    if ($$$UPPER(..blockid) [ "SHADOW"){
+        do ..AppendKeyword("shadowing")
+    }
+
+    if ($$$UPPER(..title) [ "ECP") {
+        do ..AppendKeyword("ECP")
+    }
+    if ((..blockid [ "license") && (..blockid '[ "GCTM")) {
+        do ..AppendKeyword("licenses")
+    }
+
+    if ($$$UPPER(..title) [ "JOUR") {
+        do ..AppendKeyword("data integrity")
+    }
+
+    if ($$$UPPER(..title) [ "SHAD") {
+        do ..AppendKeyword("shadowing")
+    }
+
+    if ($$$UPPER(..title) [ "TROUBLE") {
+        do ..AppendKeyword("troubleshooting")
+    }
+
+    if ($$$UPPER(..title) [ "DEBUG") {
+        do ..AppendKeyword("troubleshooting")
+    }
+
+    if ($$$UPPER(..title) [ "NLS"){
+        do ..AppendKeyword("localization")
+    }
+
+    if ($$$UPPER(..title) [ "LOCALIZ") {
+        do ..AppendKeyword("localization")
+    }
+
+    if ($$$UPPER(..title) [ "LOCALE") {
+        do ..AppendKeyword("localization")
+    }
+    
+    if ($$$UPPER(..title) [ "IFIND") {
+        do ..AppendKeyword("iKnow")
+        do ..AppendKeyword("iFind")
+    }
+    if ($$$UPPER(..title) [ "JAVA") {
+        do ..AppendKeyword("Java")
+    }
+    if ($$$UPPER(..title) [ "IKNOW") {
+        do ..AppendKeyword("iFind")
+    }
+    if ($$$UPPER(..title) [ "BASIC") {
+        if ($$$UPPER(..title) [ "MV") || ($$$UPPER(..title) [ "MULTIVALUE") {
+            do ..AppendKeyword("MVBasic")
+        } elseif ($$$UPPER(..title) [ "CACH&EACUTE; BASIC")  {
+            do ..AppendKeyword("Basic")
+        }
+    }
+    if ($$$UPPER(..blockid) [ "MVB") {
+        do ..AppendKeyword("MVBasic")
+    } 
+    if ($$$UPPER(..title) [ "MV") {
+        //write !, ..title
+        do ..AppendKeyword("MVBasic")
+    } 
+    
+    
+    if (($$$UPPER(..title) [ "ZEN")&&($$$UPPER(..title) '[ "MOJO")&&($$$UPPER(..title) '[ "MOBILE")) {
+        do ..AppendKeyword("Zen Mojo")
+    }
+    if ($$$UPPER(..title) [ "ZEN MOJO") {
+        do ..AppendKeyword("Zen Mojo")
+    }
+
+    if ($$$UPPER(..title) [ ".NET") {
+        do ..AppendKeyword(".NET")
+    }
+
+    if (($$$UPPER(..title) [ "SECUR") || (..title [ "Signing") || (..title [ "Public Key")) {
+        do ..AppendKeyword("security")
+    }
+
+    if (($$$UPPER(..blockid) [ "CPF")) {
+        do ..AppendKeyword("CPF")
+    }
+]]></Implementation>
+</Method>
+
+<Method name="AddDerivedKeywords">
+<Description>
+Add higher levels based on basic keywords</Description>
+<Implementation><![CDATA[
+    if (..keywords="") quit
+    //write !, ..keywords
+    if (..keywords [ "ECP") {
+        do ..AppendDerivedKeyword("networking")
+    }
+
+    if ((..keywords [ "clusters") || (..keywords [ "mirroring")) {
+        do ..AppendDerivedKeyword("high availability")
+    }
+]]></Implementation>
+</Method>
+
+<Method name="AppendKeyword">
+<FormalSpec>keyword:%String=""</FormalSpec>
+<Implementation><![CDATA[
+    if (keyword="") quit
+    set techlist=$LISTFROMSTRING(..keywords,",")
+    set inlist=0
+    for i=1:1:$LISTLENGTH(techlist) {
+        if $LG(techlist,i)=keyword {
+            set inlist=1
+            quit
+        }
+    }
+
+    if 'inlist {
+        if (..keywords="") {
+            set ..keywords=keyword
+        } else {
+            set ..keywords=..keywords_","_keyword
+        }
+        //write !, "got new keyword: ",..blockid_": "_..keywords
+    }
+]]></Implementation>
+</Method>
+
+<Method name="AppendDerivedKeyword">
+<FormalSpec>keyword:%String=""</FormalSpec>
+<Implementation><![CDATA[
+    if (keyword="") quit
+    set techlist=$LISTFROMSTRING(..keywords,",")
+    set inlist=0
+    for i=1:1:$LISTLENGTH(techlist) {
+        if $LG(techlist,i)=keyword {
+            set inlist=1
+            quit
+        }
+    }
+
+    if 'inlist {
+        if (..derivedkeywords="") {
+            set ..derivedkeywords=keyword
+        } else {
+            set ..derivedkeywords=..derivedkeywords_","_keyword
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="AppendUseCase">
+<FormalSpec>usecase:%String=""</FormalSpec>
+<Implementation><![CDATA[
+    if (usecase="") quit
+    set usecaselist=$LISTFROMSTRING(..usecases,",")
+    set inlist=0
+    for i=1:1:$LISTLENGTH(usecaselist) {
+        if $LG(usecaselist,i)=usecase {
+            set inlist=1
+            quit
+        }
+    }
+        
+    if 'inlist {
+        if (..usecases="") {
+            set ..usecases=usecase
+        } elseif (..usecases="default use cases") {
+            set ..usecases=usecase
+        } else {
+            set ..usecases=..usecases_","_usecase
+        }
+        //write !, "got new use case ",..blockid_": "_..usecases
+    }
+]]></Implementation>
+</Method>
+
+<Method name="StartsWith">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>string:%String,fragment:%String,caseSensitive:%Boolean=0</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    set fraglen=$LENGTH(fragment)
+    set extract=$EXTRACT(string,1,fraglen)
+    if caseSensitive {
+        set return=(extract=fragment)
+    } else {
+        set return=$$$UPPER(extract)=$$$UPPER(fragment)
+    }
+    quit return
+]]></Implementation>
+</Method>
+
+<Method name="ExportToFile">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    set filename="DocBookContentExploration.txt"
+
+    set sql="SELECT * FROM DrupalFeed.Nodes"
+    set rset = ##class(%ResultSet).%New()
+    set rset.RuntimeMode=2
+    set status = rset.Prepare(sql)
+    if $$$ISERR(status) {do $system.Status.DisplayError(status)}
+    set status=rset.Execute()
+    if $$$ISERR(status) {do $system.Status.DisplayError(status)}
+
+    set delim=$CHAR(9)
+    set file=##class(%Stream.FileCharacter).%New()
+    set status=file.LinkToFile(filename)
+    if $$$ISERR(status) {do $system.Status.DisplayError(status)}
+
+    //iterate through columns and build up first line   
+    set firstline=rset.GetColumnName(1)
+    for i=2:1:rset.GetColumnCount() {
+        set firstline=firstline_delim_rset.GetColumnName(i)
+    }
+    do file.WriteLine(firstline)
+
+    set count=0
+    set list=""
+    while rset.Next()
+    {
+        set count=count+1
+        //iterate through columns and build up output line
+        set output=rset.GetData(1)
+        for i=2:1:rset.GetColumnCount() {
+           set output=output_delim_rset.GetData(i)
+        }
+        do file.WriteLine(output)
+    }
+
+    do file.%Save()
+    do file.%Close()
+    write !, "Exported "_count_" records to the file "_filename
+]]></Implementation>
+</Method>
+
+<Method name="Classify">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=1</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Starting to classify Drupal nodes...",verbose)
+    set sql="SELECT ID, blockid FROM DocBook_ManagerTables.DrupalNodes"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) { do $system.OBJ.DisplayError(sql)}
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set ID=rset.%Get("ID")
+        set blockid=rset.%Get("blockid")
+        if verbose {
+            write !, blockid
+        }
+        set node=..%OpenId(ID)
+        if '$ISOBJECT(node) {
+            write !, "no node found "_blockID
+            continue
+        }
+        do node.SetProduct()
+        do node.SetDetailLevel()
+        do node.SetRank()
+        do node.SetUseCases()
+        do node.SetKeywordsByBook()
+        do node.SetMoreKeywords()
+        do node.AddDerivedKeywords()
+        set status=node.%Save()
+        if $$$ISERR(status) { do $system.OBJ.DisplayError(status) }
+    }
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Done classifying Drupal nodes...",verbose)
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.Manage74DA.DrupalNodesD</DataLocation>
+<DefaultData>DrupalNodesDefaultData</DefaultData>
+<IdLocation>^DocBook.Manage74DA.DrupalNodesD</IdLocation>
+<IndexLocation>^DocBook.Manage74DA.DrupalNodesI</IndexLocation>
+<StreamLocation>^DocBook.Manage74DA.DrupalNodesS</StreamLocation>
+<Data name="DrupalNodesDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>blockid</Value>
+</Value>
+<Value name="3">
+<Value>blocktype</Value>
+</Value>
+<Value name="4">
+<Value>title</Value>
+</Value>
+<Value name="5">
+<Value>content</Value>
+</Value>
+<Value name="6">
+<Value>product</Value>
+</Value>
+<Value name="7">
+<Value>keywords</Value>
+</Value>
+<Value name="8">
+<Value>derivedkeywords</Value>
+</Value>
+<Value name="9">
+<Value>detaillevel</Value>
+</Value>
+<Value name="10">
+<Value>usecases</Value>
+</Value>
+<Value name="11">
+<Value>rank</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

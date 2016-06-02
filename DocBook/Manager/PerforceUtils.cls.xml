@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.PerforceUtils">
+<Description>
+Contains methods that generate various .bat scripts that you can use to either synchronize
+directories or check in PDF files. All these methods are called by Zen methods of the 
+DocBook Manager user interface. You can also call them directly.</Description>
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%RegisteredObject</Super>
+<TimeCreated>63713,62583.415616</TimeCreated>
+
+<Method name="WriteP4SyncBat">
+<Description>
+Generates a .bat script that synchronizes all directories on the current search path.
+If force=1, we use P4 sync -f rather than P4 sync.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0,force:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+ 
+    set baseexportdir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","Creating directory "_baseexportdir,verbose)
+    do ##class(%File).CreateDirectoryChain(baseexportdir)
+    // NB The value of the parameter MUST end with \
+
+    if force {
+        set filename=##class(DocBook.Manager.Utils).AppendToPath(baseexportdir,"FORCE-SyncPaths.bat")
+    } else {
+        set filename=##class(DocBook.Manager.Utils).AppendToPath(baseexportdir,"SyncPaths.bat")
+    }
+
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+    do ##class(DocBook.Manager.FileUtils).StartBatchFile(file,"WriteP4Sync()")
+    
+    set proot=##class(DocBook.Manager.ConfigUtils).GetParam("PERFORCEROOT")
+    set prootlen=$LENGTH(proot)
+
+    Set key = $ORDER(^DocBook.Config("SOURCE",""))
+    set pathliststring="" //initialize this -- will use for future processing
+    While (key '= "") {
+        set pathitem=^DocBook.Config("SOURCE",key)
+        set left=$EXTRACT(pathitem,1,prootlen)
+        if ($$$UPPER(left)=$$$UPPER(proot)) {
+
+            set pathitem=$TR(pathitem,"/","\")
+            //make sure we end with \
+            if ($EXTRACT(pathitem,$LENGTH(pathitem))'="\") {
+                set pathitem=pathitem_"\"
+            }
+
+            if (($$$UPPER(pathitem)'[ "CONFIDENTIAL") 
+            && ($$$UPPER(pathitem)'[ "INTERNAL")
+            && ($$$UPPER(pathitem)'[ "SCRIPTORIUM")) {
+                set pathliststring=pathliststring_","_pathitem
+            }
+            
+            //tack on ...
+            if force {
+                set command="P4 sync -f "_pathitem_"...#head"
+            } else {
+                set command="P4 sync "_pathitem_"...#head"
+            }
+            do file.WriteLine(command)
+            if verbose {
+                write !, command
+            }
+        }       
+        Set key = $ORDER(^DocBook.Config("SOURCE",key))
+    }
+
+    //now iterate through EXTRASOURCE
+    Set extrakey = $ORDER(^DocBook.Config("EXTRASOURCE",""))
+    set extrasourcestring="" //initialize this -- will use for future processing
+    While (extrakey '= "") {
+        set extraitem=^DocBook.Config("EXTRASOURCE",extrakey)
+        set actualpath=$E(extraitem,7,*)
+        
+        //let's see if this is in Perforce; if so, sync it
+        set left=$EXTRACT(actualpath,1,prootlen)
+        if ($$$UPPER(left)=$$$UPPER(proot)) {
+            if force {
+                set command="P4 sync -f "_actualpath_"...#head"
+            } else {
+                set command="P4 sync "_actualpath_"...#head"
+            }
+            do file.WriteLine(command)
+            if verbose {
+                write !, command
+            }
+            //let's look for an images subdirectory & sync that too!
+            set rootdir=##class(%File).GetDirectory(actualpath)
+            set imagedir=##class(DocBook.Manager.Utils).AppendToPath(rootdir,"images")
+            if force {
+                set command="P4 sync -f "_imagedir_"...#head"
+            } else {
+                set command="P4 sync "_imagedir_"...#head"
+            }
+            do file.WriteLine(command)
+        }
+        
+        Set extrakey = $ORDER(^DocBook.Config("EXTRASOURCE",extrakey))
+    }
+    
+    do ##class(DocBook.Manager.FileUtils).EndBatchFile(file)
+    if verbose {
+        w !, "Wrote the file "_filename
+    }
+
+    //this stuff goes into the second file
+    set pathliststring=$ZSTRIP(pathliststring,"<",",")
+    set pathlist=$LISTFROMSTRING(pathliststring)
+    do ..WriteP4SyncPDFDirsBat(pathlist,verbose)
+    //also generate FORCE version of .bat file
+    do ..WriteP4SyncPDFDirsBat(pathlist,verbose,1)
+]]></Implementation>
+</Method>
+
+<Method name="WriteP4SyncPDFDirsBat">
+<Description>
+Generates a .bat script that synchronizes the target PDF directories appropriate for
+the source files on the current search path.
+If force=1, we use P4 sync -f rather than P4 sync.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pathlist:%List,verbose:%Boolean=0,force:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+ 
+    //write !, pathlist
+    set baseexportdir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","Creating directory "_baseexportdir,verbose)
+    do ##class(%File).CreateDirectoryChain(baseexportdir)
+    // NB The value of the parameter MUST end with \
+
+    if force {
+        set filename=##class(DocBook.Manager.Utils).AppendToPath(baseexportdir,"FORCE-SyncPathsForPDF.bat")
+    } else {
+        set filename=##class(DocBook.Manager.Utils).AppendToPath(baseexportdir,"SyncPathsForPDF.bat")
+    }
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+    do ##class(DocBook.Manager.FileUtils).StartBatchFile(file,"WriteP4SyncPDFDirsBat()")
+    
+    //this stuff goes into file
+    for i=1:1:$LL(pathlist) {
+        set pathitem=$LG(pathlist,i)
+        //let's get the last four characters of this string
+        set lastFOUR=$E(pathitem,$L(pathitem)-3,*)
+        set LEFT=$E(pathitem,1,$L(pathitem)-4)
+        if $$$UPPER(lastFOUR)="SRC\" {
+            if verbose {
+                write !, "Processing path item ",pathitem
+            }
+            set fulldir=LEFT_"full"
+            set installdir=LEFT_"install"
+
+            if force {
+                set command="P4 sync -f "_fulldir_"...#head"
+            } else {
+                set command="P4 sync "_fulldir_"...#head"
+            }
+            do file.WriteLine(command)
+            if verbose {
+                write !, "   ",command
+            }
+
+            if force {
+                set command="P4 sync -f "_installdir_"...#head"
+            } else {
+                set command="P4 sync "_installdir_"...#head"
+            }
+
+            do file.WriteLine(command)
+            if verbose {
+                write !, "   ",command
+            }
+
+        } elseif verbose {
+            write !, "Skipping item ",pathitem
+        }
+    }
+    
+    do ##class(DocBook.Manager.FileUtils).EndBatchFile(file)
+    if verbose {
+        w !, "Wrote the file "_filename
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GenerateCLBatForGroup">
+<Description><![CDATA[
+Generates a .bat script that copies & checks in the PDF files for the given PDF group.
+<p>Before we run this method, it is important to synchronize the PDF directories, because this 
+method checks the existing checked-in files and figures out whether to add, update, or delete
+each file.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String="",pdfgroup:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if (pdfgroup="") {
+        quit
+    }
+    if (filename="") {
+       set basedir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+       set copytooutputdir=##class(DocBook.Manager.Utils).AppendToPath(basedir,"Prepared/CopyToOutputDir")
+       do ##class(%File).CreateDirectoryChain(copytooutputdir)
+       set filename=##class(DocBook.Manager.Utils).AppendToPath(copytooutputdir,"MakeChangeList-"_pdfgroup_".bat")
+    }
+
+    
+    set oref=##class(DocBook.ManagerTables.PDFGroups).%OpenId(pdfgroup)
+    if '$ISOBJECT(oref) quit
+    if (oref.NeverCheckIn=1) {
+        quit
+    }
+
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Perforce","Generating CL .bat file for "_pdfgroup,verbose)
+
+    &sql(SELECT TargetPDFArea into :TargetPDFArea FROM DocBook_ManagerTables.PDFGroups WHERE Name=:pdfgroup)
+    if (SQLCODE'=0) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error in GetDirectoryForGroup() for pdfgroup: "_pdfgroup,verbose)
+        quit
+    }
+    
+    set fulldir=##class(DocBook.Manager.Utils).AppendToPath(TargetPDFArea,"full\pdfs")
+    set installdir=##class(DocBook.Manager.Utils).AppendToPath(TargetPDFArea,"install\pdfs")
+
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+    do ##class(DocBook.Manager.FileUtils).StartBatchFile(file,"GenerateCLBatForGroup()")
+
+    do file.WriteLine("REM To use this file:")
+    do file.WriteLine("REM    1. Make sure your Perforce client is running.")
+    do file.WriteLine("REM    2. Make sure the default Perforce changelist is empty.")
+    do file.WriteLine("REM    3. Double-click this file.")
+    do file.WriteLine("REM    4. Review the newly updated default Perforce changelist.")
+    do file.WriteLine("REM    5. Check in this changelist if you approve of it.")
+    do file.WriteLine("REM ===================================================")
+    do file.WriteLine("")
+    do file.WriteLine("SETLOCAL")
+    do file.WriteLine("REM Modify these target directories if you like")
+    do file.WriteLine("SET TARGETFULLDIR="_fulldir)
+    if (installdir'="") {
+        do file.WriteLine("SET TARGETINSTALLDIR="_installdir)
+    }
+    do file.WriteLine("REM ===================================================")
+
+    do file.WriteLine("")
+    set command="P4 sync "_fulldir_"...#head"
+    do file.WriteLine(command)
+    set command="P4 sync "_installdir_"...#head"
+    do file.WriteLine(command)
+    do file.WriteLine("")
+    do file.WriteLine("REM ===================================================")
+
+    set sql="SELECT DocBookId,PDFCategory,FullPDFAction,InstallPDFAction FROM DocBook_ManagerTables.DBContents WHERE PDFGroup ='"_pdfgroup_"'"  
+            _"AND PDFCategory>1 ORDER BY DocBookId"
+
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Perforce","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Perforce",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set docbookid=rset.%Get("DocBookId")
+        set pdfcategory=rset.%Get("PDFCategory")
+        set shortfilename=docbookid_".pdf"
+        set pdfaction=rset.%Get("FullPDFAction")
+
+        do file.WriteLine("")
+        if (pdfaction="add") {
+            do file.WriteLine("P4 add -t binary %TARGETFULLDIR%\"_shortfilename)
+        } else {
+            do file.WriteLine("P4 sync %TARGETFULLDIR%\"_shortfilename)
+            do file.WriteLine("P4 edit %TARGETFULLDIR%\"_shortfilename)
+        }
+        do file.WriteLine("copy /Y "_shortfilename_" %TARGETFULLDIR%")
+
+        if installdir="" continue
+        set installpdfaction=rset.%Get("InstallPDFAction")
+        if (installpdfaction="") continue
+
+        if (installpdfaction="add") {
+            do file.WriteLine("P4 add -t binary %TARGETINSTALLDIR%\"_shortfilename)
+        } else {
+            do file.WriteLine("P4 sync %TARGETINSTALLDIR%\"_shortfilename)
+            do file.WriteLine("P4 edit %TARGETINSTALLDIR%\"_shortfilename)
+        }
+        do file.WriteLine("copy /Y "_shortfilename_" %TARGETINSTALLDIR%")
+
+    } //end of iterating through DocBookId
+
+    //finally let's deal with the files we have to delete
+    set sql3="SELECT DocBookId,FullFilename FROM DocBook_ManagerTables.ObsoletePDFs WHERE PDFGroup ='"_pdfgroup_"'"  
+            _" ORDER BY DocBookId"
+
+    set stmt3=##class(%SQL.Statement).%New()
+    set status=stmt3.%Prepare(sql3)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Perforce","Error preparing SQL statement: "_sql3,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Perforce",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+
+    set rset3=stmt3.%Execute()
+    while rset3.%Next() {
+        set filename=rset3.%Get("FullFilename")
+        do file.WriteLine("P4 delete "_filename)
+    }
+
+    do file.WriteLine("ENDLOCAL")
+    do ##class(DocBook.Manager.FileUtils).EndBatchFile(file)
+]]></Implementation>
+</Method>
+
+<Method name="WriteDBMSourceSyncBat">
+<Description>
+Generates a .bat script that synchronizes the directory from which we can load the DocBook Manager code.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set baseexportdir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+    set filename=##class(DocBook.Manager.Utils).AppendToPath(baseexportdir,"SyncDBMSources.bat")
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+    do ##class(DocBook.Manager.FileUtils).StartBatchFile(file,"WriteDBMSourceSyncBat()")
+    
+    set syncpath=##class(DocBook.Manager.ConfigUtils).GetParam("DBMBUILDDIR")
+    set command="P4 sync -f "_syncpath_"...#head"
+    do file.WriteLine(command)
+    if verbose {
+        write !, command
+    }
+
+    do ##class(DocBook.Manager.FileUtils).EndBatchFile(file)
+    if verbose {
+        w !, "Wrote the file "_filename
+    }
+]]></Implementation>
+</Method>
+
+<Method name="WritePackageStaticBat">
+<Description><![CDATA[
+Generates a .bat script that creates a compressed DocBook CACHE.DAT file for use in Japanese installations.
+This is the file we check into \\dev\version\doc\cache\ja-jp\static\
+<p>RelEng does not build this database file; instead the RelEng process gets this file
+from Perforce, uncompresses it, and puts it where needed.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if (pdfgroup=""){
+        quit
+    }
+    set targetarea=##class(DocBook.ManagerTables.PDFGroups).GetTargetPDFArea(pdfgroup)
+    if (targetarea="") {
+        quit
+    }
+
+    set basedir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+    set packagedir=##class(DocBook.Manager.Utils).AppendToPath(basedir,"JAJPExtraTools")
+    do ##class(%File).CreateDirectoryChain(packagedir)
+
+    set filename=##class(DocBook.Manager.Utils).AppendToPath(packagedir,"PackageStatic-"_pdfgroup_".bat")
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,"WritePackageStaticBat()")
+    
+    set filetocopy=##class(DocBook.Manager.Utils).AppendToPath($system.Util.InstallDirectory(),"mgr\docbook\cache.dat")
+
+    set copyfilename=##class(DocBook.Manager.Utils).AppendToPath(packagedir,"cache.dat")
+    set copyfilename2=##class(DocBook.Manager.Utils).AppendToPath(packagedir,pdfgroup_"-cache.dat")
+    
+    do file.WriteLine("ECHO Make sure Cache has stopped and has closed the database connection.")
+    do file.WriteLine("ECHO Also make sure Perforce is running and has no default change list.")
+    do file.WriteLine("set /p inputvar=Press any key to continue")
+    do file.WriteLine("ECHO Copying DOCBOOK cache.dat to this directory...")
+    do file.WriteLine("IF EXIST cache.dat.bz2 ERASE cache.dat.bz2")
+    do file.WriteLine("IF EXIST cache.dat ERASE cache.dat")
+    do file.WriteLine("COPY /Y "_filetocopy_" "_copyfilename)
+    do file.WriteLine("COPY /Y "_filetocopy_" "_copyfilename2)
+    do file.WriteLine("ECHO Compressing DOCBOOK cache.dat...")
+    do file.WriteLine("bzip2 -zv9 cache.dat")
+    
+    set filetocheckout=##class(DocBook.Manager.Utils).AppendToPath(targetarea,"static\cache.dat.bz2")
+    do file.WriteLine("ECHO Checking out compressed DOCBOOK cache.dat from Perforce...")
+    do file.WriteLine("p4 sync "_filetocheckout)
+    do file.WriteLine("p4 edit "_filetocheckout)
+    do file.WriteLine("ECHO Copying compressed DOCBOOK cache.dat to Perforce..")
+    do file.WriteLine("COPY /Y cache.dat.bz2 "_filetocheckout)
+    do file.WriteLine("ECHO Saving a copy here too..")
+    set bzipcopyfilename=pdfgroup_"cache.dat.bz2"
+    do file.WriteLine("COPY /Y cache.dat.bz2 "_bzipcopyfilename)
+
+    do file.WriteLine("ECHO Now review the change list and submit it if OK...")
+
+    do ##class(DocBook.Manager.FileUtils).EndBatchFile(file)
+    if verbose {
+        w !, "Wrote the file "_filename
+    }
+]]></Implementation>
+</Method>
+
+<Method name="WriteCopyrightP4Bat">
+<Description>
+Generates a .bat script that copies GCTM.pdf (as copyright.pdf) to three locations where it is needed.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set copyrightitem=##class(DocBook.ManagerTables.DBContents).%OpenId("GCTM")
+    if '$ISOBJECT(copyrightitem) {
+        set msg="Failed to open copyright document (GCTM)"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export",msg,verbose)
+        quit $$$ERROR($$$GeneralError,msg)
+    }
+
+    set basedir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+    set copytooutputdir=##class(DocBook.Manager.Utils).AppendToPath(basedir,"Prepared/CopyToOutputDir")
+    do ##class(%File).CreateDirectoryChain(copytooutputdir)
+
+    set filename=##class(DocBook.Manager.Utils).AppendToPath(copytooutputdir,"GenerateChangeListForCopyrights.bat")
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+    do ##class(DocBook.Manager.FileUtils).StartBatchFile(file,"WriteCopyrightP4Bat()")
+    set msg="Writing the file "_filename
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Export",msg,verbose)
+    
+    //location of copyright.pdf within DocBook database build structure
+    set basedir=##class(DocBook.Manager.Utils).AppendToPath(copyrightitem.PDFGroup.DirPt1,copyrightitem.PDFGroup.OriginBranch)
+    set copyright1=##class(DocBook.Manager.Utils).AppendToPath(basedir,"databases\docbook\csp\copyright.pdf")
+    do file.WriteLine("")
+    do file.WriteLine("P4 sync "_copyright1)
+    do file.WriteLine("P4 edit "_copyright1)
+    do file.WriteLine("copy /Y GCTM.pdf "_copyright1)
+
+    //location of second copyright.pdf (within DocBook sources)
+    do file.WriteLine("")
+    set copyright2=##class(DocBook.Manager.Utils).AppendToPath(basedir,"doc\copyright\copyright.pdf")
+    do file.WriteLine("P4 sync "_copyright2)
+    do file.WriteLine("P4 edit "_copyright2)
+    do file.WriteLine("copy /Y GCTM.pdf "_copyright2)
+
+    //location of third copyright.pdf (within Atelier sources)
+    do file.WriteLine("")
+    set proot=##class(DocBook.Manager.ConfigUtils).GetParam("PERFORCEROOT")
+    set copyright3=##class(DocBook.Manager.Utils).AppendToPath(proot,"atelier\latest\apps\atelier\feature\rootfiles\copyright.pdf")
+    do file.WriteLine("P4 sync "_copyright3)
+    do file.WriteLine("P4 edit "_copyright3)
+    do file.WriteLine("copy /Y GCTM.pdf "_copyright3)
+
+    do ##class(DocBook.Manager.FileUtils).EndBatchFile(file)
+    if verbose {
+        w !, "Wrote the file "_filename
+    }
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GenerateCLBatsForPDFCat2">
+<Description><![CDATA[
+Generates multiple .bat scripts to copy & check in the Category 2 PDF files for the given PDF group.
+"Category 2" refers to the files that we check into both of the following locations:
+<p>1. \\dev\version\doc\cache\locale\full\pdfs\
+<p>2. \\dev\version\doc\cache\locale\install\pdfs\
+<p>This method generates one .bat script for each of these PDFs. 
+These are useful if all you need to do is update (for example) an installation guide.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>directory:%String="",pdfgroup:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if (pdfgroup="") {
+        quit
+    }
+    set oref=##class(DocBook.ManagerTables.PDFGroups).%OpenId(pdfgroup)
+    if '$ISOBJECT(oref) quit
+    if (oref.NeverCheckIn=1) {
+        quit
+    }
+
+    if (directory="") {
+       set basedir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+       set directory=##class(DocBook.Manager.Utils).AppendToPath(basedir,"Prepared/CopyToOutputDir")
+       do ##class(%File).CreateDirectoryChain(directory)
+    }
+
+    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Perforce","Generating CL .bat files for files in "_pdfgroup,verbose)
+
+    &sql(SELECT TargetPDFArea into :TargetPDFArea FROM DocBook_ManagerTables.PDFGroups WHERE Name=:pdfgroup)
+    if (SQLCODE'=0) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error in GenerateCLBatsForPDFCat2() for pdfgroup: "_pdfgroup,verbose)
+        quit
+    }
+    
+    set fulldir=##class(DocBook.Manager.Utils).AppendToPath(TargetPDFArea,"full\pdfs")
+    set installdir=##class(DocBook.Manager.Utils).AppendToPath(TargetPDFArea,"install\pdfs")
+
+    set sql="SELECT DocBookId,PDFCategory,FullPDFAction,InstallPDFAction FROM DocBook_ManagerTables.DBContents WHERE PDFGroup ='"_pdfgroup_"'"  
+            _"AND PDFCategory>2 ORDER BY DocBookId"
+
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Perforce","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Perforce",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+
+        set docbookid=rset.%Get("DocBookId")
+        set shortBATfilename="OneFileChangeList-"_docbookid_"-"_pdfgroup_".bat"
+        set filename=##class(DocBook.Manager.Utils).AppendToPath(directory,shortBATfilename)
+        set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+        do ##class(DocBook.Manager.FileUtils).StartBatchFile(file,"GenerateCLBatsForPDFCat2()")
+
+        do file.WriteLine("REM To use this file:")
+        do file.WriteLine("REM    1. Make sure your Perforce client is running.")
+        do file.WriteLine("REM    2. Make sure the default Perforce changelist is empty.")
+        do file.WriteLine("REM    3. Double-click this file.")
+        do file.WriteLine("REM    4. Review the newly updated default Perforce changelist.")
+        do file.WriteLine("REM    5. Check in this changelist if you approve of it.")
+        do file.WriteLine("REM ===================================================")
+        do file.WriteLine("SETLOCAL")
+        do file.WriteLine("REM Modify these target directories if you like")
+        do file.WriteLine("SET TARGETFULLDIR="_fulldir)
+        if (installdir'="") {
+            do file.WriteLine("SET TARGETINSTALLDIR="_installdir)
+        }
+        do file.WriteLine("REM ===================================================")
+
+        set shortfilename=docbookid_".pdf"
+        set pdfaction=rset.%Get("FullPDFAction")
+        if (pdfaction="add") {
+            do file.WriteLine("P4 add -t binary %TARGETFULLDIR%\"_shortfilename)
+        } else {
+            do file.WriteLine("P4 sync %TARGETFULLDIR%\"_shortfilename)
+            do file.WriteLine("P4 edit %TARGETFULLDIR%\"_shortfilename)
+        }
+        do file.WriteLine("copy /Y "_shortfilename_" %TARGETFULLDIR%")
+
+        do file.WriteLine("")
+
+        set installpdfaction=rset.%Get("InstallPDFAction")
+        if (installpdfaction="add") {
+            do file.WriteLine("P4 add -t binary %TARGETINSTALLDIR%\"_shortfilename)
+        } else {
+            do file.WriteLine("P4 sync %TARGETINSTALLDIR%\"_shortfilename)
+            do file.WriteLine("P4 edit %TARGETINSTALLDIR%\"_shortfilename)
+        }
+        do file.WriteLine("copy /Y "_shortfilename_" %TARGETINSTALLDIR%")
+
+        do file.WriteLine("ENDLOCAL")
+        do ##class(DocBook.Manager.FileUtils).EndBatchFile(file)
+
+    } //end of iterating through files in PDF group
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.ErrorLog">
+<Description>
+Error Log display page.</Description>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.UI.StdPage</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Method name="OnPage">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+	Set info = ##class(BannerInfo).%New()
+	Set info.title = $$$T("Error Log")
+	Set info.booktitle = $$$T("InterSystems Online Documentation")
+
+	Do ..Header($$$T("Error Log"))
+
+	&html<<BODY>>
+
+	Do ..RenderBanner(info)
+	&html<<BR>>
+	Write "<DIV>There are " _ ##class(DocBook.ErrorLog).GetCount() _ " errors.</DIV>"
+
+	&sql(DECLARE sql1 CURSOR FOR
+		SELECT %ID,ErrorTime,SourceFile,Type,content,blockID
+		INTO :id,:time,:file,:type,:content,:bid
+		FROM DocBook.ErrorLog
+	)
+
+	&html<<TABLE CLASS="CALSTable" CELLPADDING="5" CELLSPACING="0" BORDER="0" WIDTH="100%">>
+	&html<<TR><TH>#</TH>>
+	&html<<TH>#($$$T("File"))#</TH>>
+	&html<<TH>#($$$T("Time"))#</TH>>
+	&html<<TH>#($$$T("Type"))#</TH>>
+	&html<<TH>#($$$T("BlockId"))#</TH>>
+	&html<<TH>#($$$T("Text"))#</TH>>
+	&html<</TR>>
+	Set row = 1
+	
+	&sql(OPEN sql1)
+	&sql(FETCH sql1)
+
+	While (SQLCODE = 0) {
+		Set href = "DocBook.UI.Page.cls?KEY=" _ $P(file,".",1)
+		Set:bid'="" href = href _ "#" _ bid
+		
+		&html<<TR CLASS="SMALL">
+			<TD CLASS="Frame-all">#(row)#</TD>
+			<TD CLASS="Frame-all"><A HREF="#(href)#">#(file)#</A></TD>
+			<TD CLASS="Frame-all">#(time)#</TD>
+			<TD CLASS="Frame-all">#(type)#</TD>
+			<TD CLASS="Frame-all">#($S(bid="":"&nbsp;",1:bid))#</TD>
+			<TD CLASS="Frame-all">#(content)#</TD>>
+			
+		&html<</TR>>
+
+		Set row = row + 1
+		&sql(FETCH sql1)
+	}
+
+	&sql(CLOSE sql1)
+
+	&html<</TABLE>>
+
+	Do ..Footer()
+
+	Quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+</Export>

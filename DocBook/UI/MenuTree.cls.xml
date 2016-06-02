@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.MenuTree">
+<Description>
+This class renders a menu tree control.</Description>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%RegisteredObject</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Parameter name="EXPANDIMG">
+<Description>
+Expandor image.</Description>
+<Default>plus.gif</Default>
+</Parameter>
+
+<Parameter name="SPACERIMG">
+<Description>
+Spacer image; a transparent gif file.</Description>
+<Default>spacer.gif</Default>
+</Parameter>
+
+<Parameter name="CONTRACTIMG">
+<Description>
+Contractor image.</Description>
+<Default>minus.gif</Default>
+</Parameter>
+
+<Parameter name="BTNTITLE">
+<Description>
+Help text for expandor buttons.</Description>
+<Default>Expand/Contract this section</Default>
+</Parameter>
+
+<Property name="Items">
+<Description><![CDATA[
+Contains the contents of the tree control
+in the following structure:<BR>
+tree.Items(1) = $LB(caption,url,key,target)<BR>
+tree.Items(1,1) = $LB(caption,url,key,target)<BR>
+tree.Items(1,1,1) = $LB(caption,url,key,target)<BR>]]></Description>
+<Type>%String</Type>
+<MultiDimensional>1</MultiDimensional>
+<Parameter name="TRUNCATE" value="1"/>
+</Property>
+
+<Method name="DBMsg">
+<Description>
+Localizer for message fragments</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>cls:%String,num:%String,args...:%List</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[	Quit ##class(DocBook.L10N).DBMsg(cls, num, args...)
+]]></Implementation>
+</Method>
+
+<Method name="ShowStyle">
+<Description>
+Render StyleSheet for tree</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	&html<<STYLE type="text/css">
+
+	A.CSPExpandor { }
+
+	A.CSPMenuItem1 { color: blue; font-size: 1.0em; 
+							font-family: Verdana; 
+							font-weight: bold;
+							text-decoration: none; }
+
+	A.CSPMenuItem2 { color: blue; font-size: 1.0em; 
+							font-family: Verdana; 
+							text-decoration: none; }
+
+	A.CSPMenuItem3 { color: blue; font-size: 1.0em; 
+							font-family: Verdana; 
+							text-decoration: none; }
+
+	</STYLE>>
+]]></Implementation>
+</Method>
+
+<Method name="ShowJS">
+<Description>
+Render JavaScript for tree</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	&html<<SCRIPT Language=JavaScript>
+	
+	// remember the current highlighted item
+	var CSPHighlightedItemKey = '';
+	
+	function expandItem(Id) {		
+		var whichEl = $('#DIV' + Id);
+		var whichIm = $('#IMG' + Id);
+		
+		var imgParent = whichIm.parent();
+		var isCollapse;
+		imgParent.removeClass('collapse').removeClass('expand');
+		if(whichEl.is(':visible')) {
+			isCollapse = false;
+			whichEl.hide();
+			imgParent.addClass("expand");
+		}		
+		else {
+			whichEl.show();
+			imgParent.addClass("collapse");
+			isCollapse = true;
+		}
+		
+		if(page) {
+			page.onExpand(Id, isCollapse);
+		}
+		
+		return;
+	}
+	
+	function removeClass(obj, cls) {
+  		var classes = obj.className.split(' ');
+
+  		for (var i = 0; i < classes.length; i++) {
+    		if (classes[i] == cls) {
+      			classes.splice(i, 1); // ??????? ?????
+      			i--; // (*)
+    		}
+  		}
+  		obj.className = classes.join(' ');
+	}
+
+	function highlightItem(key, withoutSetHash, setId) {			
+		$('div.active').removeClass('active');
+		if(!key && !setId)
+			return;
+			
+		var newEl = getElByKeyOrSetId(key, setId)
+			
+		if ((key || setId) != CSPHighlightedItemKey) {					
+			if (!newEl || !newEl.length) {
+				CSPHighlightedItemKey = '';
+			}
+			else {							
+				var parentDiv = $(newEl).closest('div');				
+				parentDiv.addClass('active');				
+				CSPHighlightedItemKey = (key || setId);
+				if(!withoutSetHash) {	
+					self.document.location.hash = key;				
+				}
+			}
+		}
+		else {								
+			if (!newEl || newEl.length) {
+				var parentDiv = $(newEl).closest('div');				
+				parentDiv.addClass('active');				
+			}
+		}
+		
+		return;
+	}
+	
+	function highlightElemWithoutKeyAndSet(newEl) {
+		$('div.active').removeClass('active');
+		CSPHighlightedItemKey = '';
+		var parentDiv = $(newEl).closest('div');				
+		parentDiv.addClass('active');				
+	}
+	
+	function getElByKeyOrSetId(key, setId) {
+		var result = {};
+		if(key) {
+			return $('[data-key="'+ key +'"]');
+		}
+		else {
+			return $('[data-set="'+ setId +'"]');
+		}
+		return result;
+	}
+
+	</SCRIPT>>
+]]></Implementation>
+</Method>
+
+<Method name="ShowTree">
+<Description><![CDATA[
+Renders the contents of Items as a Tree Control.<BR>]]></Description>
+<Internal>1</Internal>
+<FormalSpec>currKey:%String="",currSetId:%String=""</FormalSpec>
+<Implementation><![CDATA[
+	//Do ..RenderTree(..isIE() || ..isNS7(), currKey)
+	Do ..RenderTree(1, currKey, currSetId)
+]]></Implementation>
+</Method>
+
+<Method name="RenderTree">
+<Internal>1</Internal>
+<FormalSpec>dynamic:%Boolean=1,currKey:%String="",currSetId:%String=""</FormalSpec>
+<Private>1</Private>
+<Implementation><![CDATA[
+	Set id = 0
+	Set lastql = 1
+	Set indent = 0
+	Set expanded = 0
+	
+	If ('dynamic) {
+		// non-dynamic is always expanded
+		Set expanded = 1
+	}
+
+	// Workaround until Garen fixes GK949
+	//Kill ^||ISCDocBookItems
+	//Merge ^||ISCDocBookItems = ..Items
+	//Set item = $Query(^||ISCDocBookItems(""))
+	
+	Set item = $Query(..Items(""))
+	Set isCurrentItem = 0
+	While (item '= "") {
+		
+		Set ql = $ql(item)		
+		If (ql = 1) {
+			if (currSetId '= "") {
+				Set isCurrentItem = ($LG(@item,5) = currSetId)
+			}
+			else {
+				Set isCurrentItem = ($LG(@item,6) = 1)
+			}
+		}
+		
+		// DIV wrappers
+		While (lastql < ql) {
+			Set id = id + 1
+			Write "<DIV NOWRAP ID=""DIV",id,""" ",!
+			If (isCurrentItem = 1) {
+				Write ">",!
+			}
+			else {				
+				Write $S(expanded=0:"STYLE=""display:none""",1:""),">",!			
+			}
+			Set indent = indent + 1
+			Set lastql = lastql + 1
+		}
+		While (lastql > ql) {
+			Set indent = indent - 1
+			Write "</DIV>",!
+			Set lastql = lastql - 1
+		}
+
+		// menu choice
+		Write "<DIV NOWRAP>",!
+		Write:(indent>0) "<IMAGE SRC=""",..#SPACERIMG,""" BORDER=""0"" HEIGHT=""16"" WIDTH=""",16*indent,""">",!
+		
+		If ($D(@item)'<10) {
+			If (dynamic) {
+				Write "<A CLASS=""CSPExpandor",!
+				If (isCurrentItem = 1) {
+					Write "collapse",!
+				}
+				else {
+					Write "expand",!
+				}
+				Write """ TITLE=""",..#BTNTITLE,""" onclick=""expandItem('",id+1,"');"">",!
+				Write "<IMAGE ID=""IMG",id+1,""" SRC=""",$S(expanded:..#CONTRACTIMG,1:..#EXPANDIMG),""" BORDER=""0"" WIDTH=""16"" ALIGN=""BOTTOM""></A>",!
+			}
+		}
+		Else {
+			Write "<IMAGE SRC=""",..#SPACERIMG,""" BORDER=""0"" HEIGHT=""16"" WIDTH=""",16,""">",!
+		}
+
+		Write "<A CLASS=""CSPMenuItem",ql,""""
+		Write "data-key=""",$LG(@item,3),"""",!
+		Write:($D(@item)'<10 && ql = 1) "data-expand-id=""",id+1,""""		
+		Write:($LG(@item,2)'="") "HREF=""",$LG(@item,2),""""
+		Write:($LG(@item,2)="") "HREF='#'"
+		Write:($LG(@item,4)'="") "TARGET=""",$LG(@item,4),""""
+		Write:($LG(@item,5)'="") "data-set=""",$LG(@item,5),""""
+		Write:($LG(@item,7) = 1) "data-ajax-ignored"
+
+		Write:dynamic " onmouseover=""this.style.color = 'red';"" onmouseout=""this.style.color = '';"""
+		Write "><NOBR>"
+		Write $LG(@item,1)
+		Write "</NOBR></A>",!,"</DIV>",!
+		
+		// get next item
+		Set item = $Query(@item)
+	}
+
+	While (lastql > 1) {
+		Write "</DIV>",!
+		Set lastql = lastql - 1
+	}
+	
+	/* JMD257
+	If (currKey '= "") {
+		&html<
+		<SCRIPT LANGUAGE="JavaScript">
+		highlightItem('#(currKey)#');
+		</SCRIPT>
+		>
+	}
+	*/
+]]></Implementation>
+</Method>
+
+<Method name="isIE">
+<Description>
+Returns true if we are talking to an IE browser.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[%request.UserAgent["MSIE"
+]]></Implementation>
+</Method>
+
+<Method name="isNS7">
+<Description>
+Returns true if we are talking to a NetScape 7 browser.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[%request.UserAgent["Netscape/7"
+]]></Implementation>
+</Method>
+</Class>
+</Export>

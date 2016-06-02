@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="gettingstarted.csp" application="/csp/docbook/" default="1"><![CDATA[
+<!--Use <b>%response.Redirect</b> property to redirect the HTTP request-->
+<!-- Copyright (c) 2001 InterSystems Inc. ALL RIGHTS RESERVED. -->
+
+<html>
+<head></head>
+<body>
+<script language=Cache method=OnPreHTTP arguments="" returntype=%Boolean>
+	Set %response.Redirect=%request.Get("redirect","DocBook.UI.Page.cls?KEY=GettingStarted")
+	Quit 1
+</script>
+</body>
+</html>
+
+]]></CSP>
+</Export>

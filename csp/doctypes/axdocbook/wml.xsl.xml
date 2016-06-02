@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/wml.xsl" application="/csp/docbook/" default="1"><![CDATA[
+<?xml version='1.0'?>
+<!DOCTYPE xsl:stylesheet [
+<!ENTITY mdash	"&#x2014;"> <!-- EM DASH -->
+<!ENTITY ndash	"&#x2013;"> <!-- EN DASH -->
+]>
+
+<?APT StylesheetID Title="Wireless Sample Stylesheet" CompositionTypes="wml,xsl"?>
+
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                version='1.0'>
+<xsl:include href="../../lib/xsl/common/version.xsl"/>
+<xsl:output method="xml"
+            doctype-public="-//WAPFORUM//DTD WML 1.2//EN"
+            doctype-system="http://www.wapforum.org/DTD/wml_1.2.xml"
+/>
+
+
+<!-- ********************************************************************
+
+     This file is part of a demo showing WML output from Epic.
+
+     ******************************************************************** -->
+
+<!-- ==================================================================== -->
+
+<xsl:template name="object.id">
+  <xsl:param name="object" select="."/>
+  <xsl:choose>
+    <xsl:when test="$object/@id">
+      <xsl:value-of select="$object/@id"/>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:value-of select="generate-id($object)"/>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
+<xsl:template name="substring-replace">
+  <xsl:param name="string"/>
+  <xsl:param name="target"/>
+  <xsl:param name="replace"/>
+
+<!--
+  <xsl:message>
+    <xsl:text>replace: </xsl:text>
+    <xsl:value-of select="$string"/>
+    <xsl:text>, </xsl:text>
+    <xsl:value-of select="$target"/>
+    <xsl:text>, </xsl:text>
+    <xsl:value-of select="$replace"/>
+    <xsl:text>. </xsl:text>
+  </xsl:message>
+-->
+
+  <xsl:choose>
+    <xsl:when test="contains($string, $target)">
+      <xsl:value-of select="substring-before($string, $target)"/>
+      <xsl:value-of select="$replace"/>
+      <xsl:call-template name="substring-replace">
+        <xsl:with-param name="string" select="substring-after($string, $target)"/>
+        <xsl:with-param name="target" select="$target"/>
+        <xsl:with-param name="replace" select="$replace"/>
+      </xsl:call-template>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:value-of select="$string"/>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
+<!-- ==================================================================== -->
+
+<xsl:template match="/">
+  <wml>
+    <head>
+      <meta name="generator" 
+	    content="{$generator-product-name} {$generator-version-no}"
+	    forua="false"/>
+    </head>
+  <xsl:call-template name="toc"/>
+  <xsl:apply-templates/>
+  </wml>
+</xsl:template>
+
+<xsl:template match="text()">
+  <xsl:variable name="text-dbldollar">
+    <xsl:call-template name="substring-replace">
+      <xsl:with-param name="string" select="."/>
+      <xsl:with-param name="target">$</xsl:with-param>
+      <xsl:with-param name="replace">$$</xsl:with-param>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:variable name="text-mdashfix">
+    <xsl:call-template name="substring-replace">
+      <xsl:with-param name="string" select="$text-dbldollar"/>
+      <xsl:with-param name="target">&mdash;</xsl:with-param>
+      <xsl:with-param name="replace">-</xsl:with-param>
+    </xsl:call-template>
+  </xsl:variable>
+  <xsl:variable name="text-ndashfix">
+    <xsl:call-template name="substring-replace">
+      <xsl:with-param name="string" select="$text-mdashfix"/>
+      <xsl:with-param name="target">&ndash;</xsl:with-param>
+      <xsl:with-param name="replace">-</xsl:with-param>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <xsl:value-of select="$text-ndashfix"/>
+</xsl:template>
+
+<xsl:template match="book">
+  <xsl:apply-templates/>
+</xsl:template>
+
+<xsl:template match="book/title">
+  <!-- nop -->
+</xsl:template>
+
+<xsl:template match="book/bookinfo">
+  <!-- nop -->
+</xsl:template>
+
+<xsl:template match="chapter">
+  <xsl:variable name="id">
+    <xsl:call-template name="object.id"/>
+  </xsl:variable>
+  <xsl:variable name="title" select="(title
+                                      |docinfo/title
+                                      |chapterinfo/title)[1]"/>
+
+  <card id="{$id}" title="{$title}">
+    <p>
+      <a href="#toc">Home</a>
+      <xsl:if test="preceding-sibling::chapter">
+        <xsl:apply-templates select="preceding-sibling::chapter[1]" mode="link">
+          <xsl:with-param name="text">Prev</xsl:with-param>
+        </xsl:apply-templates>
+      </xsl:if>
+      <xsl:if test="following-sibling::chapter">
+        <xsl:apply-templates select="following-sibling::chapter[1]" mode="link">
+          <xsl:with-param name="text">Next</xsl:with-param>
+        </xsl:apply-templates>
+      </xsl:if>
+    </p>
+    <xsl:text>&#13;&#10;</xsl:text>
+    <xsl:apply-templates/>
+  </card>
+  <xsl:text>&#13;&#10;</xsl:text>
+</xsl:template>
+
+<xsl:template match="chapter" mode="link">
+  <xsl:param name="text">???</xsl:param>
+  <xsl:variable name="id">
+    <xsl:call-template name="object.id"/>
+  </xsl:variable>
+  <xsl:text> | </xsl:text>
+  <a href="#{$id}"><xsl:value-of select="$text"/></a>
+</xsl:template>
+
+<xsl:template match="title">
+  <xsl:text>&#13;&#10;</xsl:text>
+  <p align="center"><big><xsl:apply-templates/></big></p>
+  <xsl:text>&#13;&#10;</xsl:text>
+</xsl:template>
+
+<xsl:template match="para">
+  <xsl:text>&#13;&#10;</xsl:text>
+  <p><xsl:apply-templates/></p>
+  <xsl:text>&#13;&#10;</xsl:text>
+</xsl:template>
+
+<!-- ==================================================================== -->
+
+<xsl:template name="toc">
+  <xsl:variable name="title" select="(/book/title
+                                      |/book/bookinfo/title)[1]"/>
+  <card id="toc" title="{$title}">
+    <p align="center"><big><xsl:value-of select="$title"/></big></p>
+    <p>
+      <xsl:apply-templates select="//chapter" mode="toc"/>
+    </p>
+  </card>
+</xsl:template>
+
+<xsl:template match="chapter" mode="toc">
+  <xsl:variable name="id">
+    <xsl:call-template name="object.id"/>
+  </xsl:variable>
+  <xsl:variable name="title" select="(title
+                                      |docinfo/title
+                                      |chapterinfo/title)[1]"/>
+
+  <a href="#{$id}"><xsl:value-of select="$title"/></a><br/>
+</xsl:template>
+
+</xsl:stylesheet>
+]]></CSP>
+</Export>

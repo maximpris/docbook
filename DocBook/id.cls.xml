@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.id">
+<Description>
+A simple datatype corresponding to an XML ID value</Description>
+<ClassType>datatype</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>0</ProcedureBlock>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Parameter name="COLLATION">
+<Description>
+Make id values case-insensitive</Description>
+<Default>SQLUPPER</Default>
+</Parameter>
+</Class>
+</Export>

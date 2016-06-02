@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.table">
+<Description>
+A table with a title.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<SqlTableName>db_table</SqlTableName>
+<Super>DocBook.informaltable</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Method name="HTMLRenderContent">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+    Write "<DIV CLASS=""table-title"">",..title,"</DIV>",!
+    Write "<DIV CLASS=""table"">"
+    Write "<A name=""",..id,"""></A>",!
+    Do ##class(Renderer).RenderTable(..content,..frame,..colsep)
+    Write "</DIV>",!
+]]></Implementation>
+</Method>
+
+<Method name="XMLRender">
+<Description>
+Render the contents of this block as DocBook XML</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+    Set attrtext = ..FmtAttrs(..tagattrs)
+    Set gensym = "label=" _ """" _ ..id _ """"
+    
+    If (attrtext '[ "label=")
+    {
+        Set attrtext = attrtext _ " " _ gensym
+    }
+
+    Write "<",..%ClassName()," ",attrtext,">"
+    
+    Write "<title>", ..title, "</title>", !
+    Write ..content
+    Write "</",..%ClassName(),">",!
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

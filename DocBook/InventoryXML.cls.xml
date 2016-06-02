@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.InventoryXML">
+<Description>
+This class contains methods used to construct the inventory
+of the database as an XML structure.  It counts the SETs, BOOKs,
+and ARTICLEs, including tutorials.
+</Description>
+<ClassType/>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%Library.RegisteredObject</Super>
+<TimeCreated>60423,56772</TimeCreated>
+
+<Parameter name="DefaultOutput">
+<Default>C:\TEMP\DBInventory.xml</Default>
+</Parameter>
+
+<Method name="Generate">
+<Description>
+This generates the inventory in the file path given</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>OutputPath:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	; Set up the temp file
+	Set Status = ..SetupFile(.File, OutputPath)
+	If ($SYSTEM.Status.IsError(Status))
+	{
+		Do $SYSTEM.Status.DisplayError(Status)
+		Quit
+	}
+
+	; write the standard file header
+	Do ..WritePrologue(File)
+
+	; write the book data
+	Do File.WriteLine("<!-- Sets -->")
+	Do ..WriteSets(File)
+
+	; write the article data
+	Do File.WriteLine("<!-- Articles -->")
+	Do ..WriteArticles(File)
+
+	; write the standard file trailer
+	Do ..WriteEpilogue(File)
+
+	; Done with the file
+	Do File.Close()
+
+	Write $$$T("Wrote: "),File.Name,!
+
+	Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="SetupFile">
+<Description>
+Writes the standard file header</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&XMLFile:%Library.File,OutTarget:%Library.String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	// Use the current datetime as part of the name
+	Set filepath = ..#DefaultOutput
+	Set:($LENGTH(OutTarget) > 0) filepath = OutTarget
+
+	Set XMLFile = ##class(%Library.File).%New(filepath)
+	Do XMLFile.Open("WSNK\UTF8\")
+
+	Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="WritePrologue">
+<Description>
+Writes the standard file header</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>XMLFile:%Library.File</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	// the prologue for an inventory file
+	Do XMLFile.WriteLine("<?xml version=""1.0"" encoding=""utf-8""?>")
+	Do XMLFile.WriteLine("<!DOCTYPE inventory [")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ELEMENT inventory (description*, sets?, articles?)>")
+	Do XMLFile.WriteLine("<!ATTLIST inventory product CDATA #REQUIRED")
+	Do XMLFile.WriteLine("                    version CDATA #REQUIRED")
+	Do XMLFile.WriteLine("                    date CDATA #REQUIRED")
+	Do XMLFile.WriteLine("                    time CDATA #REQUIRED>")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ELEMENT description (#PCDATA)>")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ELEMENT sets (set*)>")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ELEMENT set (title, subtitle, books*)>")
+	Do XMLFile.WriteLine("<!ATTLIST set id CDATA #REQUIRED")
+	Do XMLFile.WriteLine("              name CDATA #REQUIRED")
+	Do XMLFile.WriteLine("              status CDATA #REQUIRED")
+	Do XMLFile.WriteLine("              order CDATA #REQUIRED>")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ELEMENT books (book*)>")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ELEMENT book (title, subtitle)>")
+	Do XMLFile.WriteLine("<!ATTLIST book id CDATA #REQUIRED")
+	Do XMLFile.WriteLine("               name CDATA #REQUIRED")
+	Do XMLFile.WriteLine("               status CDATA #REQUIRED")
+	Do XMLFile.WriteLine("               order CDATA #REQUIRED")
+	Do XMLFile.WriteLine("               role CDATA #REQUIRED>")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ELEMENT articles (role*)>")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ELEMENT role (article*)>")
+	Do XMLFile.WriteLine("<!ATTLIST role category CDATA #REQUIRED>")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ELEMENT article (title, subtitle)>")
+	Do XMLFile.WriteLine("<!ATTLIST article id CDATA #REQUIRED")
+	Do XMLFile.WriteLine("                  name CDATA #REQUIRED")
+	Do XMLFile.WriteLine("                  status CDATA #REQUIRED")
+	Do XMLFile.WriteLine("                  order CDATA #REQUIRED")
+	Do XMLFile.WriteLine("                  role CDATA #REQUIRED>")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ELEMENT title (#PCDATA)>")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ELEMENT subtitle (#PCDATA)>")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("<!ENTITY % winansi SYSTEM ""winansi.entities"">")
+	Do XMLFile.WriteLine("%winansi;")
+	Do XMLFile.WriteLine("")
+	Do XMLFile.WriteLine("]>")
+
+	Do XMLFile.WriteLine("<!-- Generated file - Do Not Edit -->")
+
+	Set FmtMaj = $SYSTEM.Version.GetMajor()
+	Set FmtMin = $SYSTEM.Version.GetMinor()
+	Set FmtPnt = $SYSTEM.Version.GetPoint()
+	Set FmtBld = $SYSTEM.Version.GetBuildNumber()
+
+	Set FmtVersion = FmtMaj
+	    	        _ "."
+	    	        _ FmtMin
+	    	        _ "."
+	    	        _ $SELECT($LENGTH(FmtPnt = 0):"0", 1:FmtPnt)
+	    	        _ "."
+	    	        _ FmtBld
+
+	Set now = $ZUTIL(188)
+	Set FmtDate = $ZDATE(now, 3)
+	Set FmtTime = $ZTIME(now, 1)
+
+	Do XMLFile.Write("<inventory")
+	Do XMLFile.Write((" product=""" _ $SYSTEM.Version.GetProduct() _ """"))
+	Do XMLFile.Write(" version=""" _ FmtVersion _ """")
+	Do XMLFile.Write(" date=""" _ FmtDate _ """")
+	Do XMLFile.Write(" time=""" _ FmtTime _ """")
+	Do XMLFile.WriteLine(">")
+	Do XMLFile.WriteLine("<description/>")
+
+	Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="WriteEpilogue">
+<Description>
+Writes the standard file trailer</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>XMLFile:%Library.File</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	// end the file
+	Do XMLFile.WriteLine("</inventory>")
+	Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="GetSets">
+<Description>
+Get the SETs in the proper order</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&SetData]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	// collect the sets from the index
+    Set setid = $O(^DocBook.blockI("setIdx",""))
+    Set keyinx = 0
+
+    While (setid '="")
+    {
+        Set set = ##class(DocBook.set).%OpenId(setid)
+
+        If (set '="")
+        {
+            Set keyinx = $INCREMENT(keyinx)
+            Set sortkey = set.remap
+            If (sortkey = "")
+            {
+                Set sortkey = "~" _ (1000 + keyinx)
+            }
+            Set setorder(sortkey) = set
+
+            Set set = ""
+        }
+
+        Set setid = $O(^DocBook.blockI("setIdx",setid))
+    	;Write "SETID=",setid,!
+    }
+
+    Set setid = $ORDER(setorder(""))
+    Set keyinx = 0
+    While (setid '="")
+    {
+        Set set = $GET(setorder(setid))
+
+    	; ignore tutorial material
+    	;If ($ZCONVERT(set.id, "L") [ "tutorial")
+    	;{
+       	;	Set setid = $ORDER(setorder(setid))
+    	;	continue
+    	;}
+    	Set keyinx = keyinx + 1
+        Set SetData(keyinx, "ID") = set.%Id()
+        Set SetData(keyinx, "name") = set.id
+        Set SetData(keyinx, "title") = set.title
+        Set SetData(keyinx, "subtitle") = set.subtitle
+        Set SetData(keyinx, "status") = set.status
+        Set SetData(keyinx, "order") = setid
+
+        Set set = ""
+        Set setid = $ORDER(setorder(setid))
+    }
+    Set SetData(0) = keyinx
+
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetBooks">
+<Description>
+Get the books belonging to the SET</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[SetID:%Integer,&BookData]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    ; loop over books
+    &sql(DECLARE BookCursor CURSOR FOR
+        SELECT ID, blockid, title, subtitle, dbstatus, dbrole, remap
+        INTO :id, :bookKey, :title, :desc, :dbstatus, :role, :remap
+        FROM DocBook.book
+        WHERE container = :SetID
+        ORDER BY remap, title
+    )
+
+    &sql(OPEN BookCursor)
+    &sql(FETCH BookCursor)
+
+    Set keyinx = 0
+    While (SQLCODE = 0)
+    {
+    	Set keyinx = keyinx + 1
+    	Set BookData(keyinx, "ID") = id
+        Set BookData(keyinx, "name") = bookKey
+        Set BookData(keyinx, "title") = title
+        Set BookData(keyinx, "subtitle") = desc
+        Set BookData(keyinx, "status") = dbstatus
+        Set BookData(keyinx, "order") = remap
+        Set BookData(keyinx, "role") = role
+
+        &sql(FETCH BookCursor)
+    }
+    &sql(CLOSE BookCursor)
+
+    Set BookData(0) = keyinx
+
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetArticles">
+<Description>
+Get the articles that have been loaded</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&ArticleData]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    ; loop over articles within role
+	&sql(DECLARE ArticleCursor CURSOR FOR
+		SELECT ID, blockid, title, subtitle, dbstatus, dbrole, remap
+		INTO :id, :key, :title, :desc, :dbstatus, :subj, :remap
+		FROM DocBook.article
+		ORDER BY dbrole, remap, title
+	)
+
+	&sql(OPEN ArticleCursor)
+	&sql(FETCH ArticleCursor)
+
+    Set keyinx = 0
+    While (SQLCODE = 0)
+    {
+    	Set keyinx = keyinx + 1
+    	Set ArticleData(keyinx, "ID") = id
+        Set ArticleData(keyinx, "name") = key
+        Set ArticleData(keyinx, "title") = title
+        Set ArticleData(keyinx, "subtitle") = desc
+        Set ArticleData(keyinx, "status") = dbstatus
+        Set ArticleData(keyinx, "role") = subj
+        Set ArticleData(keyinx, "order") = remap
+
+        &sql(FETCH ArticleCursor)
+    }
+    &sql(CLOSE ArticleCursor)
+
+    Set ArticleData(0) = keyinx
+
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="TEXT">
+<Description>
+WHandle text appropriately</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	Quit (text)
+	Quit ("<!" _ "[CDATA[" _ text _ "]" _ "]" _ ">")
+]]></Implementation>
+</Method>
+
+<Method name="WriteSets">
+<Description>
+Write the sets page, each of the books contents and then the articles</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>XMLFile:%Library.File</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	// start the iventory
+	Set Status = ..GetSets(.SETs)
+	If ($SYSTEM.Status.IsError(Status))
+	{
+		Do $SYSTEM.Status.DisplayError(Status)
+		Quit
+	}
+
+	Do XMLFile.WriteLine("<sets>")
+	For i = 1 : 1 : SETs(0)
+	{
+		Do XMLFile.Write("<set")
+		Do XMLFile.Write(" id=""" _ SETs(i, "ID") _ """")
+		Do XMLFile.Write(" name=""" _ SETs(i, "name") _ """")
+		Do XMLFile.Write(" status=""" _ SETs(i, "status") _ """")
+		Do XMLFile.WriteLine(" order=""" _ SETs(i, "order") _ """>")
+
+		Do XMLFile.WriteLine("<title>" _ ..TEXT(SETs(i, "title")) _ "</title>")
+		Do XMLFile.WriteLine("<subtitle>" _ ..TEXT(SETs(i, "subtitle")) _ "</subtitle>")
+
+		Do XMLFile.WriteLine("<books>")
+		Do ..WriteBooks(XMLFile, SETs(i, "ID"))
+		Do XMLFile.WriteLine("</books>")
+
+		Do XMLFile.WriteLine("</set>")
+	}
+	Do XMLFile.WriteLine("</sets>")
+
+	Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="WriteBooks">
+<Description>
+Writes the books in the set</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>XMLFile:%Library.File,setid:%Integer</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set Status = ..GetBooks(setid, .BOOKs)
+	If ($SYSTEM.Status.IsError(Status))
+	{
+		Do $SYSTEM.Status.DisplayError(Status)
+		Quit
+	}
+
+	For i = 1 : 1 : BOOKs(0)
+	{
+		Do XMLFile.Write("<book")
+		Do XMLFile.Write(" id=""" _ BOOKs(i, "ID") _ """")
+		Do XMLFile.Write(" name=""" _ BOOKs(i, "name") _ """")
+		Do XMLFile.Write(" status=""" _ BOOKs(i, "status") _ """")
+		Do XMLFile.Write(" order=""" _ BOOKs(i, "order") _ """")
+		Do XMLFile.WriteLine(" role=""" _ BOOKs(i, "role") _ """>")
+
+		Do XMLFile.WriteLine("<title>" _ ..TEXT(BOOKs(i, "title")) _ "</title>")
+		Do XMLFile.WriteLine("<subtitle>" _ ..TEXT(BOOKs(i, "subtitle")) _ "</subtitle>")
+
+		Do XMLFile.WriteLine("</book>")
+	}
+
+	Quit $$$OK
+
+]]></Implementation>
+</Method>
+
+<Method name="WriteArticles">
+<Description>
+Writes the page for the articles</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>XMLFile:%Library.File</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set Status = ..GetArticles(.ARTICLEs)
+	If ($SYSTEM.Status.IsError(Status))
+	{
+		Do $SYSTEM.Status.DisplayError(Status)
+		Quit
+	}
+
+	Do XMLFile.WriteLine("<articles>")
+
+	Set lastrole = ""
+	For i = 1 : 1 : ARTICLEs(0)
+	{
+		If (lastrole '= ARTICLEs(i, "role"))
+		{
+			If (i > 1)
+			{
+				Do:(lastrole '= "") XMLFile.WriteLine("</role>")
+			}
+			Do XMLFile.Write("<role")
+			Do XMLFile.WriteLine(" category=""" _ ARTICLEs(i, "role") _ """>")
+			Set lastrole = ARTICLEs(i, "role")
+		}
+
+		Do XMLFile.Write("<article")
+		Do XMLFile.Write(" id=""" _ ARTICLEs(i, "ID") _ """")
+		Do XMLFile.Write(" name=""" _ ARTICLEs(i, "name") _ """")
+		Do XMLFile.Write(" status=""" _ ARTICLEs(i, "status") _ """")
+		Do XMLFile.Write(" order=""" _ ARTICLEs(i, "order") _ """")
+		Do XMLFile.WriteLine(" role=""" _ ARTICLEs(i, "role") _ """>")
+
+		Do XMLFile.WriteLine("<title>" _ ..TEXT(ARTICLEs(i, "title")) _ "</title>")
+		Do XMLFile.WriteLine("<subtitle>" _ ..TEXT(ARTICLEs(i, "subtitle")) _ "</subtitle>")
+
+		Do XMLFile.WriteLine("</article>")
+	}
+
+	Do:(lastrole '= "") XMLFile.WriteLine("</role>")
+	Do XMLFile.WriteLine("</articles>")
+
+	Quit $$$OK
+
+]]></Implementation>
+</Method>
+</Class>
+</Export>

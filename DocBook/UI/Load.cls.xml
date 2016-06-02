@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.Load">
+<Description>
+A utility for loading document files.</Description>
+<ClassType/>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.UI.StdPage</Super>
+<TimeCreated>58696,41768</TimeCreated>
+
+<Method name="OnPage">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    Set info = ##class(BannerInfo).%New()
+    Set info.title = $$$T("File Loader")
+    Set info.booktitle = $$$T("InterSystems Online Documentation")
+
+    Do ..Header($$$T("File Loader"))
+
+    &html<<BODY>>
+
+    Do ..RenderBanner(info)
+    &html<<BR>>
+
+    Set key = ""    
+    Set book = $G(%request.Data("BOOK",1))
+    Set doc = $G(%request.Data("DOC",1))
+    Set set = $G(%request.Data("SET",1))
+    Set sc = $$$OK
+    
+    &html<<DIV class="para">#($$$T("Results:"))#</DIV>>
+    If (book '= "") {
+        &html<<DIV class="programlisting"><PRE>>
+        Set sc = ##class(DocBook.Utils).LoadBook(book)
+        Set key = book
+        &html<</PRE></DIV>>
+    }
+    ElseIf (set '= "") {
+        &html<<DIV class="programlisting"><PRE>>
+        If (set = "*ALLSETS*") {
+            Set sc = ##class(DocBook.Utils).LoadSets()
+        }
+        Else {
+            Set sc = ##class(DocBook.Utils).ReplaceSet(set)
+        }
+        &html<</PRE></DIV>>
+    }
+    ElseIf (doc '= "") {
+        &html<<DIV class="programlisting"><PRE>>
+        Set sc = ##class(DocBook.Utils).Load(doc)
+        Set key = doc
+        
+        set key = ##class(%File).GetFilename(doc)
+        If ($ZCONVERT($EXTRACT(key,*-4,*), "L") [ ".xml")
+        {
+            Set key = $EXTRACT(key, 1, *-4)
+        }
+        
+        &html<</PRE></DIV>>
+    }
+    Else {
+        &html<<DIV class="para">#($$$T("Nothing to do!"))#</DIV>>
+    }
+
+    If ($$$ISERR(sc)) {
+        &html<<BR><DIV class="note"><B>#($$$T("Error:"))#</B>&nbsp;>
+        Do $system.OBJ.DisplayError(sc)
+        &html<</DIV><HR>>
+    }
+    Else {
+        &html<<DIV class="para">#($$$T("Complete: "))#<B>#($zdt($H,3))#</B></DIV>>
+    }
+    
+    &html<<BR><DIV class="para">>
+    &html<<A HREF="javascript:self.location.reload();" TITLE="Reload the current file.">>
+    Write $$$T("Reload")
+    &html<</A>>
+
+    &html<&nbsp;<A HREF="DocBook.UI.FileManager.cls">>
+    Write $$$T("Back to File Manager")
+    &html<</A>>
+    If (key '= "") {
+        &html<&nbsp;&nbsp;<A HREF="DocBook.UI.Page.cls?KEY=#((..EscapeHTML(key)))#">>
+        Write $$$T("View Document")
+        &html<</A>>
+    }
+
+    &html<</DIV>>
+
+    Do ..Footer()
+
+    Quit $$$OK
+
+]]></Implementation>
+</Method>
+</Class>
+</Export>

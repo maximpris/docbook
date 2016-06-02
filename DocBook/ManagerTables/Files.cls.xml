@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.Files">
+<Description><![CDATA[
+This class stores one record for each .XML file on the search path, except for the SET files.
+It also stores on record for each .XML file listed via the EXTRA option.
+For general comments, see <class>DocBook.ManagerTables.Utils</class>. ]]></Description>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="DocBookId">
+<Description><![CDATA[
+id of <book> or <chapter> etc.
+Displayed in table; used as filter.]]></Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="DocBookIdIdx">
+<Properties>DocBookId</Properties>
+</Index>
+
+<Property name="Type">
+<Description>
+Either "book", "article", or "component".
+Not displayed but used to control behavior.</Description>
+<Type>%String</Type>
+</Property>
+
+<Index name="TypeIdx">
+<Properties>Type</Properties>
+</Index>
+
+<Property name="Filename">
+<Description>
+Complete path and filename. Displayed above table.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="FilenameIdx">
+<Properties>Filename</Properties>
+</Index>
+
+<Property name="ShortFilename">
+<Description>
+Short filename. Shown in secondary table.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="Title">
+<Description>
+Title of this DocBook id, if available in the database.
+Displayed above the table.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="Remap">
+<Description>
+Remap value of this DocBook id, if available in the database.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="PDFGroup">
+<Type>DocBook.ManagerTables.PDFGroups</Type>
+</Property>
+
+<Property name="Extra">
+<Description>
+Indicates if this file is "extra"
+This info is also recorded in the PDFGroup, but we clear that cache when we clear the database
+and we need this info here as well.</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="TopLevel">
+<Description>
+Indicates if this file is top-level (set, book, or article) or a component</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Method name="Rebuild">
+<Description>
+For this method, verbose is 0, 1, or 2.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.Files:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: File scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of filenames in DocBook path...",verbose)
+    do ..%KillExtent()
+   
+    set isExtra=0
+    set branches = ##class(DocBook.Manager.LoadUtils).BuildSearchList()
+    for i=1:1:branches.Count() {
+        set branch=branches.GetAt(i)
+        set exists=##class(%File).Exists(branch)
+        if 'exists {
+            if (verbose>0) {
+                write !, "This branch is not present: ", branch
+                write !, "Skipping it..."
+            }
+            continue
+        } ; end of existence check
+        
+        if (verbose>1) {
+               write !,"Processing "_branch_"..."
+        }
+
+        //each branch can have multiple subdirectories
+        set directories=##class(DocBook.Manager.LoadUtils).GetSubdirectoryList(branch)
+        for j=1:1:directories.Count() {
+            set subdir=directories.GetAt(j)
+            if (verbose>1) {
+                write !,"   Processing "_subdir_"..."
+            }
+            do ..ProcessDirectory(subdir,isExtra,verbose)
+        } ; end of subdirectory loop
+
+    } ; end of branch loop
+
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE scanning files specified in search paths",verbose)
+    
+    do ..AddExtraSources(verbose)
+
+    set ^DocBookManager("LastFileScan")=$zdt($h,3)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="AddExtraSources">
+<Description>
+For this method, verbose is 0, 1, or 2.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Adding extra sources...",verbose)
+   
+    //now iterate through EXTRASOURCE
+    Set extrakey = $ORDER(^DocBook.Config("EXTRASOURCE",""))
+    set isExtra=1
+    While (extrakey '= "") {
+        set extraitem=^DocBook.Config("EXTRASOURCE",extrakey)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Examining extra source: "_extraitem,verbose)
+        set actualitem=$E(extraitem,7,*)
+        set lastfour=$$$UPPER($E(actualitem,*-3,*))
+        if (lastfour=".XML") {
+            do ..ProcessFileNew(actualitem,isExtra,verbose)
+        } else {
+            //make sure this is a directory
+            set dircheck=##class(%File).DirectoryExists(actualitem)
+            if 'dircheck { 
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Directory not found: "_actualitem,verbose)
+            } else {
+                do ..ProcessDirectory(actualitem,isExtra,verbose)
+            }
+        }
+        
+        Set extrakey = $ORDER(^DocBook.Config("EXTRASOURCE",extrakey))
+    }
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE adding extra sources...",verbose)
+]]></Implementation>
+</Method>
+
+<Method name="ProcessDirectory">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>fulldirectory:%String="",isExtra:%Boolean="",verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    if (fulldirectory="") quit
+
+    set files=##class(DocBook.Manager.LoadUtils).GetFileList(fulldirectory)
+    set filecount=files.Count()
+    if (verbose>1) {
+        write !,"Processing directory :",fulldirectory
+        write !,"   Count of files in this directory: "_filecount
+    }
+    for k=1:1:filecount {
+        set filename=files.GetAt(k)
+        do ..ProcessFileNew(filename,isExtra,verbose)
+    } ; end of file loop
+]]></Implementation>
+</Method>
+
+<Method name="ProcessFileNew">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String="",isExtra:%Boolean="",verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Adding record for file "_filename,verbose)
+    if (filename="") quit
+    
+    set origdir=##class(%File).GetDirectory(filename)
+    set left=$P(origdir,"src",1)
+    set fulldirectory=##class(DocBook.Manager.Utils).AppendToPath(left,"src")
+
+    set topLevel=""
+    set docbookid=##class(DocBook.Manager.Utils).GetIdFromFilename(filename)
+    set type=##class(DocBook.Manager.Utils).GetTypeFromId(docbookid,.topLevel)
+
+    set record=..%New()
+    set record.Extra=isExtra
+    set record.PDFGroup=##class(DocBook.ManagerTables.PDFGroups).GetPDFGroup(fulldirectory,isExtra,verbose)
+    set record.Filename=filename
+    set record.ShortFilename=##class(%File).GetFilename(filename)
+    set record.DocBookId=docbookid
+    set record.Type=type
+    set record.TopLevel=topLevel
+    set record.Title=##class(DocBook.Manager.Utils).GetTitleFromId(docbookid)
+    set record.Remap=##class(DocBook.Manager.Utils).GetRemapFromId(docbookid)
+    set status=record.%Save()
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.Filename,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="Update">
+<Description>
+Update a record in this cache. Use this after loading or removing a book or article file.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String</FormalSpec>
+<Implementation><![CDATA[
+    set remap=##class(DocBook.Manager.Utils).GetRemapFromId(DocBookId)
+    set title=##class(DocBook.Manager.Utils).GetTitleFromId(DocBookId)
+    &sql(UPDATE DocBook_ManagerTables.Files SET Remap=:remap WHERE DocBookId=:DocBookId)
+    &sql(UPDATE DocBook_ManagerTables.Files SET Title=:title WHERE DocBookId=:DocBookId)
+]]></Implementation>
+</Method>
+
+<Method name="GetTimeStamp">
+<Description>
+Returns time stamp of last time we scanned the files on the search path</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastFileScan"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ManagerTables.FilesD</DataLocation>
+<DefaultData>FilesDefaultData</DefaultData>
+<IdLocation>^DocBook.ManagerTables.FilesD</IdLocation>
+<IndexLocation>^DocBook.ManagerTables.FilesI</IndexLocation>
+<StreamLocation>^DocBook.ManagerTables.FilesS</StreamLocation>
+<Data name="FilesDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>DocBookId</Value>
+</Value>
+<Value name="3">
+<Value>Type</Value>
+</Value>
+<Value name="4">
+<Value>Filename</Value>
+</Value>
+<Value name="5">
+<Value>ShortFilename</Value>
+</Value>
+<Value name="6">
+<Value>Title</Value>
+</Value>
+<Value name="7">
+<Value>Remap</Value>
+</Value>
+<Value name="8">
+<Value>PDFGroup</Value>
+</Value>
+<Value name="9">
+<Value>TopLevel</Value>
+</Value>
+<Value name="10">
+<Value>Extra</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

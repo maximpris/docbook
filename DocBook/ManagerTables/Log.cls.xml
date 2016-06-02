@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.Log">
+<Super>%Persistent</Super>
+<TimeCreated>63624,46641.21588</TimeCreated>
+
+<Property name="LogGroup">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="2000"/>
+</Property>
+
+<Property name="LogTime">
+<Type>%TimeStamp</Type>
+</Property>
+
+<Property name="LogItem">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="2000"/>
+</Property>
+
+<Method name="AddLogItem">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>loggroup:%String="",logitem:%String="",verbose:%Boolean=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    if (logitem="") {
+        quit $$$ERROR($$$GeneralError,"No log text specified")
+    }
+    set logitem=$EXTRACT(logitem,1,2000)
+    
+    set record=..%New()
+    set record.LogGroup=loggroup
+    set record.LogTime=$ZDATETIME($h,3)
+    set record.LogItem=$ZSTRIP(logitem,"<>"," ")
+    if verbose {
+        write !, logitem
+    }
+    set status = record.%Save()
+    quit status
+]]></Implementation>
+</Method>
+
+<Method name="LogWorkDone">
+<Description>
+startts must have a $h value</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>loggroup:%String="",startts:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if (startts="") {
+        set startts=$h
+    }
+
+    set endts=$h
+    set startdate=$P(startts,",",1)
+    set starttime=$P(startts,",",2)
+    set enddate=$P(endts,",",1)
+    set endtime=$P(endts,",",2)
+    if (enddate=startdate) {
+        set elapsedtime=endtime-starttime
+    } else {
+        set day1time=(24*60*60)-starttime
+        set elapsedtime=day1time+endtime
+    }
+    
+    set msg="UPDATE COMPLETE ************************* (elapsed time: "_elapsedtime_" seconds)"
+    do ..AddLogItem(loggroup,msg,verbose)
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ManagerTables.LogD</DataLocation>
+<DefaultData>LogDefaultData</DefaultData>
+<IdLocation>^DocBook.ManagerTables.LogD</IdLocation>
+<IndexLocation>^DocBook.ManagerTables.LogI</IndexLocation>
+<StreamLocation>^DocBook.ManagerTables.LogS</StreamLocation>
+<Data name="LogDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>LogItem</Value>
+</Value>
+<Value name="3">
+<Value>LogTime</Value>
+</Value>
+<Value name="4">
+<Value>LogGroup</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

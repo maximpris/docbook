@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/axdocbook.dtd" application="/csp/docbook/" default="1"><![CDATA[
+<?xml encoding="utf-8"?>
+<!-- ====================================================================== -->
+<!-- Arbortext DocBook XML V4.0 DTD
+     Copyright (C) 1998, 1999, 2000, 2001 Arbortext, Inc.
+
+     Common declaration:
+   
+     <?xml version=1.0?>
+     <!DOCTYPE set PUBLIC "-//Arbortext//DTD DocBook XML V4.0//EN" "axdocbook.dtd">
+
+                                                                            -->
+<!-- ====================================================================== -->
+
+<!-- ...................................................................... -->
+<!-- Arbortext customizations.............................................. -->
+
+<!ENTITY % sgml-entity-declarations "IGNORE">
+<![%sgml-entity-declarations;[
+<!ENTITY % xml-entity-declarations "IGNORE">
+]]]]><![CDATA[>
+<!ENTITY % xml-entity-declarations "INCLUDE">
+
+<!ENTITY % atimath PUBLIC "-//Arbortext//ELEMENTS XML Math Equation Structures//EN" "../../entities/atimathx.dtd">
+%atimath;
+
+<!ENTITY % equation.content "(graphic|fd+)">
+
+<!ENTITY % inlineequation.content "(graphic|f+)">
+
+<!-- ...................................................................... -->
+<!-- Notation declarations ................................................ -->
+
+<!ENTITY % dbnotn.module "INCLUDE">
+<![%dbnotn.module;[
+<!ENTITY % dbnotn PUBLIC 
+"-//Arbortext//ENTITIES DocBook XML Notations V4.0//EN"
+"dbnotnx.mod">
+%dbnotn;
+]]]]><![CDATA[>
+
+<!-- ...................................................................... -->
+<!-- ISO character entity sets ............................................ -->
+
+<!ENTITY % dbcent.module "INCLUDE">
+<![%dbcent.module;[
+<!ENTITY % dbcent PUBLIC 
+"-//Arbortext//ENTITIES DocBook XML Character Entities V4.0//EN"
+"dbcentx.mod">
+%dbcent;
+]]]]><![CDATA[>
+
+<!-- ...................................................................... -->
+<!-- DTD modules .......................................................... -->
+
+<!-- Information pool .............. -->
+
+<!ENTITY % dbpool PUBLIC 
+"-//Arbortext//ELEMENTS DocBook XML Information Pool V4.0//EN"
+"dbpoolx.mod">
+%dbpool;
+
+<!-- Redeclaration placeholder ..... -->
+
+<!ENTITY % intermod.redecl.module "IGNORE">
+<![%intermod.redecl.module;[
+<!-- Defining rdbmods here makes some buggy XML parsers happy. -->
+<!ENTITY % rdbmods "">
+%rdbmods;
+<!--end of intermod.redecl.module-->]]]]><![CDATA[>
+
+<!-- Document hierarchy ............ -->
+
+<!ENTITY % dbhier PUBLIC 
+"-//Arbortext//ELEMENTS DocBook XML Document Hierarchy V4.0//EN"
+"dbhierx.mod">
+%dbhier;
+<!-- ...................................................................... -->
+<!-- Other general entities ............................................... -->
+
+<!ENTITY % dbgenent PUBLIC
+"-//Arbortext//ENTITIES DocBook XML Additional General Entities V4.0//EN"
+"dbgenent.ent">
+%dbgenent;
+
+<!-- End of Arbortext DocBook XML V4.0 DTD .................................. -->
+<!-- ...................................................................... -->
+]]></CSP>
+</Export>

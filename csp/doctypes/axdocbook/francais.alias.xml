@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/francais.alias" application="/csp/docbook/" default="1"><![CDATA[
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE alias-map PUBLIC "-//Arbortext//DTD Alias Map::20000307//EN"
+ "aliasmap.dtd">
+<!--ArborText, Inc., 1988-2000, v.4002-->
+<alias-map><element-list>
+<element>
+<name>abstract</name><alias>r&eacute;sum&eacute;</alias></element>
+<element>
+<name>address</name><alias>adresse</alias></element>
+<element>
+<name>authorgroup</name><alias>auteurs</alias></element>
+<element>
+<name>book</name><alias>livre</alias></element>
+<element>
+<name>bookinfo</name><alias>infobiblio</alias></element>
+<element>
+<name>chapter</name><alias>chapitre</alias></element>
+<element>
+<name>city</name><alias>ville</alias></element>
+<element>
+<name>copyright</name><alias>copyright</alias></element>
+<element>
+<name>corpauthor</name><alias>persmorale</alias></element>
+<element>
+<name>country</name><alias>pays</alias></element>
+<element>
+<name>email</name><alias>mel</alias></element>
+<element>
+<name>emphasis</name><alias>miseenvaleur<?Pub Caret?></alias></element>
+<element>
+<name>fax</name><alias>fax</alias></element>
+<element>
+<name>graphic</name><alias>graphique</alias></element>
+<element>
+<name>holder</name><alias>d&eacute;tenteur</alias></element>
+<element>
+<name>important</name><alias>important</alias></element>
+<element>
+<name>index</name><alias>index</alias></element>
+<element>
+<name>indexterm</name><alias>entreeindex</alias></element>
+<element>
+<name>informaltable</name><alias>tableausimple</alias></element>
+<element>
+<name>inlinegraphic</name><alias>graphenligne</alias></element>
+<element>
+<name>itemizedlist</name><alias>liste</alias></element>
+<element>
+<name>listitem</name><alias>elemliste</alias></element>
+<element>
+<name>note</name><alias>note</alias></element>
+<element>
+<name>orderedlist</name><alias>listeordon</alias></element>
+<element>
+<name>otheraddr</name><alias>autreadr</alias></element>
+<element>
+<name>para</name><alias>para</alias></element>
+<element>
+<name>phone</name><alias>t&eacute;l&eacute;phone</alias></element>
+<element>
+<name>postcode</name><alias>codepost</alias></element>
+<element>
+<name>primary</name><alias>primaire</alias></element>
+<element>
+<name>productname</name><alias>nomproduit</alias></element>
+<element>
+<name>sect1</name><alias>sect1</alias></element>
+<element>
+<name>state</name><alias>d&eacute;partement</alias></element>
+<element>
+<name>street</name><alias>rue</alias></element>
+<element>
+<name>table</name><alias>tableau</alias></element>
+<element>
+<name>title</name><alias>titre</alias></element>
+<element>
+<name>toc</name><alias>tdm</alias></element>
+<element>
+<name>year</name><alias>ann&eacute;e</alias></element>
+</element-list></alias-map>
+<?Pub *0000002656 0?>
+]]></CSP>
+</Export>

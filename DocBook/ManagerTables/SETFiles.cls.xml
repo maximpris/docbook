@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.SETFiles">
+<Description><![CDATA[
+This class stores one record for each SET file on the search path. 
+For general comments, see <class>DocBook.ManagerTables.Utils</class>.]]></Description>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="DocBookId">
+<Description><![CDATA[
+id of the <set>. 
+Displayed in table; used as filter.]]></Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="Filename">
+<Description>
+Complete path and filename. 
+Displayed above the table when a SET is selected.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="Title">
+<Description>
+Title of this DocBook id, if available in the database.
+Displayed above the table when a row is selected.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="Remap">
+<Description>
+The remap value of this DocBook id, if available in the database.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="BookList">
+<Description>
+List of the DocBook ids for the books in this set, as a comma-separated list</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="PDFGroup">
+<Type>DocBook.ManagerTables.PDFGroups</Type>
+</Property>
+
+<Method name="Rebuild">
+<Description>
+For this method, verbose is 0, 1, or 2.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.SETFiles:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: SET file scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+    do ^%ZDocBookBoost
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of SET* files in DocBook path...",verbose)
+    do ..%KillExtent()
+    set branches = ##class(DocBook.Manager.LoadUtils).BuildSearchList()
+    for i=1:1:branches.Count() {
+        
+        set branch=branches.GetAt(i)
+        set exists=##class(%File).Exists(branch)
+        if 'exists {
+            if (verbose=2) {
+                write !, "Skipping this directory (because it is not present): ", !, "    ",branch
+            }
+            goto nextbranch
+        } ; end of existence check        
+        
+        if (verbose=2) {
+               write !,"Processing "_branch_"..."
+        }
+        set dirstmt=##class(%SQL.Statement).%New()
+        set status=dirstmt.%PrepareClassQuery("%File","FileSet")
+        if $$$ISERR(status) {
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+            quit
+        }
+        
+        set resultset = dirstmt.%Execute(branch,"SET*.xml")
+        while resultset.%Next() {
+            set filename=resultset.%Get("Name") 
+            set shortFilename=##class(%File).GetFilename(filename)
+            set docbookid=##class(DocBook.Manager.Utils).GetIdFromFilename(filename)
+
+            set record=..%New()
+            set record.DocBookId=docbookid
+            //remove trailing \ from branch for consistency with Files table
+            set lastchar=$EXTRACT(branch,$LENGTH(branch))
+            if (lastchar="\") {
+                set branch=$EXTRACT(branch,1,$LENGTH(branch)-1)
+            }
+            set record.Filename=filename
+            set record.Title=##class(DocBook.Manager.Utils).GetTitleFromId(docbookid)
+            set record.Remap=##class(DocBook.Manager.Utils).GetRemapFromId(docbookid)
+            set record.BookList=##class(DocBook.Manager.Utils).GetBookListFromId(docbookid)
+
+            set record.PDFGroup=##class(DocBook.ManagerTables.PDFGroups).GetPDFGroup(branch,,verbose)
+            set status=record.%Save()
+            if $$$ISERR(status) {
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.DocBookId,verbose)
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+            }
+
+            if (verbose=2) {
+                write !, "   ", shortFilename
+            }
+        }
+            
+nextbranch        
+    } ; end of branch loop
+
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE scanning SET files",verbose)
+    set ^DocBookManager("LastSETFileScan")=$zdt($h,3)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="Update">
+<Description>
+Update a record in this cache. Use this after loading a SET file.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String</FormalSpec>
+<Implementation><![CDATA[
+    set booklist=##class(DocBook.Manager.Utils).GetBookListFromId(DocBookId)
+    set remap=##class(DocBook.Manager.Utils).GetRemapFromId(DocBookId)
+    set settitle=##class(DocBook.Manager.Utils).GetTitleFromId(DocBookId)
+
+    &sql(UPDATE DocBook_ManagerTables.SETFiles SET BookList=:booklist WHERE DocBookId=:DocBookId)
+    &sql(UPDATE DocBook_ManagerTables.SETFiles SET Remap=:remap WHERE DocBookId=:DocBookId)
+    &sql(UPDATE DocBook_ManagerTables.SETFiles SET Title=:settitle WHERE DocBookId=:DocBookId)
+]]></Implementation>
+</Method>
+
+<Method name="GetTimeStamp">
+<Description>
+Returns time stamp of last time we scanned the SET files on the search path</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastSETFileScan"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ManagerTa74DA.SETFilesD</DataLocation>
+<DefaultData>SETFilesDefaultData</DefaultData>
+<IdLocation>^DocBook.ManagerTa74DA.SETFilesD</IdLocation>
+<IndexLocation>^DocBook.ManagerTa74DA.SETFilesI</IndexLocation>
+<StreamLocation>^DocBook.ManagerTa74DA.SETFilesS</StreamLocation>
+<Data name="SETFilesDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>DocBookId</Value>
+</Value>
+<Value name="3">
+<Value>Filename</Value>
+</Value>
+<Value name="4">
+<Value>Title</Value>
+</Value>
+<Value name="5">
+<Value>Remap</Value>
+</Value>
+<Value name="6">
+<Value>BookList</Value>
+</Value>
+<Value name="7">
+<Value>PDFGroup</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

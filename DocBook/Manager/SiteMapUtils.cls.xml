@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.SiteMapUtils">
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%RegisteredObject</Super>
+<TimeCreated>63713,62583.415616</TimeCreated>
+
+<Parameter name="BASEURL">
+<Default>http://docs.intersystems.com/latest/csp/docbook/DocBook.UI.Page.cls?KEY=</Default>
+</Parameter>
+
+<Method name="Write">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    kill ^DocBook.Manager.SiteMapItemCount
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("SiteMap","Generating site map...",verbose)
+    set baseexportdir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","Creating directory "_baseexportdir,verbose)
+    do ##class(%File).CreateDirectoryChain(baseexportdir)
+    // NB The value of the parameter MUST end with \
+
+    set filename=##class(DocBook.Manager.Utils).AppendToPath(baseexportdir,"SiteMap.txt")
+
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+    
+    do ..TopLevel(file,"books",verbose)
+    do ..TopLevel(file,"articles",verbose)
+    
+    do file.Close()
+    if verbose {
+        w !, "Wrote the file "_filename
+    }
+    set msg="DONE generating site map "_filename
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("SiteMap",msg,verbose)
+    set msg="Number of items in site map: "_^DocBook.Manager.SiteMapItemCount
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("SiteMap",msg,verbose)
+]]></Implementation>
+</Method>
+
+<Method name="TopLevel">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%Library.File,which:%String="books",verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    if (which="books") {
+        set sql = "SELECT ID, blockpos, blockid, title, subtitle FROM DocBook.book ORDER BY blockid"
+    } elseif (which="articles") {
+        set sql = "SELECT ID, blockpos, blockid, title, subtitle FROM DocBook.article ORDER BY blockid"
+    }
+
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("SiteMap","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("SiteMap",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set x=$I(^DocBook.Manager.SiteMapItemCount)
+        set ID=rset.%Get("ID")
+        set blockid=rset.%Get("blockid")
+        set url=..#BASEURL_blockid
+        do file.WriteLine(url)
+        if verbose { 
+            write !, url
+        }
+        if (which="books") {
+            do ..BookUnits(file,ID,verbose)
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="BookUnits">
+<Description>
+Given an book ID (numeric ID--not string blockid), go through its child chapters, etc.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%Library.File,bookID,verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    set sql = "select ID, book, title, component, container, content,"
+              _" blockid from DocBook.block WHERE container="_bookID
+              _" ORDER BY blockpos"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("SiteMap","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("SiteMap",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set ID=rset.%Get("ID")
+        set blockid=rset.%Get("blockid")
+        set test=##class(DocBook.block).%OpenId(ID,0)
+        set type=test.%ClassName()
+        if ((type="chapter") || (type="appendix") || (type="preface") || (type="reference") || (type="glossary")) 
+        {
+           set IdIsGenerated=##class(DocBook.ManagerTables.TOC).GetIdIsGenerated(blockid) 
+           if IdIsGenerated {
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("SiteMap","Not including this generated ID in the site map: "_blockid,verbose)
+           } else {
+               set x=$I(^DocBook.Manager.SiteMapItemCount)
+               set url=..#BASEURL_blockid
+               do file.WriteLine(url)
+               if verbose { 
+                   write !, url
+               }
+           }
+        }
+        if (type="reference") {
+             do ..RefEntries(file,ID,verbose)
+         }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="RefEntries">
+<Description>
+Given an ID, go through its child refentry elements</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%Library.File,parentID,verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    set sql = "select ID, book, title, component, container, content,"
+              _" blockid from DocBook.block WHERE container="_parentID
+              _" ORDER BY blockpos"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set rset=stmt.%Execute()
+    set counter=0
+    
+    while rset.%Next() {
+        set ID=rset.%Get("ID")
+        set blockid=rset.%Get("blockid")
+        set test=##class(DocBook.block).%OpenId(ID,0)
+        set type=test.%ClassName()
+        if (type="refentry"){
+           set IdIsGenerated=##class(DocBook.ManagerTables.TOC).GetIdIsGenerated(blockid) 
+           if IdIsGenerated {
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("SiteMap","Not including this generated ID in the site map: "_blockid,verbose)
+           } else {
+               set x=$I(^DocBook.Manager.SiteMapItemCount)
+               set url=..#BASEURL_blockid
+               do file.WriteLine(url)
+               if verbose { 
+                   write !, url
+               }
+               do ..RefEntries(file,ID,verbose)
+           }
+        }
+    }
+]]></Implementation>
+</Method>
+</Class>
+</Export>

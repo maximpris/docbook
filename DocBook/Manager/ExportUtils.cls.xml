@@ -1,0 +1,726 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.ExportUtils">
+<Description>
+Provides tools we use when we export DocBook contents as a step towards
+generating PDF files</Description>
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%RegisteredObject</Super>
+<TimeCreated>63403,45823.567718</TimeCreated>
+
+<Method name="GetExportDir">
+<Description>
+We export files to this location.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[    quit ##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+]]></Implementation>
+</Method>
+
+<Method name="GetDBMBuildDir">
+<Description>
+We copy some files from this location.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[    quit ##class(DocBook.Manager.ConfigUtils).GetParam("DBMBUILDDIR")
+]]></Implementation>
+</Method>
+
+<Method name="ExportAll">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.ExportAll:0
+    if '$TEST {
+        set msg="DUPLICATE EXPORT REQUEST: Export All Flat already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export",msg,verbose)
+        quit
+    }
+    set msg="Exporting all..."
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Export",msg,verbose)
+    do ##class(DocBook.ManagerTables.DBContents).ScanPDFDirs(verbose)
+
+    set pdfgrouplist=##class(DocBook.ManagerTables.PDFGroups).GetPDFGroups(verbose)
+    set pdfgroupcount=$LL(pdfgrouplist)
+    for i=1:1:pdfgroupcount {
+        set pdfgroup=$LG(pdfgrouplist,i)
+        if verbose {
+            write !, "exporting ",pdfgroup
+        }
+        do ..ExportPDFGroup(pdfgroup,verbose)
+        if (pdfgroup="") continue
+        set oref=##class(DocBook.ManagerTables.PDFGroups).%OpenId(pdfgroup,0)
+        if (oref.NeverCheckIn=0) {
+            set copytooutputdir=##class(DocBook.Manager.Utils).AppendToPath(..GetExportDir(),"Prepared/CopyToOutputDir")
+            set generateCLfilename=##class(DocBook.Manager.Utils).AppendToPath(copytooutputdir,"GenerateChangeList-"_pdfgroup_".bat")
+            do ##class(DocBook.Manager.PerforceUtils).GenerateCLBatForGroup(generateCLfilename,pdfgroup,verbose)
+            do ##class(DocBook.Manager.PerforceUtils).GenerateCLBatsForPDFCat2(copytooutputdir,pdfgroup)
+            //also generate indexes
+            do ##class(DocBook.Manager.IndexUtils).GenerateIndexesForPDFGroup(pdfgroup,verbose)
+        }
+    }
+
+    //*******************************************************
+    //do some additional stuff that applies only to Export All
+    set exportdir=..GetExportDir()
+    set step1batfilename=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"Source/Step1.bat")
+    do ..WriteStep1Bat(step1batfilename,"",verbose)
+
+    set searchpathlogfile=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"Prepared/CopyToOutputDir/SearchPaths.log")
+    do ..WriteSearchPathLog(searchpathlogfile,verbose)
+
+    set coverversionlogfile=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"Prepared/CopyToOutputDir/CoverVersions.log")
+    do ..WriteCoverVersionsLog(coverversionlogfile,verbose)
+
+    set copytooutputdir=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"Prepared/CopyToOutputDir")
+    set appdir=..GetDBMBuildDir()
+    set fungdelltoolsdir=##class(DocBook.Manager.Utils).AppendToPath(appdir,"external/FungdellPublish")
+    do ##class(%File).CopyDir(fungdelltoolsdir,copytooutputdir,1,,1)
+    
+    //copy LoadAllLog.txt to Prepared/CopyToOutputDir
+    set loadlogfile=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"LoadAllLog.txt")
+    do ##class(%File).CopyFile(loadlogfile,copytooutputdir)
+    //*******************************************************
+
+    lock //release our lock
+    set msg="DONE Exporting all..."
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Export",msg,verbose)
+    //do ##class(DocBook.Manager.InventoryUtils).GenerateAll(verbose)
+]]></Implementation>
+</Method>
+
+<Method name="SetupDirectoriesAndTools">
+<Description><![CDATA[
+This method does some setup work, creating the directory structure (e.g.) 
+<pre>
+DocBookManager
+     /Source
+          /Tools
+     /Prepared
+         /images
+         /Tools
+         /ToolsJAJP
+         /CopyToOutputDir
+</pre>
+It also copies files into place or generates files as needed (except for the files that are
+specific to a PDF group).]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>locale:%String="en-us",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set exportdir=..GetExportDir()
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","Setting up directory "_exportdir,verbose)
+
+    set sourcedir=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"Source")
+    set sourcetoolsdir=##class(DocBook.Manager.Utils).AppendToPath(sourcedir,"Tools")
+    do ##class(%File).CreateDirectoryChain(sourcetoolsdir)
+    
+    set prepdir=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"Prepared")
+    set prepimagedir=##class(DocBook.Manager.Utils).AppendToPath(prepdir,"images")
+    do ##class(%File).CreateDirectoryChain(prepimagedir)
+    set preptoolsdir=##class(DocBook.Manager.Utils).AppendToPath(prepdir,"Tools")
+    do ##class(%File).CreateDirectoryChain(preptoolsdir)
+    set JAJPpreptoolsdir=##class(DocBook.Manager.Utils).AppendToPath(prepdir,"ToolsJAJP")
+    do ##class(%File).CreateDirectoryChain(JAJPpreptoolsdir)
+    set copytooutputdir=##class(DocBook.Manager.Utils).AppendToPath(prepdir,"CopyToOutputDir")
+    do ##class(%File).CreateDirectoryChain(copytooutputdir)
+
+    //now copy things into place
+    set appdir=..GetDBMBuildDir()
+    set step1toolsSOURCE=##class(DocBook.Manager.Utils).AppendToPath(appdir,"external\pdfgen-step1")
+    do ##class(%File).CopyDir(step1toolsSOURCE,sourcedir,1,,1)
+    set step2toolsSOURCE=##class(DocBook.Manager.Utils).AppendToPath(appdir,"external\pdfgen-step2")
+    do ##class(%File).CopyDir(step2toolsSOURCE,prepdir,1,,1)
+    //we will need to copy one file to another location
+    set winansifile=##class(DocBook.Manager.Utils).AppendToPath(appdir,"external\pdfgen-step2\Tools\winansi.entities")
+
+    //generate parameters file used by PDF generation, step 1
+    set parmfilename=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"Source/Tools/XEPPP_parameters.txt")
+    do ..GenerateParamsFile(parmfilename,"en-us")
+    set JAJPparmfilename=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"Source/Tools/XEPPP_JAJP_parameters.txt")
+    do ..GenerateParamsFile(JAJPparmfilename,"ja-jp")
+
+    //set up Prepared\Tools
+    set localesourcedir=##class(DocBook.Manager.Utils).AppendToPath(appdir,"external\publish\loc\en-us")
+    set xslfiles=##class(DocBook.Manager.Utils).AppendToPath(localesourcedir,"*.xsl")
+    set iscxep=##class(DocBook.Manager.Utils).AppendToPath(localesourcedir,"isc_xep.xml")
+    do ##class(DocBook.Manager.LoadUtils).WildcardCopyFiles(xslfiles,preptoolsdir)
+    do ##class(DocBook.Manager.LoadUtils).WildcardCopyFiles(iscxep,preptoolsdir)
+
+    //set up JAJP version of Prepared\Tools
+    do ##class(%File).CopyFile(winansifile,JAJPpreptoolsdir)
+    set localesourcedir=##class(DocBook.Manager.Utils).AppendToPath(appdir,"external\publish\loc\ja-jp")
+    set xslfiles=##class(DocBook.Manager.Utils).AppendToPath(localesourcedir,"*.xsl")
+    set TTFfiles=##class(DocBook.Manager.Utils).AppendToPath(localesourcedir,"*.TTF") //applies only to ja-jp--no op for English
+    set iscxep=##class(DocBook.Manager.Utils).AppendToPath(localesourcedir,"isc_xep.xml")
+    do ##class(DocBook.Manager.LoadUtils).WildcardCopyFiles(xslfiles,JAJPpreptoolsdir)
+    do ##class(DocBook.Manager.LoadUtils).WildcardCopyFiles(TTFfiles,JAJPpreptoolsdir)
+    do ##class(DocBook.Manager.LoadUtils).WildcardCopyFiles(iscxep,JAJPpreptoolsdir)
+
+    set docserverSOURCEdir=##class(DocBook.Manager.Utils).AppendToPath(appdir,"external\DocServer")
+    set docservertargetdir=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"DocServer")
+    do ##class(%File).CopyDir(docserverSOURCEdir,docservertargetdir,1,,1)
+
+    set indexdir=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"Indexes")
+    if '##class(%File).Exists(indexdir) {
+        //do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","Creating directory "_indexdir,verbose)
+        do ##class(%File).CreateDirectoryChain(indexdir)
+        set sourceimagefiledir=##class(DocBook.Manager.Utils).AppendToPath($system.Util.InstallDirectory(),"docs")
+        set sourceimagefile=##class(DocBook.Manager.Utils).AppendToPath(sourceimagefiledir,"Intersystems.jpg")
+        set targetimagefile=##class(DocBook.Manager.Utils).AppendToPath(indexdir,"Intersystems.jpg")
+        do ##class(%File).CopyFile(sourceimagefile,targetimagefile)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ExportPDFGroup">
+<Description>
+For a given PDF group, this method exports all books and articles in the database in that pdfgroup
+(other than tutorials -- or more specifically documents that are marked with role="tutorial").</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if (pdfgroup="") {
+        quit
+    }
+    do ..SetupDirectoriesAndTools()
+    do ..GenerateGroupSpecificFiles(pdfgroup,verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","Starting export of PDF group "_pdfgroup_" for use in generating PDFs...",verbose)
+    set sql="SELECT DocBookId FROM DocBook_ManagerTables.DBContents WHERE PDFCategory>0 "  
+            _"AND PDFGroup = '"_pdfgroup_"' ORDER BY DocBookId"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        if verbose {
+            write !, rset.%Get("DocBookId")
+        }
+        set item=rset.%Get("DocBookId")
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","Exporting "_item_"...",verbose)
+        do ..ExportItem(item,verbose)
+    }
+
+     do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","DONE Exporting group "_pdfgroup,verbose)
+]]></Implementation>
+</Method>
+
+<Method name="GenerateGroupSpecificFiles">
+<Description><![CDATA[
+For a given PDF group, this method generates the additional items we need:
+<ul>
+<li>Step1_pdfgroup.bat</li>
+<li>GenerateChangeList-pdfgroupname.bat - which checks in all the PDFs in this group</li>
+<li>OneFileChangeList*.bat files - which checks in individual PDF files 
+(use this when you are just refreshing the release notes, for example). 
+We generate these .bat files only for the PDFs that belong in both full\pdfs and install\pdfs, 
+because those files are more of a nuisance.</li>
+<li>pdfgroupindex.html - intended for use in full/pdfs</li>
+<li>pdfgroupSTATICindex.html - intended for use in install/pdfs</li>
+<li>MakeIndexChangeList-_pdfgroup_".bat" - which renames and checks in the index.html files</li>
+<li>PackageStatic-pdfgroup.bat -- which we use for the Japanese DocBook CACHE.DAT. 
+Ignore in all other cases.</li>
+</ul>]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if (pdfgroup'="") {
+        set pdfgroupobj=##class(DocBook.ManagerTables.PDFGroups).%OpenId(pdfgroup)
+        set locale=pdfgroupobj.Locale
+    } else {
+        set locale="en-us"
+    }
+
+    set exportdir=..GetExportDir()
+    set step1batfilename=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"Source/Step1"_pdfgroup_".bat")
+    do ..WriteStep1Bat(step1batfilename,pdfgroup,verbose)
+
+    //also generate .bat files that create Perforce change lists
+    //and generate index files
+    set oref=##class(DocBook.ManagerTables.PDFGroups).%OpenId(pdfgroup)
+    if ((pdfgroup'="")&& (oref.NeverCheckIn=0)) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export","Generating additional tools for the group "_pdfgroup,verbose)
+        set copytooutputdir=##class(DocBook.Manager.Utils).AppendToPath(exportdir,"Prepared/CopyToOutputDir")
+        set generateCLfilename=##class(DocBook.Manager.Utils).AppendToPath(copytooutputdir,"GenerateChangeList-"_pdfgroup_".bat")
+        do ##class(DocBook.Manager.PerforceUtils).GenerateCLBatForGroup(generateCLfilename,pdfgroup,verbose)
+        do ##class(DocBook.Manager.PerforceUtils).GenerateCLBatsForPDFCat2(copytooutputdir,pdfgroup,verbose)
+        //also generate indexes
+        do ##class(DocBook.Manager.IndexUtils).GenerateIndexesForPDFGroup(pdfgroup,verbose)
+    }
+    
+    if ((pdfgroup ["cache") || (pdfgroup [ "ensemble")){
+        do ##class(DocBook.Manager.PerforceUtils).WritePackageStaticBat(pdfgroup,verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ExportItem">
+<Description><![CDATA[
+Wrapper method. Exports a book, an article, a set, or all documents (other than tutorials) in the database.
+<varname>docbookid</varname> must be one of the following: the DocBook ID of a book, the DocBook ID of an article,
+the DocBook ID of a SET (in this case we export all books in this set).]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>docbookid:%String="",verbose:%Boolean=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    if (docbookid="") {
+        if verbose { write !, "No DocBook ID specified, so nothing to export... quitting" } 
+        quit $$$ERROR("No DocBook ID specified, so nothing to export")
+    }
+    //write !, docbookid, "   ", pdfgroup
+
+    if $E(docbookid,1,3)="SET" {
+        set status=  ..ExportSET(docbookid,verbose)
+    } else {
+        set status=  ..ExportDocument(docbookid,verbose)
+    }
+    quit status
+]]></Implementation>
+</Method>
+
+<Method name="ExportDocument">
+<Description>
+Exports a book or an article</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>docbookid:%String="",verbose:%Boolean=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    if (docbookid="") {
+        if verbose { write !, "No DocBook ID specified, so nothing to export... quitting" } 
+        quit $$$ERROR("No DocBook ID specified, so nothing to export")
+    }
+
+    if ($$$UPPER(docbookid)="GCTM") {
+        set msg="Found copyright notice!"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export",msg,verbose)
+        do ##class(DocBook.Manager.PerforceUtils).WriteCopyrightP4Bat(verbose)
+    }
+    
+    set exportdir=##class(DocBook.Manager.Utils).AppendToPath(..GetExportDir(),"Source")
+    set prepdir=##class(DocBook.Manager.Utils).AppendToPath(..GetExportDir(),"Prepared")
+    
+    set filename=##class(DocBook.Manager.Utils).AppendToPath(exportdir,docbookid_".xml")
+    if verbose { write !, "Writing the file ",filename }
+    do ##class(DocBook.Utils).XMLExport(docbookid,filename)
+
+    //this is the location of the image files
+    set sourcedir=##class(DocBook.Manager.Utils).AppendToPath($system.Util.InstallDirectory(),"CSP\docbook\images")
+    set copywildcard=##class(DocBook.Manager.Utils).AppendToPath(sourcedir,docbookid_"*.*")
+
+    //this is where we need to write the image files 
+    set imagedir=##class(DocBook.Manager.Utils).AppendToPath(prepdir,"images")
+    if (verbose>1) { write !, "Copying image files " }
+    do ##class(DocBook.Manager.LoadUtils).WildcardCopyFiles(copywildcard,imagedir,verbose)
+
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ExportSET">
+<Description>
+Exports a SET</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>setid:%String,verbose:%Boolean=0</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    if (setid="") {
+        if verbose { write !, "No DocBook ID specified, so nothing to export... quitting" } 
+        quit $$$ERROR("No DocBook ID specified, so nothing to export")
+    }
+    set booklist=##class(DocBook.Manager.Utils).GetBookListFromId(setid)
+    set booklist=$LISTFROMSTRING(booklist)
+    //now loop through list 
+    for i=1:1:$LISTLENGTH(booklist) {
+       set bookid=$LI(booklist,i)
+       do ..ExportDocument(bookid,verbose)
+    }
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="WriteSearchPathLog">
+<Description>
+Utility method called by ExportAll(). This method writes a file that lists all the current search paths.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String="SearchPaths.log",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+    
+    Set key = $ORDER(^DocBook.Config("SOURCE",""))
+    Set pathcount=0
+    While (key '= "") {
+        set pathcount=pathcount+1
+        Set key = $ORDER(^DocBook.Config("SOURCE",key))
+    }
+
+    Set extrakey = $ORDER(^DocBook.Config("EXTRASOURCE",""))
+    Set extracount=0
+    While (extrakey '= "") {
+        set extracount=extracount+1
+        Set extrakey = $ORDER(^DocBook.Config("EXTRASOURCE",extrakey))
+    }
+     
+    Do file.WriteLine("### This file was generated by DocBook.Manager.ExportUtils::WriteSearchPathLog()")   
+    Do file.WriteLine("### Date and time when file was generated: "_$zdt($h,3))
+    Do file.WriteLine("### Number of search paths: "_pathcount)
+    Do file.WriteLine("### Number of extra books and articles: "_extracount)
+    
+    Set key = $ORDER(^DocBook.Config("SOURCE",""))
+    While (key '= "") {
+        Do file.WriteLine(^DocBook.Config("SOURCE",key))
+        Set key = $ORDER(^DocBook.Config("SOURCE",key))
+    }
+    Set extrakey = $ORDER(^DocBook.Config("EXTRASOURCE",""))
+    Set extracount=0
+    While (extrakey '= "") {
+        Do file.WriteLine(^DocBook.Config("EXTRASOURCE",extrakey))
+        Set extrakey = $ORDER(^DocBook.Config("EXTRASOURCE",extrakey))
+    }
+
+    ; Done with the file
+    Do file.Close()
+
+    if verbose {
+        w !, "Wrote the file "_filename
+    }
+]]></Implementation>
+</Method>
+
+<Method name="WriteCoverVersionsLog">
+<Description>
+Utility method called by ExportAll(). This method writes a file that lists the cover versions used by each PDF group.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String="CoverVersions.log",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+ 
+    Do file.WriteLine("This file was generated by DocBook.Manager.ExportUtils::WriteCoverVersionsLog()")    
+    Do file.WriteLine("Date and time when file was generated: "_$zdt($h,3))
+    Do file.WriteLine("")
+    Do file.WriteLine("This file summarizes how we specified the cover versions for the PDFs.")
+    
+    set sql = "SELECT ID, Origin, CoverVersion, DefaultCoverVersion "
+            _"FROM DocBook_ManagerTables.PDFGroups ORDER BY ID"
+    set stmt = ##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+    
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set ID=rset.%Get("ID")
+        set Origin=rset.%Get("Origin")
+        set CoverVersion=rset.%Get("CoverVersion")
+        set DefaultCoverVersion=rset.%Get("DefaultCoverVersion")
+        do file.WriteLine("")
+        do file.WriteLine("PDFGroup: "_ID)
+        do file.WriteLine("Origin of files: "_Origin)
+        do file.WriteLine("Cover version used in PDFs: "_CoverVersion)
+        do file.WriteLine("Default cover version (based on origin of files): "_DefaultCoverVersion)
+    }
+            
+    ; Done with the file
+    Do file.Close()
+
+    if verbose {
+        w !, "Wrote the file "_filename
+    }
+]]></Implementation>
+</Method>
+
+<Method name="WriteStep1Bat">
+<Description>
+If pdfgroup="", then write one .bat file that goes through all the groups.
+Otherwise, write a group-specific .bat file.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String="",pdfgroup:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if (filename="") {
+        quit
+    }
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename,verbose)
+    do ##class(DocBook.Manager.FileUtils).StartBatchFile(file,"WriteStep1Bat()")
+
+    //do file.WriteLine("@echo off")
+    do file.WriteLine("SETLOCAL")
+    do file.WriteLine("")
+    do file.WriteLine("REM ===================================================")
+    do file.WriteLine("REM Dependencies....")
+    do file.WriteLine("REM This batch file assumes we have *.xml files in the same directory")
+    do file.WriteLine("REM and it assumes there is a ..\Prepared directory we can write to.")
+    do file.WriteLine("REM This batch file also uses Java and it assumes we can find the following files:")
+    do file.WriteLine("REM Tools/XEPPP_parameters.txt or XEPPP_JAJP_parameters.txt (as applicable)")
+    do file.WriteLine("SET JAVAEXE=""%JAVA_HOME%""\bin\java.exe")
+    do file.WriteLine("SET JAR=Tools/XEPP.jar")
+    do file.WriteLine("REM When you run this batch file, the DocBook DTD must be available as")
+    do file.WriteLine("REM X:\doc\common\metadata\doctypes\axdocbook\axdocbook.dtd")
+    do file.WriteLine("REM See the Doc Group internal doc for info on the X drive")
+    do file.WriteLine("REM ===================================================")
+    do file.WriteLine("")
+    do file.WriteLine("REM Parameters that govern how the command line generation works")
+    do file.WriteLine("SET BGN_HEAP=350M")
+    do file.WriteLine("SET MAX_HEAP=800M")
+    do file.WriteLine("")
+    do file.WriteLine("REM Tuning parameters for the Java VM")
+    do file.WriteLine("REM -- Initial heap size")
+    do file.WriteLine("SET VMARGS=-Xms%BGN_HEAP%")
+    do file.WriteLine("")
+    do file.WriteLine("REM -- Maximum heap size")
+    do file.WriteLine("SET VMARGS=%VMARGS% -Xmx%MAX_HEAP%")
+    do file.WriteLine("")
+    do file.WriteLine("REM -- Do the compilation once")
+    do file.WriteLine("SET VMARGS=%VMARGS% -Xbatch")
+    do file.WriteLine("")
+    
+    if (pdfgroup="") {
+        set pdfgrouplist=##class(DocBook.ManagerTables.PDFGroups).GetPDFGroups(verbose)
+        for i=1:1:$LL(pdfgrouplist) {
+            set pdfgroup=$LG(pdfgrouplist,i)
+            do ..WriteDetailsForGroup(file,pdfgroup,verbose)
+        }
+    } else {
+        do ..WriteDetailsForGroup(file,pdfgroup,verbose)
+    }
+        
+    do file.WriteLine("SET /P ANS=Continue?")
+    do file.Close()
+]]></Implementation>
+</Method>
+
+<Method name="WriteDetailsForGroup">
+<Description>
+For use by WriteStep1Bat().</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file:%Library.File,pdfgroup:%String="",verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if (pdfgroup="") {
+        quit
+    }
+    set coverversion=##class(DocBook.ManagerTables.PDFGroups).GetCoverVersion("actual",pdfgroup)
+
+    &sql(SELECT Locale into :Locale FROM DocBook_ManagerTables.PDFGroups WHERE Name=:pdfgroup)
+    if (SQLCODE=0) {
+        set grouplocale=Locale
+    } else {
+        set grouplocale="en-us"
+    }
+
+    do file.WriteLine("")
+    do file.WriteLine("REM ===================================================")
+    do file.WriteLine("REM Details for the PDF Group "_pdfgroup)
+    do file.WriteLine("SET COVER="""_coverversion_"""")
+    if (grouplocale="en-us") {
+        do file.WriteLine("SET PARMFILE=Tools/XEPPP_parameters.txt")
+    } else {
+        do file.WriteLine("SET PARMFILE=Tools/XEPPP_JAJP_parameters.txt")
+    }
+
+    set sql="SELECT DocBookId FROM DocBook_ManagerTables.DBContents WHERE PDFCategory>0 "  
+            _"AND PDFGroup = '"_pdfgroup_"' ORDER BY DocBookId"
+    if verbose {
+        write !, sql
+    }
+
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Export",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set docbookid=rset.%Get("DocBookId")
+        set filename=docbookid_".xml"
+        if verbose {
+            write !, rset.%Get("DocBookId")
+
+        }
+        set line="%JAVAEXE% %VMARGS% -jar %JAR% "_filename_" ..\Prepared\"_filename_" -params %PARMFILE% -release %COVER% -delete_remarks -preserve_ulinks %2 %3 %4 %5 %6 %7 %8 %9"
+        do file.WriteLine(line)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GenerateParamsFile">
+<Description>
+Utility method called by SetupDirectoriesAndTools(). This method generates variations of XEPPP_parameters.txt.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String="",locale:%String="en-us"</FormalSpec>
+<Implementation><![CDATA[
+    if (filename="") {
+        quit
+    }
+
+    set file=##class(DocBook.Manager.FileUtils).SetUpFile(filename)
+
+    Do file.WriteLine("# This file was generated by GenerateParamsFile() in DocBook.Manager.ExportUtils")  
+    Do file.WriteLine("# Date and time when file was generated: "_$zdt($h,3))
+    Do file.WriteLine("# Locale for which this file was generated: "_locale)
+    do file.WriteLine("# Note that most of this file is ignored because we specify the cover version directly")
+    do file.WriteLine("# on the command line for each file as we process it.")
+    do file.WriteLine("#######################################################################")
+    do file.WriteLine("#")
+    do file.WriteLine("# General parameters controlling the generation of PDF using XEP")
+    do file.WriteLine("#")
+    do file.WriteLine("#######################################################################")
+    do file.WriteLine("#")
+    do file.WriteLine("")
+    do file.WriteLine("# InterSystems parameters")
+    do file.WriteLine("")
+    do file.WriteLine("# output format")
+    do file.WriteLine("com.intersystems.xeppp.FORMAT = PDF")
+    do file.WriteLine("")
+    do file.WriteLine("# selector for event types we will log")
+    do file.WriteLine("com.intersystems.xeppp.LOGEVENTS = opendocument,closedocument,info,error,exception")
+    do file.WriteLine("")
+    do file.WriteLine("# Global defaults")
+    if (locale="en-us") {
+        //later processing fills this in with the date in the format suitable for en-us
+        do file.WriteLine("com.intersystems.xeppp.DEFAULT_DATE = ")
+    } elseif (locale="ja-jp") {
+        set now=$zdate($h,3)
+        set dayofmonth=$system.SQL.DAYOFMONTH(now)
+        if $L(dayofmonth)=1 {
+            set dayofmonth="0"_dayofmonth
+        }
+        set month=$system.SQL.MONTH(now)
+        if $L(month)=1 {
+            set month="0"_month
+        }
+        set year=$system.SQL.YEAR(now)
+        set line="com.intersystems.xeppp.DEFAULT_DATE =  "_year_" &#x5E74; "_month_" &#x6708; "_dayofmonth_" &#x65E5;"
+        //do Japanese version
+        do file.WriteLine(line)
+    }
+    do file.WriteLine("com.intersystems.xeppp.DEFAULT_VERSION = ")
+    do file.WriteLine("com.intersystems.xeppp.DEFAULT_LABEL = ")
+    do file.WriteLine("")
+    do file.WriteLine("# Intersystems (mainly article) documents ")
+    do file.WriteLine("com.intersystems.xeppp.INTERSYSTEMS_DATE = ")
+    do file.WriteLine("com.intersystems.xeppp.INTERSYSTEMS_VERSION = ")
+    do file.WriteLine("com.intersystems.xeppp.INTERSYSTEMS_LABEL = ")
+    do file.WriteLine("")
+    do file.WriteLine("# Cache documents ")
+    do file.WriteLine("com.intersystems.xeppp.CACHE_DATE = ")
+    do file.WriteLine("com.intersystems.xeppp.CACHE_VERSION = ")
+    do file.WriteLine("com.intersystems.xeppp.CACHE_LABEL = ")
+    do file.WriteLine("")
+    do file.WriteLine("# Ensemble documents ")
+    do file.WriteLine("com.intersystems.xeppp.ENSEMBLE_DATE = ")
+    do file.WriteLine("com.intersystems.xeppp.ENSEMBLE_VERSION = ")
+    do file.WriteLine("com.intersystems.xeppp.ENSEMBLE_LABEL = ")
+    do file.WriteLine("")
+    do file.WriteLine("# HealthShare documents ")
+    do file.WriteLine("com.intersystems.xeppp.HEALTHSHARE_DATE = ")
+    do file.WriteLine("com.intersystems.xeppp.HEALTHSHARE_VERSION = ")
+    do file.WriteLine("com.intersystems.xeppp.HEALTHSHARE_LABEL = ")
+    do file.WriteLine("")
+    do file.WriteLine("# HealthShare Foundation documents ")
+    do file.WriteLine("com.intersystems.xeppp.HSFOUNDATION_DATE = ")
+    do file.WriteLine("com.intersystems.xeppp.HSFOUNDATION_VERSION = ")
+    do file.WriteLine("com.intersystems.xeppp.HSFOUNDATION_LABEL = ")
+    do file.WriteLine("")
+    do file.WriteLine("# TrakCare documents ")
+    do file.WriteLine("com.intersystems.xeppp.TRAKCARE_DATE = ")
+    do file.WriteLine("com.intersystems.xeppp.TRAKCARE_VERSION = ")
+    do file.WriteLine("com.intersystems.xeppp.TRAKCARE_LABEL = ")
+    do file.WriteLine("")
+    do file.WriteLine("# Combined documents ")
+    do file.WriteLine("com.intersystems.xeppp.COMBINED_DATE = ")
+    do file.WriteLine("com.intersystems.xeppp.COMBINED_VERSION = ")
+    do file.WriteLine("com.intersystems.xeppp.COMBINED_LABEL = ")
+    do file.WriteLine("")
+    do file.WriteLine("# Internal documents ")
+    do file.WriteLine("com.intersystems.xeppp.INTERNAL_DATE = ")
+    do file.WriteLine("com.intersystems.xeppp.INTERNAL_VERSION = ")
+    do file.WriteLine("com.intersystems.xeppp.INTERNAL_LABEL = ")
+    
+
+    do file.WriteLine("")
+    do file.WriteLine("# Miscellaneous replaceable elements")
+    if (locale="en-us") {
+        do file.WriteLine("com.intersystems.xeppp.LABEL.LOT = List of Tables")
+        do file.WriteLine("com.intersystems.xeppp.LABEL.LOF = List of Figures")
+        do file.WriteLine("com.intersystems.xeppp.LABEL.TABLE = Table")
+        do file.WriteLine("com.intersystems.xeppp.LABEL.FIGURE = Figure")
+    } elseif (locale="ja-jp") {
+        do file.WriteLine("com.intersystems.xeppp.LABEL.LOT = &#x30C6;&#x30FC;&#x30D6;&#x30EB;&#x4E00;&#x89A7;")
+        do file.WriteLine("com.intersystems.xeppp.LABEL.LOF = &#x56F3;&#x4E00;&#x89A7;")
+        do file.WriteLine("com.intersystems.xeppp.LABEL.TABLE = &#x30C6;&#x30FC;&#x30D6;&#x30EB;")
+        do file.WriteLine("com.intersystems.xeppp.LABEL.FIGURE = &#x56F3;")
+    }
+    do file.WriteLine("")
+    do file.WriteLine("")
+    do file.WriteLine("")
+
+    Do file.Close()
+]]></Implementation>
+</Method>
+
+<Method name="ExportTable">
+<Description>
+used by the Export options in the UI--unrelated to the rest of the methods in this class</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>sql:%String="",exportfilename:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set status=$$$OK
+    if ((sql="") || (exportfilename="")) quit
+
+    set file=##class(%Stream.FileCharacter).%New()
+    set status=file.LinkToFile(exportfilename)
+    if $$$ISERR(status) {
+        do $system.Status.DisplayError(status)
+        quit status
+    }
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    if $$$ISERR(status) {
+        quit status
+    }
+    set status=rset.Execute()
+    if $$$ISERR(status) {
+        quit status
+    }
+    
+    set delim=","
+    //iterate through columns and build up first line
+    set firstline=rset.GetColumnName(1)
+    set colcount=rset.GetColumnCount()
+    for i=2:1:rset.GetColumnCount() {
+        set firstline=firstline_delim_rset.GetColumnName(i)
+    }
+    do file.WriteLine(firstline)
+
+    set count=0
+    set list=""
+    while rset.Next()
+    {
+        set count=count+1
+        //iterate through columns and build up output line
+        set output=rset.GetData(1)
+        set output=$TRANSLATE(output,",",";")
+
+        for i=2:1:rset.GetColumnCount() {
+            set columndata=rset.GetData(i)
+            set columndata=$TRANSLATE(columndata,",",";")
+            set output=output_delim_columndata
+        }
+        do file.WriteLine(output)
+    }
+
+    do file.%Save()
+    do file.%Close()
+    quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+</Export>

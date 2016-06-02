@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.WideChars">
+<Description><![CDATA[
+This class stores results from the last run of the Wide Char check.
+For general comments, see <class>DocBook.ManagerTables.Utils</class>. ]]></Description>
+<IncludeCode>%occSAX,DocBookMac</IncludeCode>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="ParentTopic">
+<Description>
+Parent DocBookId. Displayed in table</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="SourceFile">
+<Description>
+Displayed in table</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="LocationType">
+<Description>
+either "title" "content" or "renderedcontent"</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="LocationValue">
+<Description>
+Truncated text from the title, content, or rendered content that contained the wide char.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="50"/>
+</Property>
+
+<Method name="Rebuild">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Scanning for wide characters in DocBook; saving results to cache...",verbose)
+    do ..%KillExtent()
+    do ..CheckWideChars(verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE scanning for wide characters",verbose)
+]]></Implementation>
+</Method>
+
+<Method name="Initialized">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    if $D(^DocBookManager("LastWideCharCheck")) {
+        set return=1 
+    } else {
+        set return=0 
+    }
+    quit return
+]]></Implementation>
+</Method>
+
+<Method name="GetTimeStamp">
+<Description>
+Returns time stamp of last time we scanned for wide characters in this database</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastWideCharCheck"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Method name="ScanIsStale">
+<Description>
+Returns true if the wide character scan info is possibly stale 
+(that is, if the user has loaded files or removed items AFTER the last 
+wide character scan). Otherwise returns false.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    set filets=##class(DocBook.Manager.LoadUtils).GetLoadDeleteTimeStamp()
+    set linkts=..GetTimeStamp()
+  
+    set elapsed=$system.SQL.DATEDIFF("second",filets,linkts)
+  
+    if (elapsed<0) {
+       set stale=1
+    } else {
+       set stale=0 
+    }
+    quit stale
+]]></Implementation>
+</Method>
+
+<Method name="CheckWideChars">
+<Description>
+This method scans all the text for characters outside the range 0-255
+and returns the number of wide characters</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+    if '$DATA(^DocBook.blockD) quit 0
+    ; there is no check to see if we are running on a Unicode system.
+    ;  If we are not, this will fail with a <WIDECHAR> error anyway.
+    set Tick = 1000
+    set Found = 0
+    set MaxBlock = ^DocBook.blockD
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Scanning for wide characters...",verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Maximum block number: "_$FNUMBER(MaxBlock, ","),verbose)
+    
+    set ErrPfx = "WARNING: Wide Char; "
+    
+    for Blk = 1 : 1 : MaxBlock
+    {
+        ;write:((Blk # Tick) = 0) Blk, !
+        
+        set B = ##class(DocBook.block).%OpenId(Blk)
+        If (B '= $$$NULLOREF)
+        {
+            ;write B.sourcefile, !
+            If ($ZISWIDE(B.title))
+            {
+                set Found = Found + 1
+                set record=..%New()
+                set record.SourceFile=B.sourcefile
+                set record.LocationType="title"
+                set record.LocationValue=$EXTRACT(B.title,1,50) //make sure to truncate so this fits!
+                set record.ParentTopic=B.id
+                set status=record.%Save() 
+                if $$$ISERR(status) {
+                    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.LocationValue,verbose)
+                    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+                }
+            }
+
+            If ($ZISWIDE(B.content))
+            {
+                set Found = Found + 1
+                set record=..%New()
+                set record.SourceFile=B.sourcefile
+                set record.LocationType="content"
+                set record.LocationValue=$EXTRACT(B.content,1,50) //make sure to truncate so this fits!
+                set record.ParentTopic=B.id
+                set status=record.%Save() 
+                if $$$ISERR(status) {
+                    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.LocationValue,verbose)
+                    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+                }
+           }
+
+            If ($ZISWIDE(B.renderedContent))
+            {
+                set Found = Found + 1
+                set record=..%New()
+                set record.Filename=B.sourcefile
+                set record.LocationType="renderedcontent"
+                set record.LocationValue=$EXTRACT(B.renderedcontent,1,50) //make sure to truncate so this fits!
+                set record.ParentTopic=B.id
+                set status=record.%Save() 
+                if $$$ISERR(status) {
+                    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.LocationValue,verbose)
+                    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+                }
+            }
+
+        } ; end of iterating through non-null blocks!
+
+        set B = ""
+    } ; end of main iteration
+
+    set ^DocBookManager("LastWideCharCheck")=$zdt($h,3)
+    if (Found>0) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Number of times we found wide characters: " _Found,verbose)
+    } else {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","No wide characters were found!",verbose)
+    }
+    quit Found
+]]></Implementation>
+</Method>
+
+<Method name="GetWideCharFindCount">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+   &sql(SELECT COUNT(*) into :mycount FROM DocBook_ManagerTables.WideChars)
+   if (SQLCODE'=0) {
+       set mycount=99999
+   }
+   quit mycount
+]]></Implementation>
+</Method>
+
+<Query name="WideCharFindings">
+<Type>%SQLQuery</Type>
+<SqlQuery>SELECT SourceFile,ParentTopic,LocationType,LocationValue FROM WideChars</SqlQuery>
+</Query>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ManagerT74DA.WideCharsD</DataLocation>
+<DefaultData>WideCharsDefaultData</DefaultData>
+<IdLocation>^DocBook.ManagerT74DA.WideCharsD</IdLocation>
+<IndexLocation>^DocBook.ManagerT74DA.WideCharsI</IndexLocation>
+<StreamLocation>^DocBook.ManagerT74DA.WideCharsS</StreamLocation>
+<Data name="WideCharsDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>ParentTopic</Value>
+</Value>
+<Value name="3">
+<Value>SourceFile</Value>
+</Value>
+<Value name="4">
+<Value>LocationType</Value>
+</Value>
+<Value name="5">
+<Value>LocationValue</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

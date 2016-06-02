@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.IndexTerms">
+<Description><![CDATA[
+This class stores one record for each <indexterm> tag in the DocBook database.
+For general comments, see <class>DocBook.ManagerTables.Utils</class>. ]]></Description>
+<IncludeCode>%occSAX,DocBookMac</IncludeCode>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="IndexTerm">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="ShortContent">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="2000"/>
+</Property>
+
+<Property name="ParentTopic">
+<Description>
+Parent DocBookId. Displayed in table</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="SourceFile">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Method name="Rebuild">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.IndexTerms:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: IndexTerms scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of index terms...",verbose)
+    do ..%KillExtent()
+    do ..CheckIndexTerms(verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE scanning index terms",verbose)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="CheckIndexTerms">
+<Description>
+Looks for index terms</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    &sql(DECLARE IndexTermCursor CURSOR FOR 
+            SELECT ID, blockid, content, sourceFile
+            INTO  :id ,:key, :text, :src
+            FROM DocBook.block
+            WHERE content [ '<indexterm') 
+
+    &sql(OPEN IndexTermCursor)
+    
+    &sql(FETCH IndexTermCursor)
+    
+    While (SQLCODE = 0) 
+    {
+        set offset = 1
+        set bgnpos = $FIND(text, "<indexterm", offset)
+        While (bgnpos > 0)
+        {
+            set record=..%New()
+            set bgnpos = $FIND(text, ">", bgnpos)
+            if (bgnpos = 0) {
+                //w !, "Malformed indexterm begin tag: ", src
+                Quit
+            }
+            set endpos = $FIND(text, "</indexterm>", bgnpos)
+            if (endpos = 0) {
+                //w !, "Missing indexterm end tag: ", src
+                Quit
+            }
+            set ref = $EXTRACT(text, bgnpos, (endpos - $LENGTH("</indexterm>") - 1))
+            set record.ParentTopic=key
+            set record.SourceFile=src
+            
+            set templist=$LISTFROMSTRING(text,"</indexterm>")
+            set cleantext=$LG(templist,$LISTLENGTH(templist))
+            set record.ShortContent=$EXTRACT(cleantext,1,2000)
+
+            set cleanup=$REPLACE(ref,"<primary>","")
+            set cleanup=$REPLACE(cleanup,"</primary>","")
+            set cleanup=$REPLACE(cleanup,"</secondary>","")
+            set cleanup=$REPLACE(cleanup,"<secondary>","->")
+            set record.IndexTerm=cleanup
+            
+            set status= record.%Save()
+            if $$$ISERR(status) {
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.SourceFile_" "_record.ParentTopic_" "_record.ShortContent,verbose)
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+            }
+        
+            set offset = endpos         
+            set bgnpos = $FIND(text, "<indexterm", offset)
+        } ; end while
+
+        &sql(FETCH IndexTermCursor)
+    }
+
+    &sql(CLOSE IndexTermCursor)
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.Manager74DA.IndexTermsD</DataLocation>
+<DefaultData>IndexTermsDefaultData</DefaultData>
+<IdLocation>^DocBook.Manager74DA.IndexTermsD</IdLocation>
+<IndexLocation>^DocBook.Manager74DA.IndexTermsI</IndexLocation>
+<StreamLocation>^DocBook.Manager74DA.IndexTermsS</StreamLocation>
+<Data name="IndexTermsDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>ParentTopic</Value>
+</Value>
+<Value name="3">
+<Value>SourceFile</Value>
+</Value>
+<Value name="4">
+<Value>IndexTerm</Value>
+</Value>
+<Value name="5">
+<Value>ShortContent</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

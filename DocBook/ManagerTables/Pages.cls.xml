@@ -1,0 +1,699 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.Pages">
+<Description><![CDATA[
+For general comments, see <class>DocBook.ManagerTables.Utils</class>.]]></Description>
+<IncludeCode>%occSAX,DocBookMac</IncludeCode>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="PageType">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%Integer</Type>
+</Property>
+
+<Property name="PageClass">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="CSPURL">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="PAGENAME">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="HELPADDRESS">
+<Description>
+Displayed in table; used as filter.
+Will be null in releases before 15.1.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="ComputedHelpAddress">
+<Description>
+Displayed in table; used as filter. This contains the computed HelpAddress for the page.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="AnchorGlobalEntry">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="DOCBOOKID">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="HSHELPKEY">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="ExpectedDocBookId">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="HelpBroken">
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+<SqlComputeCode><![CDATA[if (({HelpAttempted}=1) && ({HelpFound}=0)) set {HelpBroken}=1]]></SqlComputeCode>
+<SqlComputed>1</SqlComputed>
+</Property>
+
+<Property name="HelpAttempted">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="HelpFound">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Method name="Rebuild">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.Pages:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: Page scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of pages & associated anchors...",verbose)
+    do ..%KillExtent()
+    if ($system.Version.GetMajor()>14) {
+        do ..CheckType1Pages(verbose)
+    }
+    do ..CheckType2Pages(verbose)
+    do ..CheckType3Pages(verbose)
+    do ..CheckType4Pages(verbose)
+    do ..CheckType5Pages(verbose)
+
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE scanning pages",verbose)
+    set ^DocBookManager("LastTypePageScan")=$zdt($h,3)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="GetTimeStamp">
+<Description>
+Returns time stamp of last time we scanned the page classes and looked for matching anchors</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastTypePageScan"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Method name="CheckType1Pages">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    set query = ##class(%SQL.Statement).%New()
+    set status = query.%PrepareClassQuery("%Dictionary.ClassDefinition","SubclassOf")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set tRS = query.%Execute("%CSP.UI.Portal.Template")
+    while tRS.%Next() {
+        set tClass = tRS.%Get("Name")
+        do ..ProcessType1(tClass,verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="CheckType2Pages">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    set query = ##class(%SQL.Statement).%New()
+    set status = query.%PrepareClassQuery("%Dictionary.ClassDefinition","SubclassOf")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    if (($system.Version.GetMajor()>=14) && ($system.Version.GetMinor()>1)) {
+        //don't do this for versions before 15.1
+        set tRS = query.%Execute("%CSP.Util.AutoPage") 
+        while tRS.%Next() {
+            set tClass = tRS.%Get("Name")
+            if verbose { write !, tClass }
+            do ..ProcessType2(tClass,verbose)
+        }
+    }
+
+    //also loop through subclasses of %CSP.UI.System.AutoPageCSP
+    set tRS = query.%Execute("%CSP.UI.System.AutoPageCSP") 
+    while tRS.%Next() {
+        set tClass = tRS.%Get("Name")
+        do ..ProcessType2(tClass,verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="CheckType3Pages">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    set classnameArray=""
+    if '##class(%Library.EnsembleMgr).IsEnsembleInstalled() {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","This is not an Ensemble instance, so we aren't scanning type 3 pages",verbose)
+        quit
+    }
+
+    set $Namespace = "ENSEMBLE"
+    set query = ##class(%SQL.Statement).%New()
+    set status = query.%PrepareClassQuery("%Dictionary.ClassDefinition","SubclassOf")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set tRS = query.%Execute("EnsPortal.Template.standardPage")
+
+    set classcount=0
+    //iterate through results and build an array
+    while tRS.%Next() {
+        set tClass = tRS.%Get("Name")   
+        if verbose { write !, tClass }
+    
+        // Skip Abstract classes (templates, etc.)
+        set tAbstract = +$$$comClassKeyGet(tClass,$$$cCLASSabstract)
+        
+        if tAbstract {
+            if verbose { write " [abstract class, skipping]" }
+        } else {
+            set tPageName = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"PAGENAME",$$$cPARAMdefault)
+            // Calculate HELPADDRESS property
+            set tAddress = $select(tPageName '= "": "Ensemble, "_tPageName, 1: "")
+
+            // Get the CSPURL parameter value
+            set tCSPURL = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"CSPURL",$$$cPARAMdefault)
+    
+            if tPageName="",tAddress="" Continue
+    
+            set classcount=classcount+1
+            set classnameArray(classcount) = tClass_"^"_tPageName_"^"_tAddress_"^"_tCSPURL
+            set classnameArray=classcount
+        }
+    }
+
+    set $Namespace = "DOCBOOK"
+    do ..ProcessType3(.classnameArray,verbose)
+]]></Implementation>
+</Method>
+
+<Method name="CheckType4Pages">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    set query = ##class(%SQL.Statement).%New()
+    set status = query.%PrepareClassQuery("%Dictionary.ClassDefinition","SubclassOf")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set tRS = query.%Execute("%DeepSee.UI.standardPage")
+
+    while tRS.%Next() {
+        set tClass = tRS.%Get("Name")
+        do ..ProcessType4(tClass,verbose)   
+    }
+]]></Implementation>
+</Method>
+
+<Method name="CheckType5Pages">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    if '##class(%Library.EnsembleMgr).IsHealthShareInstalled() {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","This is not a HealthShare instance, so we aren't scanning type 5 pages",verbose)
+        quit
+    }
+
+    set $Namespace = "HSLIB"
+    set tRS = ##class(%ResultSet).%New("%Dictionary.ClassDefinition:SubclassOf")
+    set status = tRS.Execute("HS.UI.Base")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set classcount=0
+    //iterate through results and build an array
+    while tRS.Next() {
+        set tClass = tRS.Data("Name")   
+        if verbose { write !, tClass }
+    
+        // Skip Abstract classes (templates, etc.)
+        set tAbstract = +$$$comClassKeyGet(tClass,$$$cCLASSabstract)
+        
+        if tAbstract {
+            if verbose { write " [abstract class, skipping]" }
+        } else {
+    
+            set tPageName = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"PAGENAME",$$$cPARAMdefault)
+
+            // Get the HSHELPKEY parameter value
+            set HSHELPKEY = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"HSHELPKEY",$$$cPARAMdefault)
+            set CSPURL = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"CSPURL",$$$cPARAMdefault)
+    
+            if tPageName="" Continue
+    
+            set classcount=classcount+1
+            set classnameArray(classcount) = tClass_"^"_tPageName_"^"_HSHELPKEY_"^"_CSPURL
+            set classnameArray=classcount
+        }
+    }
+
+    set $Namespace = "DOCBOOK"
+    do ..ProcessType5(.classnameArray,verbose)
+]]></Implementation>
+</Method>
+
+<Method name="ProcessType1">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>tClass:%String,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if verbose { write !, tClass }
+
+    // Skip Abstract classes (templates, etc.)
+    set tAbstract = +$$$comClassKeyGet(tClass,$$$cCLASSabstract)
+    if tAbstract {
+        if verbose { write " [abstract class, skipping]"}
+        quit
+    }
+
+    set record=..%New()
+    set record.PageType=1
+    set record.PageClass=tClass
+        
+    // Get a couple of parameter values
+    set APPLICATION = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"APPLICATION",$$$cPARAMdefault)
+    set tAddress = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"HELPADDRESS",$$$cPARAMdefault)
+    set tCSPURL = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"CSPURL",$$$cPARAMdefault)
+    set PAGENAME = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"PAGENAME",$$$cPARAMdefault)
+    
+    set record.CSPURL=tCSPURL
+    set record.PAGENAME=PAGENAME
+    set record.HELPADDRESS=tAddress ; will be null in releases before 15.1
+    //set record.APPLICATION=APPLICATION
+    //write !, "   >>>", APPLICATION
+        
+    if (tAddress'="") {
+        if verbose {
+            write !, "   tAddress: ", tAddress
+        }
+        set anchorInfo = ..TEMPORARYGetDocAnchor(tAddress,verbose)
+        if (anchorInfo'="^") {
+
+            if verbose {
+                write !, "   anchorInfo is ", anchorInfo
+                //write !, "   part 1>>>", $P(anchorInfo,"^",1)
+                //write !, "   part 2>>>", $P(anchorInfo,"^",2)
+                }
+            //for this kind of page, this method returns anchorid only in second part of this pieced string
+            set tAnchor = $P(anchorInfo,"^",2)
+            set tDocId = $P(anchorInfo,"^",2)
+            set blockid = ..TEMPORARYGetBookId(tDocId)
+
+            set record.ExpectedDocBookId=blockid
+            set record.AnchorGlobalEntry=tAnchor
+            set container = ##class(DocBook.container).OpenKey(blockid)
+            set record.HelpAttempted=1
+            set record.HelpFound=$IsObject(container) 
+        }
+    }
+    
+    set status= record.%Save()
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record (page type 1) "_PAGENAME,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ProcessType2">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>tClass:%String,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if verbose { write !, tClass }
+
+    // Skip Abstract classes (templates, etc.)
+    set tAbstract = +$$$comClassKeyGet(tClass,$$$cCLASSabstract)
+    if tAbstract {
+        if verbose { write " [abstract class, skipping]"}
+        quit
+    }
+
+    set record=..%New()
+    set record.PageType=2
+    set record.PageClass=tClass
+        
+    // Get a couple of parameter values
+    set tURL = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"CSPURL",$$$cPARAMdefault)
+    set tPAGENAME = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"PAGENAME",$$$cPARAMdefault)
+
+    set record.CSPURL=tURL
+    set record.PAGENAME=tPAGENAME
+        
+    if tURL="" {
+        set status=record.%Save()
+        if $$$ISERR(status) {
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record (page type 2) "_tPageName,verbose)
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+            quit
+        }
+
+    }
+
+    set tAddress = tPAGENAME
+    set tPARENTPAGE = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"PARENTPAGE",$$$cPARAMdefault)
+    while tPARENTPAGE '= "" {
+        set tParentClass = $System.CSP.GetClassName(tPARENTPAGE,tURL)
+        set tName = $$$defMemberKeyGet(tParentClass,$$$cCLASSparameter,"PAGENAME",$$$cPARAMdefault)
+        //if verbose { write !, "   >>>tName is ", tName}
+        set tAddress = $S(tName'="":tName _ ",", 1:"")_ tAddress 
+        set tPARENTPAGE = $$$defMemberKeyGet(tParentClass,$$$cCLASSparameter,"PARENTPAGE",$$$cPARAMdefault)     
+    }
+    
+    set record.ComputedHelpAddress=tAddress ; this contains the computed help address
+    if (tAddress'="") {
+        if verbose {
+            write !, "   tAddress: ", tAddress
+        }
+        set anchorInfo = ..TEMPORARYGetDocAnchor(tAddress,verbose)
+
+        if (anchorInfo'="^") {
+            if verbose {
+                write !, "   anchorInfo is ", anchorInfo
+                //write !, "   anchorInfo part 1>>>", $P(anchorInfo,"^",1)
+                //write !, "   anchorInfo part 2>>>", $P(anchorInfo,"^",2)
+            }
+
+            //set tAnchor = $P(anchorInfo,"^",1)
+            set tAnchor = $P(anchorInfo,"^",2)
+            set tDocId = $P(anchorInfo,"^",2)
+            set blockid = ..TEMPORARYGetBookId(tDocId)
+            set record.HelpAttempted=1
+            set record.AnchorGlobalEntry=tAnchor
+            set record.ExpectedDocBookId=blockid
+            set container = ##class(DocBook.container).OpenKey(blockid)
+            set record.HelpFound=$IsObject(container) 
+        }
+    }
+    
+    set status= record.%Save()
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record (page type 2) "_tPageName,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ProcessType3">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&classnameArray,verbose:%Boolean=0]]></FormalSpec>
+<Implementation><![CDATA[
+    for i=1:1:classnameArray {
+        set tData = classnameArray(i)
+        if (tData'="") {
+            //extract some details
+            set tClass = $P(tData,"^",1)
+            set tPageName = $P(tData,"^",2)
+            set tAddress = $P(tData,"^",3)
+            set tCSPURL = $P(tData,"^",4)
+
+            set record=..%New()
+            set record.PageType=3
+            set record.PageClass=tClass
+            set record.PAGENAME=tPageName
+            set record.CSPURL=tCSPURL
+            set record.ComputedHelpAddress=tAddress
+
+            set anchorInfo = ..TEMPORARYGetDocAnchor(tAddress,verbose)
+            if verbose {
+                write !, "   anchorInfo is ", anchorInfo
+                //write !, "   part 1>>>", $P(anchorInfo,"^",1)
+                //write !, "   part 2>>>", $P(anchorInfo,"^",2)
+            }
+
+            if (anchorInfo'="^") {
+                set tAnchor = $P(anchorInfo,"^",1)
+                set tDocId = $P(anchorInfo,"^",2)
+                set blockid = ..TEMPORARYGetBookId(tDocId)
+
+                set record.HelpAttempted=1
+                set record.AnchorGlobalEntry=tAnchor
+                set record.ExpectedDocBookId=blockid
+                //need a better test! you can have a URL of the form id#subid
+                //this test rejects that form
+                set container = ##class(DocBook.container).OpenKey(blockid)
+                set record.HelpFound=$IsObject(container) 
+            }
+
+            set status= record.%Save()
+            if $$$ISERR(status) {
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record (page type 3) "_tPageName,verbose)
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+            }
+
+        }
+
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ProcessType4">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>tClass:%String,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if verbose { write !, tClass }
+
+    set tAbstract = +$$$comClassKeyGet(tClass,$$$cCLASSabstract)
+    if tAbstract {
+        if verbose { write " [abstract class, skipping]"}
+        quit
+    }
+
+    set record=..%New()
+    set record.PageType=4
+    set record.PageClass=tClass
+
+    // Get some parameter values
+    set PAGENAME = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"PAGENAME",$$$cPARAMdefault)
+    set DOCBOOKID = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"DOCBOOKID",$$$cPARAMdefault)
+    set CSPURL = $$$defMemberKeyGet(tClass,$$$cCLASSparameter,"CSPURL",$$$cPARAMdefault)
+
+    set record.PAGENAME=PAGENAME
+    set record.DOCBOOKID=DOCBOOKID
+    set record.ExpectedDocBookId=DOCBOOKID
+    set record.CSPURL=CSPURL
+
+    if (DOCBOOKID'="") {
+        set container = ##class(DocBook.container).OpenKey(DOCBOOKID)
+        set record.HelpAttempted=1
+        set record.HelpFound=$ISOBJECT(container)
+    }
+    set status= record.%Save()
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record (page type 4) "_PAGENAME,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ProcessType5">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&classnameArray,verbose:%Boolean=0]]></FormalSpec>
+<Implementation><![CDATA[
+    for i=1:1:classnameArray {
+        set tData = classnameArray(i)
+        if tData'="" {
+            //extract some details
+            set tClass = $P(tData,"^",1)
+            set tPageName = $P(tData,"^",2)
+            set HSHELPKEY = $P(tData,"^",3)
+            set CSPURL = $P(tData,"^",4)
+
+            set record=..%New()
+            set record.PageType=5
+            set record.PageClass=tClass
+            set record.PAGENAME=tPageName
+            set record.HSHELPKEY=HSHELPKEY
+            set record.ExpectedDocBookId=HSHELPKEY
+            set record.CSPURL=CSPURL
+
+            if (HSHELPKEY '= "") {
+                set container = ##class(DocBook.container).OpenKey(HSHELPKEY)
+                set record.HelpAttempted=1
+                set record.HelpFound=$IsObject(container)
+            }
+            set status= record.%Save()
+            if $$$ISERR(status) {
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record (page type 5) "_tPageName,verbose)
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+            }
+        }
+
+    }
+]]></Implementation>
+</Method>
+
+<Method name="TEMPORARYGetDocAnchor">
+<Description>
+copied from %CSP.UI.HelpChecker in latest; remove when we no longer need it</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pKey,verbose:%Boolean=0</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    //if verbose { write !, "   >>>In TEMPORARYGetDocAnchor, pKey is ", pKey}
+    set blockid = ""    
+    set tries = ##class(DocBook.PortalUtils).Normalize(pKey)
+    set len = $LENGTH(tries, ",")
+    For i = len : -1 : 1
+    {
+        set try = $PIECE(tries, ",", 1, i)
+        set subs = ##class(DocBook.PortalUtils).FormatSubscript(try)
+        set ref = "^DocBook.Anchor" _ "(" _ subs _ ")"
+        set blockid = $GET(@ref, "")
+        quit:(blockid '= "")
+    }
+    if i = len set exact = blockid
+    set return=$G(exact)_"^"_blockid
+    //if verbose { write !, "   >>>In TEMPORARYGetDocAnchor, return is ", return}
+    quit return
+]]></Implementation>
+</Method>
+
+<Method name="TEMPORARYGetBookId">
+<Description>
+copied from %CSP.UI.HelpChecker in latest; remove when we no longer need it</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pDocId</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set suffix = "_anchor"
+    set startlabel = pDocId
+    set blockid = ""
+    // remove final digits
+    while ($ISVALIDNUM($EXTRACT(startlabel, $LENGTH(startlabel))))
+    {
+        set startlabel = $EXTRACT(startlabel, 1, ($LENGTH(startlabel) - 1))
+    }
+    // check for suffix
+    if ($EXTRACT(startlabel, ($LENGTH(startlabel) - $LENGTH(suffix) + 1), $LENGTH(startlabel)) = suffix)
+    {
+        set blockid = $EXTRACT(startlabel, 1, ($LENGTH(startlabel) - $LENGTH(suffix)))
+    }
+    quit blockid
+]]></Implementation>
+</Method>
+
+<Method name="GetBadHelpLinks">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+   &sql(SELECT COUNT(*) into :mycount FROM DocBook_ManagerTables.Pages WHERE HelpBroken=1)
+   if (SQLCODE'=0) {
+       set mycount=99999
+   }
+   quit mycount
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ManagerTables.PagesD</DataLocation>
+<DefaultData>PagesDefaultData</DefaultData>
+<IdLocation>^DocBook.ManagerTables.PagesD</IdLocation>
+<IndexLocation>^DocBook.ManagerTables.PagesI</IndexLocation>
+<StreamLocation>^DocBook.ManagerTables.PagesS</StreamLocation>
+<Data name="PagesDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>PageType</Value>
+</Value>
+<Value name="3">
+<Value>PageClass</Value>
+</Value>
+<Value name="4">
+<Value>CSPURL</Value>
+</Value>
+<Value name="5">
+<Value>PAGENAME</Value>
+</Value>
+<Value name="6">
+<Value>HELPADDRESS</Value>
+</Value>
+<Value name="7">
+<Value>ComputedHelpAddress</Value>
+</Value>
+<Value name="8">
+<Value>AnchorGlobalEntry</Value>
+</Value>
+<Value name="9">
+<Value>DOCBOOKID</Value>
+</Value>
+<Value name="10">
+<Value>HSHELPKEY</Value>
+</Value>
+<Value name="11">
+<Value>ExpectedDocBookId</Value>
+</Value>
+<Value name="12">
+<Value>HelpBroken</Value>
+</Value>
+<Value name="13">
+<Value>HelpAttempted</Value>
+</Value>
+<Value name="14">
+<Value>HelpFound</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

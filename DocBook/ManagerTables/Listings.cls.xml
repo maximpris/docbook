@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.Listings">
+<Description><![CDATA[
+Contains 1 record for each &lt;programlisting> ]]></Description>
+<IncludeCode>%occSAX,DocBookMac</IncludeCode>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63117,56718.681992</TimeCreated>
+
+<Property name="ParentTopic">
+<Description>
+Parent DocBookId. Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="Lang">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="Content">
+<Description><![CDATA[
+Full content of the &lt;programlisting>.]]></Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="5000000"/>
+</Property>
+
+<Property name="ShortContent">
+<Description><![CDATA[
+First 50 characters of the &lt;programlisting>.
+Displayed in table.]]></Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="50"/>
+</Property>
+
+<Property name="SourceFile">
+<Description>
+Displayed in table; used as filter.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="HasProblem">
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="BadSyntax">
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="HasTab">
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="LongLine">
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Method name="Rebuild">
+<Description>
+verbose can be 0, 1, or 2</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.Listings:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: Bad listing scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+
+    do ..%KillExtent()
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Checking program listings and building cache...",verbose)
+
+    set status = $$$OK
+    set sql = "SELECT ID,content,tagattrs,dblang,container->blockid AS blockid,sourcefile from DocBook.programlisting WHERE dblang IS NOT NULL "
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set id=rset.%Get("ID")
+        set content=rset.%Get("content")
+        set attrs=rset.%Get("tagattrs")
+        set lang=rset.%Get("dblang")
+        set src=rset.%Get("sourcefile")
+        set docbookid=rset.%Get("blockid")
+
+        set programlisting = ##class(DocBook.programlisting).%OpenId(id,0)
+        
+        ; Format of the attribute list
+        ; A sequence of 5-element chunks as follows: 
+        ; +0 - the uri
+        ; +1 - local (unqualified) name
+        ; +2 - qualified name
+        ; +3 - the type ("CDATA", NMTOKEN", "ENTITY", etc.)
+        ; +4 - the attribute value.
+        ;
+        For i = 1:5:$LL(attrs) {
+            Set attrname = $LG(attrs,i+1)
+            If (attrname '= "") {
+                If (attrname = "condition") {
+                    Set attrvalue = $LG(attrs,i+4)
+                }
+            }
+        }
+
+        // strip out leading/trailing CRLFs (control chars)
+        // Don't strip tabs
+        // Set ..content = $ZSTRIP(..content,"<>C",,$C(9))
+
+        Set cont = $ZCVT(content,"I","HTML")
+        set first50=$E(cont,1,50)
+        
+        Set streamIn = ##class(%GlobalCharacterStream).%New()
+
+        
+        set lengthfail=0
+        // convert to CR/LF
+        Set cont = $TR(cont,$C(13),"")
+        For i=1:1:$L(cont,$C(10)) {
+            set checkthis=$P(cont,$C(10),i)
+            if $L(checkthis) > ##class(DocBook.DocBookParser).#MAXLINE {
+                set lengthfail=1
+            }
+ 
+            Do streamIn.Write($P(cont,$C(10),i) _ $C(13,10))
+        }
+        Do streamIn.Rewind()
+        
+        If ((lang '= "") && ($$$UPPER(lang) '= "NONE")) {
+            set syntaxerror=..IsSyntaxBad(streamIn, lang, verbose)
+        } else {
+            set syntaxerror=0
+        }
+            
+            
+        set record=..%New()
+        set record.SourceFile=src
+        set record.ParentTopic=docbookid
+        set record.Content=cont
+        set record.ShortContent=first50
+        set record.Lang=lang
+
+        set taberror=(cont [ $CHAR(9))
+
+        if syntaxerror { set record.BadSyntax=1 }
+        if taberror { set record.HasTab=1 }
+        if lengthfail { set record.LongLine=1 }
+        
+        if (syntaxerror || taberror || lengthfail ){
+            set record.HasProblem=1
+        } ; end of iterating through programlistings
+
+        set status= record.%Save()
+        if $$$ISERR(status) {
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error saving record "_record.SourceFile_" "_record.ParentTopic_" "_record.ShortContent,verbose)
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        }
+
+    }
+    
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE checking program listings",verbose)
+    set ^DocBookManager("LastListingScan")=$zdt($h,3)
+    lock ; this removes our lock
+]]></Implementation>
+</Method>
+
+<Method name="Initialized">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    if $D(^DocBookManager("LastListingScan")) {
+        set return=1 
+    } else {
+        set return=0 
+    }
+    quit return
+]]></Implementation>
+</Method>
+
+<Method name="GetTimeStamp">
+<Description>
+Returns time stamp of last time we scanned the listings in this database</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastListingScan"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Method name="ScanIsStale">
+<Description>
+Returns true if the program listing scan info is possibly stale 
+(that is, if the user has loaded files or removed items AFTER the last 
+program listing scan). Otherwise returns false.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    set filets=##class(DocBook.Manager.LoadUtils).GetLoadDeleteTimeStamp()
+    set linkts=..GetTimeStamp()
+  
+    set elapsed=$system.SQL.DATEDIFF("second",filets,linkts)
+  
+    if (elapsed<0) {
+       set stale=1
+    } else {
+       set stale=0 
+    }
+    quit stale
+]]></Implementation>
+</Method>
+
+<Method name="IsSyntaxBad">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>streamIn:%CharacterStream,lang:%String,verbose:%Integer=0</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    set returnvalue=0
+    Try {
+        Set flags = "ESFNUJ"
+
+        // get lang name    
+        Set lang = $$$UPPER($P(lang,":",1))
+
+        If (lang = "CACHE") {
+            Set lang = "COS"
+        }
+
+        If (lang = "COSX") {
+            // special EXACT coloring mode
+            Set lang = "COS"
+            Set flags = "ESF"
+        }
+    
+        If ((lang="NONE") || lang="") { quit }
+
+        Set synColor=##class(%Library.SyntaxColor).%New()
+        Set streamHtmlOut=##class(%GlobalCharacterStream).%New()
+
+        do synColor.Color(streamIn,streamHtmlOut,lang,flags,,,.langs,.errors,.errorinfo)
+        
+        If errors {
+            set returnvalue=1      
+        }
+
+    } Catch {
+        if verbose {
+            write $$$T("Fault occurred in colorizer DLL"), !
+            Set colored = synColor.DLLResultCode
+            write $$$T("DLLResultCode: "), $SELECT((colored'=""):colored, 1:$$$T("[not supplied]")), !
+        }
+    }
+    quit returnvalue
+]]></Implementation>
+</Method>
+
+<Method name="GetBadListingCount">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+   &sql(SELECT COUNT(*) into :mycount FROM DocBook_ManagerTables.Listings WHERE HasProblem=1)
+   if (SQLCODE'=0) {
+       set mycount=99999
+   }
+   quit mycount
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ManagerTa74DA.ListingsD</DataLocation>
+<DefaultData>ListingsDefaultData</DefaultData>
+<IdLocation>^DocBook.ManagerTa74DA.ListingsD</IdLocation>
+<IndexLocation>^DocBook.ManagerTa74DA.ListingsI</IndexLocation>
+<StreamLocation>^DocBook.ManagerTa74DA.ListingsS</StreamLocation>
+<Data name="ListingsDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>ParentTopic</Value>
+</Value>
+<Value name="3">
+<Value>Lang</Value>
+</Value>
+<Value name="4">
+<Value>ShortContent</Value>
+</Value>
+<Value name="5">
+<Value>SourceFile</Value>
+</Value>
+<Value name="6">
+<Value>HasProblem</Value>
+</Value>
+<Value name="7">
+<Value>BadSyntax</Value>
+</Value>
+<Value name="8">
+<Value>HasTab</Value>
+</Value>
+<Value name="9">
+<Value>LongLine</Value>
+</Value>
+<Value name="10">
+<Value>Content</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

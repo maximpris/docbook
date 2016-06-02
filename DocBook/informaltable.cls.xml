@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.informaltable">
+<Description>
+A table without a title.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.block</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Property name="colsep">
+<Type>dbint</Type>
+</Property>
+
+<Property name="frame">
+<Type>cdata</Type>
+</Property>
+
+<Method name="HTMLRenderContent">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+    Write "<DIV CLASS=""informaltable"">"
+    Write "<A name=""",..id,"""></A>",!
+    Do ##class(Renderer).RenderTable(..content,..frame,..colsep)
+    Write "</DIV>",!
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DefaultData>informaltableDefaultData</DefaultData>
+<Data name="informaltableDefaultData">
+<Subscript>"informaltable"</Subscript>
+<Value name="1">
+<Value>colsep</Value>
+</Value>
+<Value name="2">
+<Value>frame</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

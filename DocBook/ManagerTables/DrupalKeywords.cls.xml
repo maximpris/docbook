@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.DrupalKeywords">
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%Persistent</Super>
+<TimeCreated>63837,84421.241373</TimeCreated>
+
+<Property name="keyword">
+<Type>%String</Type>
+</Property>
+
+<Method name="RebuildNEW">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=1</FormalSpec>
+<Implementation><![CDATA[
+    do ..%KillExtent()
+    //write !, $Username
+    set sql="select distinct %Exact(keywords) as keywords from DocBook_ManagerTables.DrupalNodes WHERE keywords is not null order by keywords"
+    write !, sql
+    set rset=##class(%ResultSet).%New()
+    set status=rset.Prepare(sql)
+    if $$$ISERR(status) {
+        set errtext=$System.Status.GetErrorText(status)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing "_sql_": "_errtext,verbose)
+        quit 
+    }
+    set status=rset.Execute()
+    if $$$ISERR(status) {
+        set errtext=$System.Status.GetErrorText(status)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error executing "_sql_": "_errtext,verbose)
+        quit 
+    }
+    
+    while rset.Next() {
+        set values=rset.GetData("keywords")
+        write !, values
+        if (values '[ ",") {
+            do ..AddKeyword(values)
+        } else {
+            set list=$LISTFROMSTRING(values,",")
+            for i=1:1:$LISTLENGTH(list) {
+                set keyword=$LISTGET(list,i)
+                do ..AddKeyword(keyword)
+            }
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="Rebuild">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=1</FormalSpec>
+<Implementation><![CDATA[
+    do ..%KillExtent()
+    //write !, $Username
+    set sql="select distinct %Exact(keywords) as keywords from DocBook_ManagerTables.DrupalNodes WHERE keywords is not null order by keywords"
+    //set sql="select keywords from DocBook_ManagerTables.DrupalNodes WHERE keywords is not null order by keywords"
+    write !, sql
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        set errtext=$System.Status.GetErrorText(status)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error executing "_sql_": "_errtext,verbose)
+        quit 
+    }
+    write !, "got here"
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set values=rset.%Get("keywords")
+        write !, values
+        if (values '[ ",") {
+            do ..AddKeyword(values)
+        } else {
+            set list=$LISTFROMSTRING(values,",")
+            for i=1:1:$LISTLENGTH(list) {
+                set keyword=$LISTGET(list,i)
+                do ..AddKeyword(keyword)
+            }
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="AddKeyword">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>testkeyword:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    if (testkeyword [ ",") {
+        quit $$$ERROR($$$GeneralError,"Called AddKeyword with argument containing a comma")
+    } 
+    &sql(SELECT * FROM DocBook_ManagerTables.DrupalKeywords WHERE keyword = :testkeyword)
+    if (SQLCODE=0) {
+        quit $$$OK
+    } else {
+        set record=..%New()
+        set record.keyword=testkeyword
+        set status=record.%Save()
+        quit status
+    }
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.Man74DA.DrupalKeywordsD</DataLocation>
+<DefaultData>DrupalKeywordsDefaultData</DefaultData>
+<IdLocation>^DocBook.Man74DA.DrupalKeywordsD</IdLocation>
+<IndexLocation>^DocBook.Man74DA.DrupalKeywordsI</IndexLocation>
+<StreamLocation>^DocBook.Man74DA.DrupalKeywordsS</StreamLocation>
+<Data name="DrupalKeywordsDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>keyword</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

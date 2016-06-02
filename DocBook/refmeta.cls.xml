@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.refmeta">
+<Description>
+Meta-information for a reference entry.</Description>
+<ClassType>serial</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%Library.SerialObject</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Property name="refentrytitle">
+<Type>cdata</Type>
+</Property>
+
+<Storage name="Default">
+<Type>%Library.CacheSerialState</Type>
+<State>refmetaState</State>
+<StreamLocation>^DocBook.refmetaS</StreamLocation>
+<Data name="refmetaState">
+<Value name="1">
+<Value>refentrytitle</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

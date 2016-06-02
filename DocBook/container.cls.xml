@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.container">
+<Description>
+A container is a specialized block that can contain one or more blocks.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.block</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Property name="lastChildPos">
+<Description>
+Blockpos of last child in container</Description>
+<Type>dbint</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="subtitle">
+<Description>
+SubTitle for this container</Description>
+<Type>cdata</Type>
+</Property>
+
+<Method name="%OnDelete">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>oid:%ObjectIdentity</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    // delete all of our dependents
+    Do ..DeleteDependents($LG(oid,1))
+    
+    Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetSetName">
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[	return ""
+]]></Implementation>
+</Method>
+
+<Method name="DeleteDependents">
+<Description>
+Delete all dependent blocks</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>cid:cdata,display:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    New %ISCDBCounter
+    Set %ISCDBCounter = $INCREMENT(^||DocBook.CursorCount)
+    Kill %DocBookCursor(%ISCDBCounter)
+#EXECUTE Set %msqlvar = "%DocBookCursor(%ISCDBCounter"
+
+    Set bid = ""
+    
+    // find child blocks
+    &sql(DECLARE DEL1 CURSOR FOR 
+         SELECT ID
+         INTO :bid
+         FROM block
+         WHERE container = :cid
+    )
+
+    &sql(OPEN DEL1)
+    &sql(FETCH DEL1)
+    
+    While (SQLCODE = 0) {
+        Write:display "-"
+        // Use concurrency of 0!!!
+        Do ##class(DocBook.block).%DeleteId(bid,0)
+        &sql(FETCH DEL1)
+    }
+
+    &sql(CLOSE DEL1)
+#EXECUTE Kill %msqlvar
+    
+    Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetGotoList">
+<Description>
+Get list of sections in this container:
+This is used to create the "goto" list dropdown
+gtl is an array passed by reference</Description>
+<Internal>1</Internal>
+<FormalSpec><![CDATA[&gtl:cdata]]></FormalSpec>
+<Implementation><![CDATA[
+    // override in subclasses
+    Quit
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRender">
+<Description>
+render this container's children</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	
+    // if this block has a recognized status value, then wrap
+    // it with the appropriate DIV.
+    // Does not work for netscape    
+    
+    Set statusmark = ""
+	If ((..status'="")&&%ie&&'%ie6)    
+    {
+        If ($TRANSLATE(..status, "L") [ "draft")
+        {
+            Set statusmark = "draft"
+        }
+        If ($TRANSLATE(..status, "L") [ "broken")
+        {
+            Set statusmark = "broken"
+        }
+    }
+    Write:(statusmark'="") "<DIV CLASS=""",statusmark,""">"
+    Do ..HTMLRenderPreChildren()
+    Do ..HTMLRenderChildren()
+    Do ..HTMLRenderPostChildren()
+    Write:(statusmark'="") "</DIV>"
+    
+    // counter keeps track of when to flush
+    If ($D(%counter) & $D(%response)) {
+        Set %counter = %counter + 1
+        If ((%counter # 5) = 0) {
+            //Do %response.Flush()
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRenderPreChildren">
+<Description>
+render any HTML before children</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[   // override in subclass
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRenderPostChildren">
+<Description>
+render any HTML after children</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[   // override in subclass
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRenderChildren">
+<Description>
+Render this container's children as HTML.</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+    New %ISCDBCounter
+    Set %ISCDBCounter = $INCREMENT(^||DocBook.CursorCount)
+    Kill %DocBookCursor(%ISCDBCounter)
+#EXECUTE Set %msqlvar = "%DocBookCursor(%ISCDBCounter"
+
+    Set cid = ..%Id()
+    Set bid = ""
+
+    // find child blocks
+    &sql(DECLARE C1 CURSOR FOR 
+         SELECT ID
+         INTO :bid
+         FROM block
+         WHERE container = :cid
+         ORDER BY blockpos
+    )
+
+    &sql(OPEN C1)
+    &sql(FETCH C1)
+
+    If (SQLCODE '= 0) {
+        // no children, render content
+        Do ..HTMLRenderContent()
+    }
+    While (SQLCODE = 0) {
+        Do ..HTMLRenderId(bid)
+        &sql(FETCH C1)
+    }
+
+    &sql(CLOSE C1)
+#EXECUTE Kill %msqlvar
+]]></Implementation>
+</Method>
+
+<Method name="XMLRender">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+    Do ..XMLRenderPreChildren()
+    Do ..XMLRenderChildren()
+    Do ..XMLRenderPostChildren()
+]]></Implementation>
+</Method>
+
+<Method name="XMLRenderPreChildren">
+<Description>
+render any XML before children</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+    // assume class name is XML element name
+
+    Set attr = ""
+    Set:(..tagattrs '= "") attr = " " _ ..FmtAttrs(..tagattrs)
+    If (..HasAttr("id", ..tagattrs) = "") {
+        If (..id '= "") {
+            Set attr = attr _ " id=""" _ ..id _ """"
+        }
+    }
+    If (..HasAttr("role", ..tagattrs) = "") {
+        If (..role '= "") {
+            Set attr = attr _ " role=""" _ ..role _ """"
+        }
+    }
+    
+    Write "<",..%ClassName(),attr,">",!
+    If (..title '= "") {
+        Write "<title>", ..title, "</title>",!
+    }
+    If (..subtitle '= "") {
+        Write "<subtitle>", ..subtitle,"</subtitle>",!
+    }
+]]></Implementation>
+</Method>
+
+<Method name="XMLRenderPostChildren">
+<Description>
+render any XML after children</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+    // assume class name is XML element name
+    Write "</",..%ClassName(),">",!
+]]></Implementation>
+</Method>
+
+<Method name="XMLRenderChildren">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+    New %ISCDBCounter
+    Set %ISCDBCounter = $INCREMENT(^||DocBook.CursorCount)
+    Kill %DocBookCursor(%ISCDBCounter)
+#EXECUTE Set %msqlvar = "%DocBookCursor(%ISCDBCounter"
+
+    Set cid = ..%Id()
+    Set bid = ""
+
+    // find child blocks
+    &sql(DECLARE C2 CURSOR FOR 
+         SELECT ID
+         INTO :bid
+         FROM block
+         WHERE container = :cid
+         ORDER BY blockpos
+    )
+
+    &sql(OPEN C2)
+    &sql(FETCH C2)
+    
+    If (SQLCODE '= 0) {
+        // no children, render content
+        Write ..content
+    }
+
+    While (SQLCODE = 0) {
+        Do ..XMLRenderId(bid)
+        &sql(FETCH C2)
+    }
+
+    &sql(CLOSE C2)
+#EXECUTE Kill %msqlvar
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DefaultData>containerDefaultData</DefaultData>
+<Data name="containerDefaultData">
+<Subscript>"container"</Subscript>
+<Value name="1">
+<Value>lastChildPos</Value>
+</Value>
+<Value name="2">
+<Value>subtitle</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

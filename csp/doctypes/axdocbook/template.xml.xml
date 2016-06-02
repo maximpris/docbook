@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/template.xml" application="/csp/docbook/" default="1"><![CDATA[
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet href="axdocbook-fo.xsl" type="text/xsl" media="print,pdf" alternate="yes"?>
+<?xml-stylesheet href="axdocbook-html.xsl" type="text/xsl" media="screen"?>
+<!--ArborText, Inc., 1988-2002, v.4002-->
+<!DOCTYPE book PUBLIC "-//Arbortext//DTD DocBook XML V4.0//EN"
+ "axdocbook.dtd">
+<book>
+<title><?Pub Caret?></title>
+<chapter>
+<title></title>
+<para></para>
+</chapter>
+</book>
+<?Pub *0000000448 0?>
+]]></CSP>
+</Export>

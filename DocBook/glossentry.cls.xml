@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.glossentry">
+<Description>
+An entry in a glossary or glosslist.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.container</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Property name="glossterm">
+<Description>
+the glossterm associated with this glossentry</Description>
+<Type>cdata</Type>
+</Property>
+
+<Method name="%OnBeforeSave">
+<Internal>1</Internal>
+<FormalSpec>insert:%Boolean</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    Set ..content = ..glossterm
+    
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRenderPreChildren">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	Write "<DIV CLASS=""glossentry"">"
+	Write "<A name=""",..id,"""></A>",!
+	If (..glossterm [ "<") {
+		// there is inline markup
+		Do ##class(Renderer).RenderText(..glossterm)
+	}
+	Else {
+		Write ..glossterm
+	}
+	Write "</DIV>",!
+]]></Implementation>
+</Method>
+
+<Method name="XMLRender">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	Do ..XMLRenderPreChildren()
+	Do ..XMLRenderChildren()
+	Do ..XMLRenderPostChildren()
+
+]]></Implementation>
+</Method>
+
+<Method name="XMLRenderPreChildren">
+<Description>
+render any XML before children</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	// assume class name is XML element name
+
+	Set attr = ""
+	Set:(..tagattrs '= "") attr = " " _ ..FmtAttrs(..tagattrs)
+	If (..HasAttr("id", ..tagattrs) = "") {
+		If (..id '= "") {
+			Set attr = attr _ " id=""" _ ..id _ """"
+		}
+	}
+	If (..HasAttr("role", ..tagattrs) = "") {
+		If (..role '= "") {
+			Set attr = attr _ " role=""" _ ..role _ """"
+		}
+	}
+	
+	Write "<",..%ClassName(),attr,">",!
+	write "<glossterm>", ..glossterm, "</glossterm>", !
+	If (..title '= "") {
+		Write "<title>", ..title, "</title>",!
+	}
+
+]]></Implementation>
+</Method>
+
+<Method name="XMLRenderPostChildren">
+<Description>
+render any XML after children</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	// assume class name is XML element name
+	Write "</glossentry>",!
+
+]]></Implementation>
+</Method>
+
+<Method name="XMLRenderChildren">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	New %ISCDBCounter
+	Set %ISCDBCounter = $INCREMENT(^||DocBook.CursorCount)
+	Kill %DocBookCursor(%ISCDBCounter)
+#EXECUTE Set %msqlvar = "%DocBookCursor(%ISCDBCounter"
+
+	Set cid = ..%Id()
+	Set bid = ""
+
+	// find child blocks
+	&sql(DECLARE C2 CURSOR FOR 
+		 SELECT ID
+		 INTO :bid
+		 FROM block
+		 WHERE container = :cid
+		 ORDER BY blockpos
+	)
+
+	&sql(OPEN C2)
+	&sql(FETCH C2)
+	
+	If (SQLCODE '= 0) {
+		// no children, render content
+		Write ..content
+	}
+
+	While (SQLCODE = 0) {
+		Do ..XMLRenderId(bid)
+		&sql(FETCH C2)
+	}
+
+	&sql(CLOSE C2)
+#EXECUTE Kill %msqlvar
+
+	Quit
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DefaultData>glossentryDefaultData</DefaultData>
+<Data name="containerDefaultData">
+<Subscript>"container"</Subscript>
+<Value name="1">
+<Value>title</Value>
+</Value>
+<Value name="2">
+<Value>subtitle</Value>
+</Value>
+<Value name="3">
+<Value>glossterm</Value>
+</Value>
+</Data>
+<Data name="glossentryDefaultData">
+<Subscript>"glossentry"</Subscript>
+<Value name="1">
+<Value>lastChildPos</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

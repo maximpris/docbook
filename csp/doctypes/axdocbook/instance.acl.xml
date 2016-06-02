@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/instance.acl" application="/csp/docbook/" default="1"><![CDATA[
+require axdocbook
+
+function axdocbook::init()
+{
+	local doc = current_doc();
+
+	# override the enter key behavior for this instance
+	doc_add_callback(doc, "enter_key", "axdocbook::enter_key_event");
+
+	# As an optimization we keep the FOSI loaded throughout the session by
+	# loading it an extra time with the first doc instance.
+
+	if (axdocbook::globaldoc == -1)
+		{
+		# note: last arg (doc_type()) is the fosi to load
+		axdocbook::globaldoc = doc_open('', 0, 'global',\
+			public_id(doc), '', doc_type(doc));
+		}
+}
+
+axdocbook::init();
+]]></CSP>
+</Export>

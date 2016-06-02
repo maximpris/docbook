@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.Utils">
+<IncludeCode>DocBookManagerInclude</IncludeCode>
+<Super>%RegisteredObject</Super>
+<TimeCreated>63123,63098.182209</TimeCreated>
+
+<Method name="GetBookListFromId">
+<Description>
+Given a DocBookId for a SET, return a string that contains a comma-separated list of 
+the DocBookIds of the books in the set. String is suitable for display.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>docbookid:%String,verbose:%Boolean=0</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set containerId=..GetContainerIdFromId(docbookid)
+    set sql="SELECT blockid FROM DocBook.block WHERE container=? ORDER BY remap" 
+    set query=##class(%SQL.Statement).%New()
+    set status = query.%Prepare(sql)
+    if $$$ISERR(status) { 
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Utils","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Utils",$system.Status.GetErrorText(status),verbose)
+        quit  
+    }
+
+    set rset = query.%Execute(containerId)
+    set booklist=""
+    while rset.%Next()
+    {
+        set booklist=booklist_","_rset.%Get("blockid")
+    }
+    
+    if (booklist="") {
+        set booklist="Unknown"
+    } else {
+        set booklist=$E(booklist,2,*)
+    }
+    
+    if verbose {
+        write docbookid, " contains the following books: ",booklist,!
+    }
+
+    quit booklist
+]]></Implementation>
+</Method>
+
+<Method name="GetContainerIdFromId">
+<Description>
+Given a DocBookId for a block, return the internal containerId for that block.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>docbookid:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    &sql(select %ID into :containerId from DocBook.block where blockid=:docbookid)
+    
+     if (SQLCODE=0) {
+        set return=containerId
+     } else {
+        set return="Unknown"
+     }
+     quit return
+]]></Implementation>
+</Method>
+
+<Method name="GetFilenameFromSETId">
+<Description>
+For reasons I don't understand, we treat sets differently than other files
+and do not permit multiple sets of the same name on the path.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>docbookid:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    &sql(select Filename into :Filename from DocBook_ManagerTables.SETFiles where DocBookId=:docbookid)
+    
+    if (SQLCODE=0) {
+        set return=Filename
+    } else {
+        set return="No filename available"
+    }
+    quit return
+]]></Implementation>
+</Method>
+
+<Method name="GetIdFromFilename">
+<Description>
+Given a complete path and filename, return the corresponding DocBookId.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set shortfilename=$p(filename,"\",$length(filename,"\"))
+    set loaddir=$p(filename,shortfilename,1)
+    set id=$p(shortfilename,".xml",1)
+    quit id
+]]></Implementation>
+</Method>
+
+<Method name="GetFilenameFromId">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    &sql(SELECT filename into :Filename FROM DocBook_ManagerTables.Files WHERE DocBookId=:DocBookId)
+    if (SQLCODE=0) {
+        quit Filename
+    } else {
+        quit ""
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetLoadDir">
+<Description>
+Given a complete path and filename, return just the directory
+that contains the file.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set shortfilename=..GetShortFilename(filename)
+    set loaddir=$p(filename,shortfilename,1)
+    quit loaddir
+]]></Implementation>
+</Method>
+
+<Method name="GetRemapFromId">
+<Description>
+Given a DocBookId, go to the database and return the remap value of that item.
+This applies only to books, articles (I think), and SETs.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>docbookid:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    &sql(select remap into :remap from DocBook.block where blockid=:docbookid)
+    
+    if (SQLCODE=0) {
+        set return=remap
+    } else {
+        set return="Unknown"
+    }
+    quit return
+]]></Implementation>
+</Method>
+
+<Method name="GetShortFilename">
+<Description>
+Given a complete path and filename, return just the short filename.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+     set shortfilename=$p(filename,"\",$length(filename,"\"))
+     quit shortfilename
+]]></Implementation>
+</Method>
+
+<Method name="GetTypeFromFilename">
+<Description><![CDATA[
+Given a complete path and filename, return the type of the file.
+See <method>GetTypeFromId</method> for types.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set id=..GetIdFromFilename(filename)
+    quit ..GetTypeFromId(id)
+]]></Implementation>
+</Method>
+
+<Method name="GetTypeFromId">
+<Description>
+Given a DocBookId, return the type of item so that we know how to load it.
+The types are "article", "component" (a file within a book), "book" and "set".</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[docbookid:%String,&topLevel:%Boolean]]></FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    //first check to see if this is an article
+    if ($$$UPPER($e(docbookid,1))="A") {
+        set type="article"
+        //dang exception!
+        if ($$$UPPER(docbookid)="ANENCY") {
+            set type="book"
+        }
+        set topLevel=1
+
+    } elseif ($$$UPPER($e(docbookid,1,3))="SET") {
+        set type="set" 
+        set topLevel=1
+
+    } else {
+        //look for an underscore in the name--this would mean we have a component file
+        if (docbookid [ "_") {
+            set type="component"
+            set topLevel=0
+        } else {
+            set type="book"
+            set topLevel=1
+        }
+     }
+     quit type
+]]></Implementation>
+</Method>
+
+<Method name="GetTitleFromId">
+<Description>
+Given a DocBookId, go to the database and return the title of that item.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>docbookid:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    &sql(select title into :title from DocBook.block where blockid=:docbookid)
+    
+    if (SQLCODE=0) {
+        set return=$ZCVT(title,"I","HTML")
+    } else {
+        set return="Unknown"
+    }
+    quit return
+]]></Implementation>
+</Method>
+
+<Method name="Remove">
+<Description>
+Used by client method doRemoveDocument(),</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>which:%String,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    if (which="all") {
+        do ##class(DocBook.Manager.LoadUtils).RemoveAll(verbose)
+        quit
+    }
+
+    set type=..GetTypeFromId(which)
+    if (type="article") {
+        do ##class(DocBook.Manager.LoadUtils).RemoveArticle(which,verbose)  
+    } elseif (type="book") {
+        do ##class(DocBook.Manager.LoadUtils).RemoveBook(which,verbose) 
+    } elseif (type="set") {
+        do ##class(DocBook.Manager.LoadUtils).RemoveSET(which,verbose)
+
+    }
+]]></Implementation>
+</Method>
+
+<Method name="AppendToPath">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>originalPath:%String,newitem:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    //we're assuming we want Windows paths
+    set originalPath=$TR(originalPath,"/","\")
+    
+    //remove any / or \ from the start of the new item
+    set newitem=$ZSTRIP(newitem,"<","\")
+    set newitem=$ZSTRIP(newitem,"<","/")
+    if ($E(originalPath,$L(originalPath))="\") {
+       quit originalPath_newitem
+    } else {
+       quit originalPath_"\"_newitem
+    }
+]]></Implementation>
+</Method>
+</Class>
+</Export>

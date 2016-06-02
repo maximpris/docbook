@@ -1,0 +1,840 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.HomePageZen">
+<Description>
+A Zen-based Home page for DocBook.</Description>
+<IncludeCode>DocBookMac</IncludeCode>
+<Super>%ZEN.Component.page</Super>
+<TimeCreated>60803,66923.814445</TimeCreated>
+<DependsOn>DocBook.UI.buttonViewX</DependsOn>
+
+<Parameter name="APPLICATION">
+<Description>
+Class name of application this page belongs to.</Description>
+</Parameter>
+
+<Parameter name="PAGENAME">
+<Description>
+Displayed name of this page.</Description>
+<Default>Documentation Home Page</Default>
+</Parameter>
+
+<Parameter name="CSSINCLUDES">
+<Default>docbookhtml.css,docbook_StartPage.css</Default>
+</Parameter>
+
+<Parameter name="DOMAIN">
+<Description>
+Domain used for localization.</Description>
+<Default>DOCBOOK</Default>
+</Parameter>
+
+<XData name="Style">
+<Description>
+This Style block contains page-specific CSS style definitions.</Description>
+<Data><![CDATA[
+<style type="text/css">
+
+body {
+	background: #FFFAE7;
+}
+
+.bvwTable {
+	border: none;
+	background: none;
+}
+
+/* local override */
+div.para1 {
+	margin-left: 20px;
+}
+
+.menuTable {
+	border: none;
+	border-bottom: 1px solid darkblue;
+	background: #404040;
+	background-image: url(images/grad-gray-10x100.png);
+	background-repeat: repeat-x;
+}
+
+a.menuItem {
+	font-size: 0.9em;
+	padding: 1px 2px 1px 2px;
+	color: black;
+}
+
+a.menuItem:hover {
+	color: darkblue;
+}
+
+.TOCnomatch {
+	color: #202020;
+	font-style: italic;
+	padding: 20px;
+	text-align: center;
+}
+
+a.TOCChapter {
+	font-size: 1.2em;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+}
+
+a.TOCRemove {
+    text-align: right;
+	font-size: 0.8em;
+}
+
+.TOCgroup {
+	padding-top: 5px;
+	padding-left: 15px;
+	padding-bottom: 5px;
+	padding-right: 40px;
+	background: #404040;
+	background-image: url(images/grad-gray-10x100.png);
+	background-repeat: repeat-x;
+	color: black;
+	font-variant: small-caps;
+	letter-spacing: 1px;
+	text-align: center;
+	font-size: 1.2em;
+	border-top: 1px solid #808080;
+}
+
+.TOCgroupexplain {
+	padding-top: 5px;
+	padding-left: 15px;
+	padding-bottom: 10px;
+	padding-right: 40px;
+	color: black;
+	letter-spacing: 1px;
+	text-align: center;
+	font-size: 0.9em;
+}
+
+.TOCdiv {
+	padding-top: 5px;
+	padding-left: 15px;
+	padding-bottom: 5px;
+	padding-right: 40px;
+	border-top: 1px solid silver;
+}
+
+.TOCdesc {
+	color: black;
+	font-size: 0.9em;
+	padding-top: 0px;
+	padding-left: 30px;
+	padding-bottom: 0px;
+	padding-right: 40px;
+}
+
+dd {
+	font-size: 0.9em;
+}
+
+a.TOCChapter:hover {
+	background: #FFEEAA;
+}
+
+#toc {
+	background: white;
+	border: 1px solid black;
+	overflow: auto;
+	padding: 0px;
+	margin: 0px;
+	margin-top: 4px;
+	color: darkblue;
+}
+
+#filter {
+}
+
+</style>
+]]></Data>
+</XData>
+
+<XData name="Contents">
+<Description>
+This XML block defines the contents of this page.</Description>
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<page xmlns="http://www.intersystems.com/zen" 
+xmlns:db="docbook"
+title="Documentation Home Page">
+<html id="title" OnDrawContent="DrawTitle"/>
+<hgroup width="100%" cellVAlign="top" cellAlign="left">
+<html id="toc" OnDrawContent="DrawTOC"/>
+</hgroup>
+</page>
+]]></Data>
+</XData>
+
+<Method name="%OnAfterCreatePage">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    Set inEnsemble = ##class(DocBook.Utils).EnsembleLoaded()
+    Set inHealthShare = ##class(DocBook.Utils).HealthShareLoaded()
+    Set inTrakCare  = ##class(DocBook.Utils).TrakCareLoaded()
+
+	If (inEnsemble) {
+		#; point to correct feature map
+		Set item = ..%GetComponentById("menuMap")
+		If ($IsObject(item)) {
+			Set item.link = "featuremapEnsemble.csp"
+		}
+	}
+
+	If (inHealthShare) {
+		#; point to correct feature map
+		Set item = ..%GetComponentById("menuMap")
+		If ($IsObject(item)) {
+			Set item.link = "featuremapHealthShare.csp"
+		}
+	}
+
+	If (inTrakCare) {
+		#; point to correct feature map
+		Set item = ..%GetComponentById("menuMap")
+		If ($IsObject(item)) {
+			Set item.link = "featuremapTrakCare.csp"
+		}
+	}
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetClass">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pClassname:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	&html<<span>Test</span>>
+]]></Implementation>
+</Method>
+
+<Method name="filterChange">
+<Description>
+User change to filter buttons.</Description>
+<FormalSpec>list</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var html = zenPage.getComponentById('toc');
+	var div = html.getEnclosingDiv();
+	div.scrollTop = 0;
+	html.seed = list;
+	html.refreshContents();
+]]></Implementation>
+</Method>
+
+<Method name="DrawTitle">
+<Description>
+Draw contents of HTML title component.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pSeed:%ZEN.Datatype.string</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	//&html<<LINK REL="stylesheet" TYPE="text/css" HREF="docbook_StartPage.css" TITLE="Standard Style" >>	
+	Set info = ##class(DocBook.UI.BannerInfo).%New()
+	Set info.title = $$$T("Documentation Home Page")
+	Set info.booktitle = $$$T("InterSystems Online Documentation")
+	New %noshowframes
+	Set %noshowframes = 1
+	//Do ##class(DocBook.UI.StdPage).RenderBanner(info)
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="DrawTOC">
+<Description><![CDATA[
+Draw a list of books.
+<var>pSeed</var> is of the form "group:value;"]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pSeed:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tRemove = 0
+	Set tCount = ""
+	//Show Tutorials books only
+	Set setid = $G(%request.Data("SET",1))	
+	If (setid = "") { 
+		Set pSeed = "book:Tutorials;"
+		#; make sure global book list is built
+		#; copy top-node into tBooks
+		Do ..GetBookList(.tBooks)
+		
+		#; assemble list using filters
+		If (pSeed '= "*:All;") {
+			#; loop over each value in seed
+			For n = 1:1:$L(pSeed,";") {
+				Set tFilterPair = $P(pSeed,";",n)
+				Set tGroup = $P(tFilterPair,":",1)
+				Set tFilterValue = $P(tFilterPair,":",2)				
+				#; test books, remove non-matches
+				If (tGroup = "*") {
+					#; ignore
+				}
+				ElseIf (tFilterValue '= "") {
+					Set tBook = $O(tBooks(""))
+					While (tBook '= "") {
+						If (tGroup '= "") {
+							If (('$D(^DocBook.BookList(tBook,tGroup,tFilterValue))) && ('$D(^DocBook.BookList(tBook,tGroup,"*")))) {
+								Kill tBooks(tBook)
+							}
+						}
+						Set tBook = $O(tBooks(tBook))
+					}
+				}
+			}
+		}
+
+		#; arrange the list into categories
+		#; sort by "title" (actually, remap)
+		Set tKey = $O(tBooks(""))
+		While (tKey '= "") {
+			// !!!
+			Set tTaxonomy = $ORDER(^DocBook.BookList(tKey, "book", ""))
+			Set:($LENGTH(tTaxonomy) < 1) tTaxonomy = "Unknown"
+			Set tCat = $Case($E(tTaxonomy,1,1),"G":1,"R":2,"T":3,"A":4,:1)
+			Set tTitle = tBooks(tKey)
+			Set:tTitle="" tTitle="zzz"
+			Set tList(tCat,tTitle,tKey) = ""
+			Set tKey = $O(tBooks(tKey))
+		}
+
+		#; build the final list
+		Set n = 0
+		Set tCat = $O(tList(""))
+		While (tCat '= "") {
+			Set tTitle = $O(tList(tCat,""))
+			While (tTitle'="") {
+				Set tKey = $O(tList(tCat,tTitle,""))
+				While (tKey '= "") {
+
+					Set tBookList(tCat,$I(n)) = tKey
+					Set tKey = $O(tList(tCat,tTitle,tKey))
+				}
+				Set tTitle = $O(tList(tCat,tTitle))
+			}
+			Set tCat = $O(tList(tCat))
+		}
+		Set tCount = n		
+		Set:$D(tBookList(1)) tBookList(1) = $$$Text("Guides")
+		Set:$D(tBookList(2)) tBookList(2) = $$$Text("References") 
+		Set:$D(tBookList(3)) tBookList(3) = $$$Text("Tutorials")
+		Set:$D(tBookList(4)) tBookList(4) = $$$Text("Articles")
+		
+		#; show the books
+		Do ..DisplayBookList(.tBookList, tRemove)
+	}
+	Else {
+		// loop over books
+		Do ..GetBooksForOnlySet(setid)
+	}
+
+	
+	&html<<hr style="margin-right:120px;margin-left:120px;"/>>
+	&html<<hr style="margin-right:140px;margin-left:140px;"/>>
+	&html<<hr style="margin-right:160px;margin-left:160px;"/>>
+
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetBookList">
+<Description>
+Create global list of books with group/value information.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>*pBooks</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+
+	#; first build set of *all* books
+	&sql(DECLARE ACursor CURSOR FOR
+		SELECT ID,blockid,remap,title
+		FROM DocBook.book
+		UNION ALL
+		SELECT ID,blockid,remap,title
+		FROM DocBook.article
+	)
+
+	&sql(OPEN ACursor)
+	&sql(FETCH ACursor INTO :setid,:key,:remap,:title)
+	While (SQLCODE = 0) {
+		Set pBooks(key) = $S(remap="":title,1:remap)
+		&sql(FETCH ACursor INTO :setid,:key,:remap,:title)
+	}
+	&sql(CLOSE ACursor)
+
+	#; now add additional info about books
+	#; this goes into the ^DocBook.BookList global
+	If '$D(^DocBook.BookList) {
+		Set tSC = ##class(DocBook.Utils).Classify()
+	}
+
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="GetBooksForOnlySet">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>setid</FormalSpec>
+<Implementation><![CDATA[
+	// loop over books
+	&sql(DECLARE BookCursor2 CURSOR FOR
+		SELECT ID,blockid,title,remap
+		INTO :id,:key,:title,:remap
+		FROM DocBook.book
+		WHERE container = :setid		
+	)
+
+	Set n = 0
+	&sql(OPEN BookCursor2)
+	&sql(FETCH BookCursor2)
+	While (SQLCODE = 0) {		
+			Set link = "TARGET='_top'  HREF=""DocBook.UI.FrameSet.cls?KEY=" _ $ZCVT(key,"O","URL") _ """"
+	
+			&sql(SELECT title,subtitle INTO :title,:desc
+				FROM DocBook.container
+				WHERE blockid = :key)
+
+			&html<<div class="TOCdiv">>
+			&html<<a class="TOCChapter" #(link)# onclick="return zenPage.register('#(key)#');">>
+			&html<#(title)#>
+			&html<</a>>
+			&html<<div class="TOCdesc">>
+			&html<#(desc)#>
+			&html<</div>>
+
+			#; #&nbsp;&#151;&nbsp;(<span class="filename">#(key)#</span>)
+	
+			&html<</div>>	
+		&sql(FETCH BookCursor2)
+	}
+	&sql(CLOSE BookCursor2)
+]]></Implementation>
+</Method>
+
+<Method name="GetBooksForSet">
+<Description>
+Get list of books for the given set</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[setid,pSetNo,&pBookList]]></FormalSpec>
+<Implementation><![CDATA[
+	// loop over books
+	&sql(DECLARE BookCursor CURSOR FOR
+		SELECT ID,blockid,title,remap
+		INTO :id,:bookKey,:title,:remap
+		FROM DocBook.book
+		WHERE container = :setid
+		ORDER BY remap, title
+	)
+
+	Set n = 0
+	&sql(OPEN BookCursor)
+	&sql(FETCH BookCursor)
+	While (SQLCODE = 0) {
+		Set pBookList(pSetNo,$I(n)) = bookKey	
+		&sql(FETCH BookCursor)
+	}
+	&sql(CLOSE BookCursor)
+]]></Implementation>
+</Method>
+
+<Method name="OrderSETs">
+<Description>
+Produce an array of set names in remap order</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&SetList,&SetIds]]></FormalSpec>
+<Implementation><![CDATA[
+	Set setid = $O(^DocBook.blockI("setIdx",""))
+	Set keyinx = 0
+	While (setid '="") {
+		Set set = ##class(DocBook.set).%OpenId(setid)
+		If (set '="") {
+			Set keyinx = $INCREMENT(keyinx)
+			Set sortkey = set.remap
+			If (sortkey = "") {
+				Set sortkey = "~" _ (1000 + keyinx)
+			}
+			Set SetList(sortkey) = set
+			Set SetIds(sortkey) = setid
+			Set set = ""
+		}
+		Set setid = $O(^DocBook.blockI("setIdx",setid))
+	}
+	Quit
+]]></Implementation>
+</Method>
+
+<Method name="Analyze">
+<Description>
+This is a test method;
+This displays the list of known books organized by group and value.</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	Do ..GetBookList(.pBooks)
+	Set tBook = $O(pBooks(""))
+	While (tBook '= "") {
+		Set tGroup = $O(^DocBook.BookList(tBook,""))
+		While (tGroup '= "") {
+			Set tValue = $O(^DocBook.BookList(tBook,tGroup,""))
+			While (tValue '= "") {
+
+				Set tIndex(tGroup,tValue,tBook) = ""
+	
+				Set tValue = $O(^DocBook.BookList(tBook,tGroup,tValue))
+			}
+
+			Set tGroup = $O(^DocBook.BookList(tBook,tGroup))
+		}
+		Set tBook = $O(^DocBook.BookList(tBook))
+	}
+
+	#; print out index
+	Set tGroup = $O(tIndex(""))
+	While (tGroup '= "") {
+		Write "----------------------",!,tGroup,!
+		Set tValue = $O(tIndex(tGroup,""))
+		While (tValue '= "") {
+			Write ?2,tValue," ("
+			Set c = 0
+			Set tBook = $O(tIndex(tGroup,tValue,""))
+			While (tBook '= "") {
+				Write tBook," "
+				Set c = c + 1
+
+				Set tBook = $O(tIndex(tGroup,tValue,tBook))
+			}
+			Write "(",c,") )",!
+
+			Set tValue = $O(tIndex(tGroup,tValue))
+		}
+		Set tGroup = $O(tIndex(tGroup))
+	}
+]]></Implementation>
+</Method>
+
+<Method name="DisplayBookList">
+<Description><![CDATA[
+Display the list of books as HTML.<br>
+<var>pBookList</var> is of the form:<br>
+pBookList(group) = title or $LISTBUILD(title,subtitle)<br/>
+pBookList(group,n) = key<br/>]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&pBookList,pRemove:%Boolean=0]]></FormalSpec>
+<Implementation><![CDATA[
+	If ('$D(pBookList)) {
+		#; no choices
+		Set tMsg1 = $$$Text("No documents match the current selection.")
+		Set tMsg2 = $$$Text("Press Reset and try a different combination.")
+	    &html<<div class="TOCnomatch">#(tMsg1)#</div>>
+	    &html<<div class="TOCnomatch">#(tMsg2)#</div>>
+		Quit
+	}
+
+	Set msgRemove = $$$Text("Remove")
+	Set helpRemove = $$$Text("Remove this item from the Recent list")
+
+    &html<<div class="para">>
+	Set tGroup = $O(pBookList(""))
+	While (tGroup '= "") {
+		/*If ($G(pBookList(tGroup)) '= "") {
+			&html<<div class="TOCgroup">>
+			If ($LISTVALID(pBookList(tGroup)))
+			{
+				&html<<a title="#($LISTGET(pBookList(tGroup),2))#">>
+				&html<#($LISTGET(pBookList(tGroup),1))#>
+				&html<</a>>
+				//&html<#($LISTGET(pBookList(tGroup),1))#>
+				//&html<<br>>
+				//&html<<span class="TOCgroupexplain">>
+				//&html<#($LISTGET(pBookList(tGroup),2))#>
+				//&html<</span>>
+			}
+			Else
+			{
+				&html<#(pBookList(tGroup))#>
+			}
+			&html<</div>>
+		}*/
+
+		Set n = $O(pBookList(tGroup,""))
+		While (n '= "") {
+			Set key = pBookList(tGroup,n)
+			Set link = "HREF=""DocBook.UI.FramePage.cls?KEY=" _ $ZCVT(key,"O","URL") _ """"
+	
+			&sql(SELECT title,subtitle INTO :title,:desc
+				FROM DocBook.container
+				WHERE blockid = :key)
+
+			&html<<div class="TOCdiv">>
+			&html<<a class="TOCChapter" #(link)# onclick="return zenPage.register('#(key)#');">>
+			&html<#(title)#>
+			&html<</a>>
+			If (pRemove) {
+				&html<<a class="TOCRemove" title="#(helpRemove)#" href="#" onclick="zenPage.removeItem('#(key)#');return false;">>
+				&html<#(msgRemove)#>
+				&html<</a>>
+			}
+	
+			&html<<div class="TOCdesc">>
+			&html<#(desc)#>
+			&html<</div>>
+
+			#; #&nbsp;&#151;&nbsp;(<span class="filename">#(key)#</span>)
+	
+			&html<</div>>
+			Set n = $O(pBookList(tGroup,n))
+		}
+		Set tGroup = $O(pBookList(tGroup))
+	}
+    &html<</div>>
+]]></Implementation>
+</Method>
+
+<Method name="register">
+<Description>
+Note that user clicked a specific choice.</Description>
+<FormalSpec>pKey:%String</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var ok = zenPage.RegisterClick(pKey);
+	return true;
+]]></Implementation>
+</Method>
+
+<Method name="RegisterClick">
+<Description>
+Note that user clicked a specific choice.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pKey:%String</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+	Set ^DocBook.RecentList(pKey) = $ZDT($H,3)
+	Quit 1
+]]></Implementation>
+</Method>
+
+<Method name="RemoveRecentItem">
+<Description>
+Remove item from the recent list.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pKey:%String</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<ZenMethod>1</ZenMethod>
+<Implementation><![CDATA[
+	Kill ^DocBook.RecentList(pKey)
+	Quit 1
+]]></Implementation>
+</Method>
+
+<Method name="removeItem">
+<Description>
+Remove item from the recent list and update display.</Description>
+<FormalSpec>key</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	try {
+		this.RemoveRecentItem(key);
+		var html = zenPage.getComponentById('toc');
+		var div = html.getEnclosingDiv();
+		div.scrollTop = 0;
+		html.refreshContents();
+	} 
+	catch(ex) {
+		zenExceptionHandler(ex,arguments,'Error in removeItem');
+	}
+]]></Implementation>
+</Method>
+
+<Method name="MakeList">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	#; first build set of *all* books
+	&sql(DECLARE TCursor CURSOR FOR
+		SELECT ID,blockid
+		FROM DocBook.book
+		UNION ALL
+		SELECT ID,blockid
+		FROM DocBook.article
+		ORDER BY blockid
+	)
+
+	Set n = 0
+	&sql(OPEN TCursor)
+	&sql(FETCH TCursor INTO :setid,:key)
+	While (SQLCODE = 0) {
+		Set n = n + 1
+		Write n,":",?5,key,!
+		&sql(FETCH TCursor INTO :setid,:key)
+	}
+	&sql(CLOSE TCursor)
+]]></Implementation>
+</Method>
+
+<Method name="onlayoutHandler">
+<FormalSpec>load</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	// find divs for title etc.
+	var title = zenPage.getComponentById('title');
+	var filter = zenPage.getComponentById('filter');
+	var toc = zenPage.getComponentById('toc');	
+	//var divTitle = title.getEnclosingDiv();
+	//var divFilter = filter.getEnclosingDiv();
+	var divTOC = toc.getEnclosingDiv();	
+
+	// find size of window
+	var winHeight = zenGetWindowHeight();
+	var winWidth = zenGetWindowWidth();
+
+	// adjust size of filter, toc
+	var h = winHeight  - 50;
+
+	var w = winWidth  - 80;
+
+	divTOC.style.width = w + 'px';
+	//divTOC.style.height = h + 'px';
+	//divFilter.style.height = h + 'px';
+]]></Implementation>
+</Method>
+
+<Method name="GetFilterList">
+<Description>
+Get list of filters to display.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[pSeed:%String,&pInfo]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#; each entry has the form:
+	#; pInfo(n) = $LB(category,caption,value,tooltip,disabled)
+	
+	Set InclEns = ##class(DocBook.Utils).EnsembleLoaded()
+	Set InclHS = ##class(DocBook.Utils).HealthShareLoaded()
+	Set InclTC = ##class(DocBook.Utils).TrakCareLoaded()
+
+	#; special cases
+	Set pInfo($I(pInfo)) = $LB("*",$$$Text("Group By Type"),"All",$$$Text("Show all documents"))
+	Set pInfo($I(pInfo)) = $LB("",$$$Text("Recent Choices"),"Recent",$$$Text("Show recently viewed documents"))
+
+	#; products
+	Set BgnInx = pInfo
+	Do ..Filter(.pInfo,"product",$$$Text("Cach&eacute;"),"Cache")
+	Do:(InclEns) ..Filter(.pInfo,"product",$$$Text("Ensemble"),"Ensemble")
+	Do:(InclHS) ..Filter(.pInfo,"product",$$$Text("HealthShare"),"HealthShare")
+	Do:(InclTC) ..Filter(.pInfo,"product",$$$Text("TrakCare"),"TrakCare")
+	Do ..Filter(.pInfo,"product",$$$Text("Internal"),"Internal","Style Guides")
+	Do ..Filter(.pInfo,"product",$$$Text("Confidential"),"Confidential","InterSystems Only")
+	#; remove only single product
+	If (pInfo = (BgnInx + 1))
+	{
+		Set pInfo = BgnInx
+	}
+
+	#; roles
+	Do ..Filter(.pInfo,"role",$$$Text("Administration"),"Administration")
+	Do ..Filter(.pInfo,"role",$$$Text("Security"),"Security")
+	Do ..Filter(.pInfo,"role",$$$Text("Development"),"Development")
+	Do ..Filter(.pInfo,"role",$$$Text("Installation"),"Installation")
+	Do ..Filter(.pInfo,"role",$$$Text("Tools"),"Tools")
+	Do ..Filter(.pInfo,"role",$$$Text("General"),"General")
+	Do ..Filter(.pInfo,"role",$$$Text("Implementation"),"Implementation")
+
+	#; levels
+	Do ..Filter(.pInfo,"level",$$$Text("Introductory"),"Introductory")
+	Do ..Filter(.pInfo,"level",$$$Text("Intermediate"),"Intermediate")
+	Do ..Filter(.pInfo,"level",$$$Text("Advanced"),"Advanced")
+	Do ..Filter(.pInfo,"level",$$$Text("Draft"),"Draft","Not ready for publication")
+
+	#; book types
+	Do ..Filter(.pInfo,"book",$$$Text("Guides"),"Guides")
+	Do ..Filter(.pInfo,"book",$$$Text("References"),"References")
+	Do ..Filter(.pInfo,"book",$$$Text("Tutorials"),"Tutorials")
+	Do ..Filter(.pInfo,"book",$$$Text("Articles"),"Articles")
+
+	#; application type
+	Do ..Filter(.pInfo,"app",$$$Text("Web"),"Web")
+	Do ..Filter(.pInfo,"app",$$$Text("Client/Server"),"Client/Server")
+	Do ..Filter(.pInfo,"app",$$$Text("Terminal"),"Terminal")
+	Do ..Filter(.pInfo,"app",$$$Text("Integration"),"Integration")
+
+	#; programming languages
+	Do ..Filter(.pInfo,"lang",$$$Text("BASIC"),"BASIC")
+	Do ..Filter(.pInfo,"lang",$$$Text("C++"),"CPP")
+	Do ..Filter(.pInfo,"lang",$$$Text("Java"),"Java")
+	Do ..Filter(.pInfo,"lang",$$$Text("JavaScript"),"JavaScript")
+	Do ..Filter(.pInfo,"lang",$$$Text("MultiValue"),"MultiValue")
+	Do ..Filter(.pInfo,"lang",$$$Text("ObjectScript"),"ObjectScript")
+	Do ..Filter(.pInfo,"lang",$$$Text("Perl"),"PERL")
+	Do ..Filter(.pInfo,"lang",$$$Text("Python"),"PYTHON")
+	Do ..Filter(.pInfo,"lang",$$$Text("HTML"),"HTML")
+	Do ..Filter(.pInfo,"lang",$$$Text("CSP"),"CSP")
+	Do ..Filter(.pInfo,"lang",$$$Text("ZEN"),"ZEN")
+	Do ..Filter(.pInfo,"lang",$$$Text(".NET"),"DOTNET")
+	Do ..Filter(.pInfo,"lang",$$$Text("SOAP"),"SOAP")
+	Do ..Filter(.pInfo,"lang",$$$Text("XML"),"XML")
+	Do ..Filter(.pInfo,"lang",$$$Text("DeepSee"),"DeepSee")
+	Do ..Filter(.pInfo,"lang",$$$Text("BPL"),"BPL")
+	Do ..Filter(.pInfo,"lang",$$$Text("DTL"),"DTL")
+	Do ..Filter(.pInfo,"lang",$$$Text("SQL"),"SQL")
+	Do ..Filter(.pInfo,"lang",$$$Text("ISQL/TSQL"),"ISQL/TSQL")
+
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Filter">
+<Description>
+Conditionally add a button to the list</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&pInfo,Name:%String,LocName:%String,Value:%String,ToolTip:%String=""]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+	Set Ignores = $GET(^DocBook.Config("IGNORECATEGORIES"), "level,app")
+	Set IgnoreThis = $ZCONVERT(Ignores, "L") [ $ZCONVERT(Name, "L")
+	Quit:(IgnoreThis) $$$OK	
+	
+	Set Present = $GET(^DocBook.BookCategory(Name,Value), 0)
+	If (Present > 0)
+	{
+		If ($LENGTH(ToolTip) > 0)
+		{
+			Set pInfo($I(pInfo)) = $LB(Name,LocName,Value,ToolTip)
+		}
+		Else
+		{
+			Set pInfo($I(pInfo)) = $LB(Name,LocName,Value)
+		}
+	}
+
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="onServerMethodError">
+<Description>
+Intercept xmlHTTP errors and reload page rather than
+putting up alert box.</Description>
+<FormalSpec>err</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[	top.document.location.reload();
+]]></Implementation>
+</Method>
+</Class>
+</Export>

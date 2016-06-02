@@ -1,0 +1,998 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.LoadUtils">
+<IncludeCode>%occSAX,DocBookMac</IncludeCode>
+<Super>%Library.RegisteredObject</Super>
+<TimeCreated>58822,45005</TimeCreated>
+
+<Method name="LoadAndLog">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    set baseexportdir=##class(DocBook.Manager.ConfigUtils).GetParam("EXPORTBASEDIR")
+    do ##class(%File).CreateDirectoryChain(baseexportdir)
+    set filename=##class(DocBook.Manager.Utils).AppendToPath(baseexportdir,"LoadAllLog.txt")
+    open filename:"WNS" 
+    use filename 
+    write "Starting to load all at "_$zdatetime($h,3)
+    do ..LoadAll(1)
+]]></Implementation>
+</Method>
+
+<Method name="LoadAll">
+<Description>
+Copied from DocBook.Utils (was named LoadSETs) and then modified.
+This method reloads everything.
+If clearFirst is 1 (default), this method first clears the database.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0,clearFirst:%Boolean=1</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    lock ^DocBook.LoadAll:0
+    if '$TEST {
+        set msg="DUPLICATE LOAD REQUEST: Load All already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove",msg,verbose)
+        quit
+    }
+
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Starting LoadAll()...",verbose)
+    do ##class(DocBook.ManagerTables.DBContents).%KillExtent()
+    if clearFirst {
+        do ..RemoveAll(verbose)
+    }
+
+    set dirlist = ..BuildSearchList("")
+
+    if (dirlist.Count() = 0) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Source Location not specified... quitting",verbose)
+        quit $$$ERROR($$$GeneralError,("DocBook.Manager.LoadUtils:LoadSets() DocBook Source not specified"))
+    }
+
+    set ^DocBook.OffLine = 1
+    
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Resetting...",verbose)
+    do ##class(DocBook.Utils).Reset()
+    do ##class(DocBook.Utils).ResetLog()
+    
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Building on "_##class(DocBook.Utils).GetBuildInfo(0),verbose)
+       
+    // Get sets
+    set filelist = ##class(DocBook.SearchUtils).LocateFiles(dirlist, "SET*.xml")
+    if (filelist.Count() = 0)
+    {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","No sets found... quitting",verbose)
+        quit $$$ERROR($$$GeneralError,("DocBook.Manager.LoadUtils:LoadSets(): No SETs found."))
+    }
+    
+    for i = 1 : 1 : filelist.Count()
+    {
+        do ..LoadOneFile(filelist.GetAt(i),,verbose,0)
+
+        //update cached data
+        set dir=filelist.GetAt(i)
+        set filenameshort=$p(dir,"\",$l(dir,"\"))
+        set docbookid=$p(filenameshort,".",1)
+        do ##class(DocBook.ManagerTables.DBContents).UpdateAfterLoadingFile(docbookid,dir,verbose)
+    }
+    set filelist = ""
+    
+    // Now load books referenced by sets
+
+    &sql(DECLARE BL CURSOR FOR
+         SELECT blockid INTO :bid FROM DocBook.book)
+         
+    &sql(OPEN BL)
+    &sql(FETCH BL)
+    if (SQLCODE '= 0)
+    {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","SQL Error finding first book:"_SQLCODE,verbose)
+    }
+    
+    While (SQLCODE = 0) {
+        if verbose>1 {
+            write !, " [" ,bid, "]"
+        }
+        
+        set bookdirlist = ##class(DocBook.SearchUtils).ExtendSearchList(dirlist, bid)
+        set filelist = ##class(DocBook.SearchUtils).LocateFiles(bookdirlist, (bid _ ".xml"))
+        if (filelist.Count() > 0)
+        {
+            set thefilepath = filelist.GetAt(1)
+            set thedirpath = ##class(%File).GetDirectory(thefilepath)
+            set loaddir = ##class(DocBook.SearchUtils).ContainingDir(thedirpath)
+            do ..LoadBook(bid, loaddir, verbose,0)
+        }
+        &sql(FETCH BL)
+    }
+    
+    &sql(CLOSE BL)  
+    
+    // Load Articles
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Loading articles...",verbose)
+    set bookdirlist = ##class(DocBook.SearchUtils).ExtendSearchList(dirlist, "Articles")
+    set filelist = ##class(DocBook.SearchUtils).LocateFiles(bookdirlist, "*.xml")
+    if (filelist.Count() > 0)
+    {
+        ; load each separately in case articles are in different directories
+        for i = 1 : 1 : filelist.Count()
+        {
+            set thefilepath = filelist.GetAt(i)
+            do ..LoadOneFile(thefilepath,,verbose,0)
+        }
+    }
+
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","DONE loading items from the path...",verbose)
+    do ..LoadAllExtraSources(verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","DONE loading extra sources...",verbose)
+    
+    //RebuildIndices rebuilds doc book index AND anchor index
+    do ..RebuildIndices(verbose)
+    
+    set status = ##class(DocBook.Utils).Classify()
+        
+    Kill ^DocBook.OffLine
+    
+    set ^DocBook.LoadTime = $ZDT($H,3)
+    do ..SetLoadDeleteTimeStamp()
+    //do this after we set the load/delete timestamp!!!
+    do ##class(DocBook.ManagerTables.WideChars).CheckWideChars(verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","DONE final processing",verbose)
+    
+    do ##class(DocBook.Manager.JAJPExtraTools).WriteLoadRoutines(verbose)
+    
+    lock //remove our lock
+    quit status
+]]></Implementation>
+</Method>
+
+<Method name="LoadAllExtraSources">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set isExtra=1
+    for i=1:1:$G(^DocBook.Config("EXTRASOURCE"),0) {
+        set extrasource=$G(^DocBook.Config("EXTRASOURCE",i),0)
+        set actualitem=$E(extrasource,7,*)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Loading extra source "_actualitem,verbose)
+        set lastfour=$$$UPPER($E(extrasource,*-3,*))
+        if (lastfour=".XML") {
+            //add this to the Files table
+            do ..LoadItem(actualitem,,,,isExtra)
+        } else {
+            //make sure this is a directory
+            set dircheck=##class(%File).DirectoryExists(actualitem)
+            if 'dircheck { 
+                do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Directory not found: "_actualitem,verbose)
+            } else {
+                do ..LoadBookInDir(actualitem,,,,isExtra)
+            }
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="LoadItem">
+<Description>
+Utility method</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String="",verbose:%Boolean=1,checkWideChars:%Boolean=1,rebuildIndices:%Boolean=1,isExtra:%Boolean=""</FormalSpec>
+<Implementation><![CDATA[
+    if (filename="") {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Starting LoadItem but no file was specified.",verbose)
+        quit
+    }
+
+    set shortfilename=##class(%File).GetFilename(filename)
+    set firstthree=$$$UPPER($E(shortfilename,1,3)) //detect "ALL" as the special case; NB this logic currently uses the search paths
+    set firstchar=$$$UPPER($E(shortfilename,1,1))
+    set compfile=shortfilename [ "_"
+    set directory=##class(%File).GetDirectory(filename)
+    set filesindir=##class(DocBook.Manager.LoadUtils).GetFileList(directory)
+    set filecount=filesindir.Count()
+
+    if (firstthree="ALL") {
+        do ..LoadAll(verbose)
+    } else {
+        if (firstchar="A") {
+            do ..LoadOneFile(filename,,,,,isExtra)
+
+        } elseif (firstthree="SET") {
+            do ..LoadOneFile(filename,,,,,isExtra)
+            //then find component files and load them???
+            
+        } elseif compfile {
+            do ..LoadOneFile(filename,,,,,isExtra)
+
+        } else {
+            do ..LoadBookInDir(directory,verbose,,,isExtra)
+
+        }
+
+
+    }
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="LoadDocBookId">
+<Description>
+we can use to load a book, an article, a set, or ALL, but not to load a component file</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String="",verbose:%Boolean=1,checkWideChars:%Boolean=1,rebuildIndices:%Boolean=1</FormalSpec>
+<Implementation><![CDATA[
+    if (DocBookId="") {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Starting LoadDocBookId but no DocBookId was specified.",verbose)
+        quit $$$ERROR($$$GeneralError,"DocBookId is null.")
+    }
+
+    set status=$$$OK
+    set firstthree=$$$UPPER($E(DocBookId,1,3))
+    if (firstthree="ALL") {
+        set status= ..LoadAll(verbose)
+    } elseif (firstthree="SET") {
+        set status= ..LoadSET(DocBookId,verbose,rebuildIndices)
+    } else {
+        set first=$E(firstthree,1,1)
+        if (first'="A") {
+            set status= ..LoadBook(DocBookId,,verbose,1,rebuildIndices)
+        } else {
+            set filename=##class(DocBook.Manager.Utils).GetFilenameFromId(DocBookId)
+            set status= ..LoadItem(filename,verbose,checkWideChars,rebuildIndices)
+        }
+    }
+    quit status
+]]></Implementation>
+</Method>
+
+<Method name="LoadOneFile">
+<Description>
+Copied from DocBook.Utils (where it's called Load) and then modified.
+This method loads an individual doc file.
+The rebuildIndices argument overrides the configuration setting INDEXREBUILD.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>file,validate:%Boolean=1,verbose:%Boolean=1,directCall:%Boolean=1,rebuildIndices:%Boolean,isExtra:%Boolean=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","   Loading "_file,verbose)
+    //initialize rebuildIndices
+    if '$DATA(rebuildIndices) {
+        set rebuildIndices=##class(DocBook.Manager.ConfigUtils).GetParam("INDEXREBUILD")
+    }
+
+    set status = $$$OK
+    
+    // !!!force index to get rebuilt
+    Kill ^DocBook.Index
+
+    set mask =  $$$SAXSTARTENTITY + $$$SAXENDENTITY + $$$SAXCONTENTEVENTS
+
+    if (##class(%XML.Catalog).IsEmpty()) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","ERROR: DocBook.Manager.LoadUtils:LoadOneFile() The XML Catalog is empty.",verbose)
+        quit $$$ERROR($$$GeneralError,"XML Catalog Empty")
+    }
+    
+    if ('##class(%File).Exists(file)) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","ERROR: DocBook.Manager.LoadUtils:LoadOneFile() File "_file_" not found.",verbose)
+        quit $$$ERROR($$$GeneralError, ("File not found: " _ file))
+    }
+    
+    set enc = ##class(DocBook.Utils).CheckEncoding(file)
+    if ($LENGTH(enc) > 0)  {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","----- Assertion Failure: Unrecognized file encoding: "_enc,verbose)
+    }
+
+    if $D(%response) {
+        // assume we are called from CSP
+        do %response.Flush()
+    }
+
+    set h = ##class(DocBook.DocBookParser).%New()
+    set fname = ##class(%File).GetFilename(file)
+    set h.SourceFile = fname
+    set h.SourceTime = $ZDT(##class(%File).GetFileDateModified(file),3)
+    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","   Loading: " _fname,verbose)
+
+    // reset error log
+    do ##class(DocBook.ErrorLog).ResetForFile(fname)
+    set resolve = ##Class(%XML.CatalogResolver).%New()
+    set status = ##class(%XML.SAX.Parser).ParseFile(file, h, resolve, validate + $$$SAXNAMESPACES, mask)
+    if ($$$ISERR(status)) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","ERROR: DocBook.Manager.LoadUtils:LoadOneFile() Parsing error",verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove",$system.Status.GetErrorText(status),verbose)
+    }
+    
+    if $D(%response) {
+        // assume we are called from CSP
+        do %response.Flush()
+    }
+
+
+    ///this part is new
+    set loaddir=##class(DocBook.Manager.Utils).GetLoadDir(file)
+    set type=##class(DocBook.Manager.Utils).GetTypeFromFilename(file)
+    set docbookid=##class(DocBook.Manager.Utils).GetIdFromFilename(file)
+    if (type="article") {
+        do ..RefreshImageFiles(loaddir,docbookid) 
+    } 
+    
+
+   //now that we have loaded the file, refresh the manager table cache
+    do ##class(DocBook.ManagerTables.Files).Update(docbookid)
+    
+    if ((type="article") || (type="book") || (type="set")) {
+        do ##class(DocBook.ManagerTables.DBContents).UpdateAfterLoadingFile(docbookid,loaddir,verbose,isExtra)
+    }
+
+    if (directCall && rebuildIndices) {
+        //RebuildIndices rebuilds doc book index AND anchor index
+        do ..RebuildIndices(verbose)
+    }
+
+    do ..SetLoadDeleteTimeStamp()
+    quit status
+]]></Implementation>
+</Method>
+
+<Method name="LoadBook">
+<Description>
+Copied from DocBook.Utils and then modified.
+This method loads an entire book definition.
+The rebuildIndices argument overrides the configuration setting INDEXREBUILD.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>book:DocBook.cdata,subdir:DocBook.cdata="",verbose:%Boolean=1,directCall:%Boolean=1,rebuildIndices:%Boolean</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Loading "_subdir,verbose)
+    //initialize rebuildIndices
+    if '$DATA(rebuildIndices) {
+        set rebuildIndices=##class(DocBook.Manager.ConfigUtils).GetParam("INDEXREBUILD")
+    }
+
+    // get places to look
+    set searchlist = ##class(DocBook.Manager.LoadUtils).BuildSearchList(subdir)
+    set dirlist = ##class(DocBook.SearchUtils).ExtendSearchList(searchlist, book)
+    
+    set status = $$$OK
+    
+    set filelist = ##class(DocBook.SearchUtils).LocateFiles(dirlist, (book _ ".xml"))
+    if (filelist.Count() = 0)
+    {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","No book found: "_book,verbose)
+        set status =  $$$ERROR($$$GeneralError, ("DocBook.Manager.LoadUtils:LoadBook() No book found: " _ book))
+    }
+    else
+    {
+        set loaddir = ##class(%File).GetDirectory(filelist.GetAt(1))
+        //Lexi
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Loading files from "_loaddir,verbose)
+
+        do ..LoadMaster(loaddir,verbose)
+        do ..LoadDir(loaddir,verbose)
+
+        //Lexi fix this later
+        //set id=##class(DocBook.Manager.Utils).GetIdFromFilename(loaddir)
+        set id=$p(loaddir,"\",$length(loaddir,"\")-1)
+        set id=$$$LOWER(id)
+        do ..RefreshImageFiles(loaddir,id)
+    }
+
+
+    //now that we have loaded the book, refresh the manager table caches
+    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Updating manager tables for entry: "_book,verbose)
+    do ##class(DocBook.ManagerTables.Files).Update(book)
+    do ##class(DocBook.ManagerTables.DBContents).UpdateAfterLoadingFile(book,loaddir,verbose)
+    
+    if (directCall && rebuildIndices) {
+        //RebuildIndices rebuilds doc book index AND anchor index
+        do ..RebuildIndices(verbose)
+    }
+
+    do ..SetLoadDeleteTimeStamp()
+    quit status
+]]></Implementation>
+</Method>
+
+<Method name="LoadBookInDir">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>loaddir:DocBook.cdata="",verbose:%Boolean=1,directCall:%Boolean=1,rebuildIndices:%Boolean,isExtra:%Boolean=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set loaddir=$TR(loaddir,"/","\")
+    set loaddir=$ZSTRIP(loaddir,">","\")
+    set docbookid=$P(loaddir,"\",*)
+    
+    //initialize rebuildIndices
+    if '$DATA(rebuildIndices) {
+        set rebuildIndices=##class(DocBook.Manager.ConfigUtils).GetParam("INDEXREBUILD")
+    }
+
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Loading files from "_loaddir,verbose)
+
+    do ..LoadMaster(loaddir,verbose)
+    do ..LoadDir(loaddir,verbose)
+
+    do ..RefreshImageFiles(loaddir,docbookid)
+    
+    //now that we have loaded the book, refresh the manager table caches
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Updating manager tables for entry: "_docbookid,verbose)
+    do ##class(DocBook.ManagerTables.Files).Update(docbookid)
+    do ##class(DocBook.ManagerTables.DBContents).UpdateAfterLoadingFile(docbookid,loaddir,verbose,isExtra)
+
+    if (directCall && rebuildIndices) {
+    //RebuildIndices rebuilds doc book index AND anchor index
+          do ..RebuildIndices(verbose)
+    }
+
+    do ..SetLoadDeleteTimeStamp()
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="LoadSET">
+<Description>
+Copied from DocBook.Utils and then modified.
+This method loads a SET file and its books.
+The rebuildIndices argument overrides the configuration setting INDEXREBUILD.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>docbookid:%String,verbose:%Boolean=1,rebuildIndices:%Boolean</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Loading "_docbookid,verbose)
+    //initialize rebuildIndices
+    if '$DATA(rebuildIndices) {
+        set rebuildIndices=##class(DocBook.Manager.ConfigUtils).GetParam("INDEXREBUILD")
+    }
+
+    set dirlist = ##class(DocBook.Manager.LoadUtils).BuildSearchList()
+    Set status = $$$OK
+
+    If (dirlist.Count() = 0) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Source Location not specified... quitting",verbose)
+        quit 
+    }
+    
+    // Get Sets
+    Set SetName = docbookid _ ".xml"
+    Set filelist = ##class(DocBook.SearchUtils).LocateFiles(dirlist,SetName)
+    If (filelist.Count() = 0) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","No SETs found... quitting",verbose)
+        quit 
+    }
+    If (filelist.Count() > 1) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Duplicate SETs found... quitting",verbose)
+        quit
+    }
+    
+    do ..LoadOneFile(filelist.GetAt(1),,verbose,0)
+    
+    // also update cache of SET data!
+    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Updating manager tables for entry: "_docbookid,verbose)
+    do ##class(DocBook.ManagerTables.SETFiles).Update(docbookid)
+    do ##class(DocBook.ManagerTables.DBContents).UpdateAfterLoadingFile(docbookid,filelist.GetAt(1),verbose)
+
+    // now load the books
+    set booklist=##class(DocBook.Manager.Utils).GetBookListFromId(docbookid)
+    //convert string to $LIST
+    set booklist=$LISTFROMSTRING(booklist)
+    //now loop through list 
+    for i=1:1:$LISTLENGTH(booklist) {
+       set bookid=$LI(booklist,i)
+       do ..LoadBook(bookid,,verbose,0,rebuildIndices)
+    }
+    
+    do ..SetLoadDeleteTimeStamp()
+
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="LoadMaster">
+<Description>
+Copied from DocBook.Utils and then modified.
+This method loads the master file for the given directory.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>subdir:DocBook.cdata,verbose:%Boolean=1</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+    Set subdir = ##class(%File).NormalizeDirectory(subdir)
+    Set dirname = ##class(DocBook.SearchUtils).GetDirectoryname(subdir)
+    set searchlist = ..BuildSearchList(subdir)
+    set filelist = ##class(DocBook.SearchUtils).LocateFiles(searchlist, (dirname _ ".xml"))
+    if (filelist.Count() > 0)
+    {
+        set status = ..LoadOneFile(filelist.GetAt(1),,verbose,0)
+    }
+    else
+    {
+        //Write $$$T("ERROR:"), " DocBook.Utils:LoadMaster() ", $$$T("Book master not found: "), dirname, !
+        //set status = $$$ERROR($$$GeneralError,$$$T("Book master file missing."))
+    }
+    
+    //Normally this method would not be called directly, but if it is, we need to know that a file was loaded
+    do ..SetLoadDeleteTimeStamp()
+    Quit status
+]]></Implementation>
+</Method>
+
+<Method name="LoadDir">
+<Description>
+Copied from DocBook.Utils and then modified.
+This method loads every non-master file in the given directory.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>subdir:DocBook.cdata,verbose:%Boolean=1</FormalSpec>
+<Implementation><![CDATA[
+
+    do ^%ZDocBookBoost
+    Set subdir = ##class(%File).NormalizeDirectory(subdir)
+    
+    set dirstmt=##class(%SQL.Statement).%New()
+    set status=dirstmt.%PrepareClassQuery("%File","FileSet")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set dir=dirstmt.%Execute(subdir, "*.xml")
+    
+    
+    While (dir.%Next()) {
+        Set path = dir.%GetData(1)
+        set file = ##class(%Library.File).GetFilename(path)
+        set dirpath = ##class(%Library.File).GetDirectory(path)
+        set dirname = ##class(DocBook.SearchUtils).GetDirectoryname(dirpath)
+        
+        If ($ZCONVERT(file, "L") = ($ZCONVERT(dirname, "L") _ ".xml"))
+        {
+            ; Write $$$T("Master file already loaded: "), file, !
+        }
+        Else
+        {
+            Set status = ..LoadOneFile(path,,verbose,0)
+        }
+    }
+
+    //Normally this method would not be called directly, but if it is, we need to know that a file was loaded
+    do ..SetLoadDeleteTimeStamp()
+    Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="WildcardCopyFiles">
+<Description><![CDATA[
+Handle file copy where <var>filename</var> contains a wildcard.
+Note: this does not delete subdirectories.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>wildcard:%String,to:%String,verbose:%Boolean=0</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    set dir=##class(%File).GetDirectory(wildcard)
+    set filename=##class(%File).GetFilename(wildcard)
+ 
+    set dirstmt=##class(%SQL.Statement).%New()
+    set status=dirstmt.%PrepareClassQuery("%File","FileSet")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set resultset=dirstmt.%Execute(dir,filename)
+    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Copying images from "_dir,verbose)
+    //do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Copying images to "_to,verbose)
+    while resultset.%Next() {
+         set file=resultset.%Get("Name") 
+         do ##class(%File).CopyFile(file,to)
+         //do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Copying "_file,verbose)
+         if (verbose>1) {
+             write !, "   Copying: ",##class(%File).GetFilename(file)
+         }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="WildcardFileExists">
+<Description>
+Wildcard file existence</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>wildcard:%String</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    set dir=##class(%File).GetDirectory(wildcard)
+    set filename=##class(%File).GetFilename(wildcard)
+
+    set dirstmt=##class(%SQL.Statement).%New()
+    set status=dirstmt.%PrepareClassQuery("%File","FileSet")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set resultset=dirstmt.%Execute(dir,filename)
+    
+    //we only care about whether a single file exists so just go to first record
+    do resultset.%Next()
+    //added next bit 9 Jan 2015 -- need this if there are no results (as happens when directory doesn't exist)
+    if (resultset.%ROWCOUNT=0){
+        quit 0
+    }
+    set file=resultset.%Get("Name")
+    quit ##class(%File).Exists(file)
+]]></Implementation>
+</Method>
+
+<Method name="RefreshImageFiles">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>loaddir,id,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ..RemoveImageFiles(id,verbose)
+
+    // directories & wildcard files
+    // 24 April 2015 - changed wildcard to id_*.* rather than id*.*
+    set targetdir=$system.Util.InstallDirectory()_"CSP\docbook\images\"
+    set copywildcard=loaddir_"\images\"_id_"_*.*"
+    
+    //if needed, copy files from source image directory
+    if ..WildcardFileExists(copywildcard) {
+        do ..WildcardCopyFiles(copywildcard,targetdir,verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="RemoveImageFiles">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>id,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    //directories & wildcard files
+    // 24 April 2015 - changed wildcard to id_*.* rather than id*.*
+    set targetdir=$system.Util.InstallDirectory()_"CSP\docbook\images\"
+    set deletewildcard =targetdir_id_"_*.*"
+    
+    //if needed, remove applicable files in target directory
+    if ..WildcardFileExists(deletewildcard) {
+        do ##class(%File).SetWriteable(deletewildcard)
+        set status=##class(%File).Delete(deletewildcard)
+        if ('$$$ISERR(status) && verbose) {
+            write !, "Deleting the image files used by DocBook... "
+            write !, "   Deleting the files ",deletewildcard
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetSubdirectoryList">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>directory:%String</FormalSpec>
+<ReturnType>%ListOfDataTypes</ReturnType>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    set list=##class(%ListOfDataTypes).%New()
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%PrepareClassQuery("%Library.File","FileSet")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Error preparing SQL statement: "_sql)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove",$system.Status.GetErrorText(status))
+        quit
+    }
+
+    set rs = stmt.%Execute(directory,"*",1)
+    while rs.%Next() {
+        set type=rs.%Get("Type") 
+        set name=rs.%Get("Name")
+        if (type="D") { 
+              do list.Insert(name)
+        }
+    }
+    quit list
+]]></Implementation>
+</Method>
+
+<Method name="GetFileList">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>directory:%String</FormalSpec>
+<ReturnType>%ListOfDataTypes</ReturnType>
+<Implementation><![CDATA[
+    do ^%ZDocBookBoost
+    set list=##class(%ListOfDataTypes).%New()
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%PrepareClassQuery("%Library.File","FileSet")
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Error preparing SQL statement: "_sql)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove",$system.Status.GetErrorText(status))
+        quit
+    }
+    set rs = stmt.%Execute(directory,"*")
+    while rs.%Next() {
+         set name=rs.%Get("Name")
+         set type=rs.%Get("Type") 
+         set extract=$$$UPPER($EXTRACT(name, *-3, *))
+         if ((type="F") && (extract=".XML")) {
+             do list.Insert(name)
+         }
+    }
+    quit list
+]]></Implementation>
+</Method>
+
+<Method name="BuildSearchList">
+<Description><![CDATA[
+Copied from elsewhere & modified.
+Build a list of directory paths to search.  If the parameter specifiying
+a particular directory is non-null, construct a singleton list
+containing only that element.]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>SingletonDir:%String=""</FormalSpec>
+<ReturnType>%Library.ArrayOfDataTypes</ReturnType>
+<Implementation><![CDATA[
+    ; allocate space to hold our results
+    set results = ##class(%Library.ArrayOfDataTypes).%New()
+    
+    ; were we given only a single directory
+    if (SingletonDir '= "")
+    {
+        set realdirpath = ##class(%Library.File).NormalizeDirectory(SingletonDir)
+        set status = results.SetAt(realdirpath, 1)
+        if ($$$ISERR(status))
+        {
+            do $system.OBJ.DisplayError(status)
+        }
+    }
+    else
+    {
+        set searchpathlist = ##class(DocBook.ConfigUtils).GetSOURCE()
+        if ($LISTLENGTH(searchpathlist) = 0)
+        {
+            //set status =$$$ERROR($$$GeneralError, $$$T("Empty search directory list"))
+            //do $system.OBJ.DisplayError(status)
+        }
+        else
+        {
+            set i = 0
+            for n = 1 : 1 : $LISTLENGTH(searchpathlist)
+            {
+                set curpath = $LIST(searchpathlist, n)
+                ; translate into "canonical" form
+                set curpath = ##class(%Library.File).NormalizeDirectory(curpath)
+                ; DEBUG
+                
+                ; store it
+                set i = i + 1
+                set status = results.SetAt(curpath, i)
+                if ($$$ISERR(status))
+                {
+                    do $system.OBJ.DisplayError(status)
+                }
+            }
+        }
+    }
+    
+    quit results
+]]></Implementation>
+</Method>
+
+<Method name="GetLoadDeleteTimeStamp">
+<Description>
+Returns time stamp of last time we loaded a file or removed anything from the database.</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastFileLoadOrDelete"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Method name="RemoveAll">
+<Description>
+Remove all DocBook content from the database and all image files from CSP
+Also clears out all caches based on loaded content</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Using DocBook.Manager.LoadUtils:RemoveAll()... ",verbose)
+    do ##class(DocBook.Utils).Reset()
+    set targetdir=$system.Util.InstallDirectory()_"CSP\docbook\images\*.*"
+    do ##class(%File).SetWriteable(targetdir)
+    set status=##class(%File).Delete(targetdir)
+    if '$$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Deleting the image files used by DocBook... ",verbose)
+    }
+
+    do ##class(DocBook.ManagerTables.DBContents).%KillExtent()
+    do ##class(DocBook.ManagerTables.Listings).%KillExtent()
+    do ##class(DocBook.ManagerTables.Graphics).%KillExtent()
+    do ##class(DocBook.ManagerTables.InterfaceTags).%KillExtent()
+    do ##class(DocBook.ManagerTables.Links).%KillExtent()
+    do ##class(DocBook.ManagerTables.ObsoletePDFs).%KillExtent()
+    do ##class(DocBook.ManagerTables.PDFGroups).%KillExtent() //need to clear this so that we don't get confused
+    do ##class(DocBook.ManagerTables.TOC).%KillExtent()
+    do ##class(DocBook.ManagerTables.WideChars).%KillExtent()
+    do ##class(DocBook.ManagerTables.Files).Rebuild(verbose)
+    do ##class(DocBook.ManagerTables.SETFiles).Rebuild(verbose)
+]]></Implementation>
+</Method>
+
+<Method name="RemoveArticle">
+<Description><![CDATA[
+Remove an article from the database.
+<p>Copied from DocBook.Utils with several changes.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Removing article: "_DocBookId,verbose)
+    set blockno=##class(DocBook.Manager.Utils).GetContainerIdFromId(DocBookId)
+    
+    if (blockno="Unknown") {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","No such article is in the database",verbose)
+        quit
+
+    } else {
+        do ##class(DocBook.article).%DeleteId(blockno)
+        do ..RemoveImageFiles(DocBookId,verbose)
+        //do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Updating manager tables for entry: "_DocBookId,verbose)
+        do ##class(DocBook.ManagerTables.Files).Update(DocBookId)
+        do ##class(DocBook.ManagerTables.DBContents).Remove(DocBookId)
+        do ..SetLoadDeleteTimeStamp()
+    }
+]]></Implementation>
+</Method>
+
+<Method name="RemoveBook">
+<Description><![CDATA[
+Remove a book from the database.
+<p>Copied from DocBook.Utils with several changes.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String,verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Removing book: "_DocBookId,verbose)
+    
+    set blockno=##class(DocBook.Manager.Utils).GetContainerIdFromId(DocBookId)
+    
+    if (blockno="Unknown") {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","No such book is in the database",verbose)
+        quit
+
+    } else {
+
+        do ##class(DocBook.book).%DeleteId(blockno)
+        set DOCBOOKID=$$$UPPER(DocBookId) //make sure we match contents of tables
+        &sql(delete FROM DocBook.appendix where blockid %STARTSWITH ':DOCBOOKID')
+        &sql(delete FROM DocBook.chapter where blockid %STARTSWITH ':DOCBOOKID')
+        &sql(delete FROM DocBook.preface where blockid %STARTSWITH ':DOCBOOKID')
+        &sql(delete FROM DocBook.glossary where blockid %STARTSWITH ':DOCBOOKID')
+        &sql(delete FROM DocBook.reference where blockid %STARTSWITH ':DOCBOOKID')
+        do ..RemoveImageFiles(DocBookId,verbose)
+
+        //do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Updating manager tables for entry: "_DocBookId,verbose)
+        do ##class(DocBook.ManagerTables.Files).Update(DocBookId)
+        do ##class(DocBook.ManagerTables.DBContents).Remove(DocBookId)
+        do ..SetLoadDeleteTimeStamp()
+    }
+]]></Implementation>
+</Method>
+
+<Method name="RemoveSET">
+<Description><![CDATA[
+Remove a set from the database.
+<p>Copied from DocBook.Utils with many changes.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String,verbose:%Boolean=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Removing set: "_DocBookId,verbose)
+
+    set blockno=##class(DocBook.Manager.Utils).GetContainerIdFromId(DocBookId)
+    
+    if (blockno="Unknown") {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","No such set is in the database",verbose)
+        quit
+
+    } else {
+
+        // first remove the books
+        set booklist=##class(DocBook.Manager.Utils).GetBookListFromId(DocBookId)
+        //convert string to $LIST
+        set booklist=$LISTFROMSTRING(booklist)
+        //now loop through list 
+        for i=1:1:$LISTLENGTH(booklist) {
+           set bookid=$LI(booklist,i)
+           do ..RemoveBook(bookid,verbose)
+        }
+
+        do ##class(DocBook.set).%DeleteId(blockno)
+        //do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Updating manager tables for entry: "_DocBookId,verbose)
+        do ##class(DocBook.ManagerTables.SETFiles).Update(DocBookId)
+        do ##class(DocBook.ManagerTables.DBContents).Remove(DocBookId)
+        do ..SetLoadDeleteTimeStamp()
+    }
+]]></Implementation>
+</Method>
+
+<Method name="SetLoadDeleteTimeStamp">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[    set ^DocBookManager("LastFileLoadOrDelete")=$zdt($h,3)
+]]></Implementation>
+</Method>
+
+<Method name="RebuildIndices">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Rebuilding indices...",verbose)
+    do ##class(DocBook.Utils).RebuildIndices()
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","DONE rebuilding indices",verbose)
+]]></Implementation>
+</Method>
+
+<Method name="LoadPDFGroup">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pdfgroup:%String="",verbose:%Boolean=1,checkWideChars:%Boolean=1,rebuildIndices:%Boolean=1</FormalSpec>
+<Implementation><![CDATA[
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Loading PDF group "_pdfgroup,verbose)
+    &sql(SELECT Extra into :Extra FROM DocBook_ManagerTables.PDFGroups WHERE Name=:pdfgroup)
+    if (SQLCODE'=0) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Can't determine if PDF group is Extra: "_pdfgroup,verbose)
+        quit
+    }
+
+    // if pdfgroup is not defined by extra sources, then load its sets and articles
+    if 'Extra {
+        //first get the sets -- load them (that also loads their books)
+        set sql="SELECT DocBookId FROM DocBook_ManagerTables.SETFiles WHERE PDFGroup->Name='"_pdfgroup_"'"
+        set stmt=##class(%SQL.Statement).%New()
+        set status=stmt.%Prepare(sql)
+        if $$$ISERR(status) {
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Error preparing SQL statement: "_sql,verbose)
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove",$system.Status.GetErrorText(status),verbose)
+            quit
+        }
+        set rset=stmt.%Execute()
+        while rset.%Next() {
+            set setid=rset.%Get("DocBookId")
+            do ..LoadSET(setid,verbose,0)
+        }
+
+        //now get the articles
+        set sql="SELECT Filename FROM DocBook_ManagerTables.Files WHERE "
+               _"PDFGroup->Name='"_pdfgroup_"' AND Type='article'"
+        set stmt=##class(%SQL.Statement).%New()
+        set status=stmt.%Prepare(sql)
+        if $$$ISERR(status) {
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Error preparing SQL statement: "_sql,verbose)
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove",$system.Status.GetErrorText(status),verbose)
+            quit
+        }
+        set rset=stmt.%Execute()
+        while rset.%Next() {
+            set filename=rset.%Get("Filename")
+            do ..LoadOneFile(filename,verbose)
+        }
+    // if pdfgroup IS defined by extra sources, then loop through the listed files
+    } else {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","This PDF group is defined by the EXTRA option",verbose)
+        set sql="SELECT Filename FROM DocBook_ManagerTables.Files WHERE PDFGroup='"_pdfgroup_"'"
+        set stmt=##class(%SQL.Statement).%New()
+        set status=stmt.%Prepare(sql)
+        if $$$ISERR(status) { 
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove","Error preparing SQL statement: "_sql,verbose)
+            do ##class(DocBook.ManagerTables.Log).AddLogItem("Load/Remove",$system.Status.GetErrorText(status),verbose)
+            quit
+        }
+        set rset=stmt.%Execute()
+        while rset.%Next() {
+            set filename=rset.%Get("Filename")
+            do ..LoadOneFile(filename,verbose)
+        }
+    }
+
+    if checkWideChars {
+        do ##class(DocBook.ManagerTables.WideChars).CheckWideChars(verbose)
+    }
+    if rebuildIndices {
+        do ..RebuildIndices(verbose)
+    }
+]]></Implementation>
+</Method>
+</Class>
+</Export>

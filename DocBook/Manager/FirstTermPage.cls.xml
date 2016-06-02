@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.FirstTermPage">
+<Super>%ZEN.Component.page,DocBook.Manager.ZenMethods</Super>
+<TimeCreated>63854,62786.807671</TimeCreated>
+
+<Parameter name="APPLICATION">
+<Description>
+Application this page belongs to. The app class defines the style sheet</Description>
+<Default>DocBook.Manager.AppDefinition</Default>
+</Parameter>
+
+<XData name="Contents">
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<page xmlns="http://www.intersystems.com/zen" title="FirstTerms in the DocBook Database" >
+<link href="DocBook.Manager.Home.cls" caption="&lt;&lt;&lt; Back to the DocBook Manager"/>
+<spacer height="5"/>
+<label value="First Terms" controlClass="label"/>
+<label value="This table lists &lt;firstterm>s in this DOCBOOK database, as found by an initial scan." />
+<label value="After you load files, use the button below to redo the scan." />
+<spacer height="15"/>
+
+<vgroup valign="top" enclosingClass="basictext">
+<button caption="Scan First Terms" 
+       onclick="zenPage.Rescan('firstterms');" 
+       hint="Background task; can take a couple of minutes"
+        enclosingClass="basictext" valign="top"/>
+<tableNavigator tablePaneId="firsttermTable"  align="left" />
+<tablePane id="firsttermTable" OnCreateResultSet="CreateFirstTermRS"
+headerLayout="headersOnTop"
+showRowNumbers="true"
+showZebra="true"
+useKeys="true"
+pageSize="20"
+maxRows="100000"
+autoExecute="true"
+useSnapshot="true"
+nowrap="false"
+showRowSelector="false"
+enclosingStyle="font-size:10pt;">
+<column colName="SourceFile" header="Source File" 
+filterType="text" />
+<column colName="ShortContent" header="Content at Location of &lt;firstterm> (truncated)" filterType="text"/>
+<column colName="FirstTerm" header="&lt;firstterm>" filterType="text"/>
+<column colName="ParentTopic"  header="Location" filterType="text"
+link="DocBook.UI.Page.cls?KEY=#(%query.ParentTopic)#"/>
+</tablePane>
+</vgroup>
+
+</page>
+]]></Data>
+</XData>
+
+<Method name="CreateFirstTermRS">
+<FormalSpec>*status:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+    set status = $$$OK
+    set sql = "SELECT ID, FirstTerm, $EXTRACT(ShortContent,1,200) AS ShortContent, ParentTopic, SourceFile "
+             _"FROM DocBook_ManagerTables.FirstTerms "
+
+    set tWHERE = ""
+    set filtered=0
+    if ($GET(pInfo.filters("ShortContent"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "%SQLUPPER(ShortContent) [  '" _ $$$UPPER(pInfo.filters("ShortContent")) _ "'"
+    }
+    if ($GET(pInfo.filters("FirstTerm"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "%SQLUPPER(FirstTerm) [  '" _ $$$UPPER(pInfo.filters("FirstTerm")) _ "'"
+    }
+    if ($GET(pInfo.filters("SourceFile"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "SourceFile %STARTSWITH '" _ pInfo.filters("SourceFile") _ "'"
+    }
+    if ($GET(pInfo.filters("ParentTopic"))'="") {
+        set filtered=1
+        set tWHERE = tWHERE _ $SELECT(tWHERE="":"",1:" AND ") _
+                "ParentTopic %STARTSWITH '" _ pInfo.filters("ParentTopic") _ "'"
+    }
+
+    if filtered {
+        set sql = sql _ " WHERE " _tWHERE
+    }
+    set sql=sql _ " ORDER BY ""FirstTerm"" "
+
+    set rset = ##class(%ResultSet).%New()
+    set status = rset.Prepare(sql)
+    set pInfo.queryText = sql
+    quit rset
+]]></Implementation>
+</Method>
+</Class>
+</Export>

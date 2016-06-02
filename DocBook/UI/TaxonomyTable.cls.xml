@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.TaxonomyTable">
+<Description>
+Display the Taxonomy data in HTML</Description>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.UI.StdPage</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Method name="OnPage">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+	Set info = ##class(BannerInfo).%New()
+	Set info.title = $$$T("Document Taxonomy")
+	Set info.booktitle = $$$T("InterSystems Online Documentation")
+
+	Do ..Header($$$T("Document Taxonomy"))
+
+	Set Entries = ""
+	do ##class(DocBook.Taxonomy).Collect(.Entries)
+
+	&html<<BODY>>
+
+	Do ..RenderBanner(info)
+	&html<<BR>>
+
+	&html<<HR>>
+	
+	&html<<TABLE CLASS="CALSTable" FRAME="ALL" CELLPADDING="5" CELLSPACING="0" COLS="3" BORDER="2">>
+	Set Hdrs = Entries(0)
+	Set Col1 = $LISTGET(Hdrs, 1)
+	Set Col2 = $LISTGET(Hdrs, 2)
+	Set Col3 = $LISTGET(Hdrs, 3)
+	
+	&html<<TR><TH>#(Col1)#</TH><TH>#(Col2)#</TH><TH>#(Col3)#</TH></TR>>
+	
+	Set Last1 = ""
+	
+	For I = 1 : 1 : Entries
+	{
+		Set Row = Entries(I)
+		Set Col1 = $LISTGET(Row, 1)
+		Set Col2 = $LISTGET(Row, 2)
+		Set Col3 = $LISTGET(Row, 3)
+		
+		Set DispCol1 = Col1
+		Set:(Last1 = Col1) DispCol1 = "&nbsp;"
+		
+		&html<<TR><TD>#(DispCol1)#</TD><TD>#(Col2)#</TD><TD>#(Col3)#</TD></TR>>
+		Set Last1 = Col1
+	}
+
+	&html<</TABLE>>
+
+	Do ..Footer()
+
+	Quit $$$OK
+
+]]></Implementation>
+</Method>
+</Class>
+</Export>

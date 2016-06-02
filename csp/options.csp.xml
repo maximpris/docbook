@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="options.csp" application="/csp/docbook/" default="1"><![CDATA[
+<HTML>
+<HEAD>
+<TITLE>DocBook Options Dialog</TITLE>
+
+<STYLE type="text/css">
+	body { color: black; background: #CCCCFF; font-size: 12pt; font-family="Verdana,Arial,Helvetica,sans-serif"; }
+	H1 	 { color: white; background: #2222FF; 
+			text-align: center;
+			font-size: 16pt; font-family=Verdana,Arial,Helvetica,sans-serif; }
+</STYLE>
+
+<SCRIPT LANGUAGE="JavaScript">
+function closeOptionsWindow(refresh)
+{
+	if (opener) {
+		opener.cspOptionsWindow = null;
+		if (refresh) {
+			opener.document.location.reload();
+		}
+		window.close();
+	}
+	return true;
+}
+
+function showCommentList()
+{
+	if (opener) {
+		opener.cspOptionsWindow = null;
+		opener.document.location = 'DocBook.UI.Comments.cls';
+		window.close();
+	}
+	return true;
+}
+
+</SCRIPT>
+
+</HEAD>
+<BODY>
+
+<!-- Test for SUBMIT -->
+<SCRIPT LANGUAGE="CACHE" RUNAT="SERVER">
+
+	If ($D(%request.Data("OK",1))) {
+		Set %session.Data("Remarks") = $D(%request.Data("Remarks",1))
+		Set %session.Data("Comments") = $D(%request.Data("Comments",1))
+		Set %session.Data("Feedback") = $D(%request.Data("Feedback",1))
+		// force window to close!
+		Write "<SCRIPT LANGUAGE=""JavaScript"">",!
+		Write "closeOptionsWindow(true);",!
+		Write "</","SCRIPT>",!
+	}
+
+	Set comments = $S($G(%session.Data("Comments"),0):"CHECKED",1:"")
+	Set feedback = $S($G(%session.Data("Feedback"),0):"CHECKED",1:"")
+	Set remarks = $S($G(%session.Data("Remarks"),0):"CHECKED",1:"")
+
+</SCRIPT>
+
+<H1>Options</H1>
+
+<DIV ALIGN="CENTER">
+<FORM NAME="Options">
+<TABLE CELLPADDING="5" CELLSPACING="0" BORDER="0">
+<TR><TD>&nbsp;</TD><TD><INPUT TYPE="CHECKBOX" NAME="Remarks" #(remarks)#>Display Document Remarks</TD></TR>
+<TR><TD>&nbsp;</TD><TD><INPUT TYPE="CHECKBOX" NAME="Feedback" #(feedback)#>Enable User Feedback</TD></TR>
+<TR><TD>&nbsp;</TD><TD><INPUT TYPE="CHECKBOX" NAME="Comments" #(comments)#>Display User Feedback</TD></TR>
+<TR><TD>&nbsp;</TD><TD>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<INPUT TYPE="SUBMIT" NAME="OK" VALUE="&nbsp;&nbsp;OK&nbsp;&nbsp;">
+&nbsp;
+<INPUT TYPE="BUTTON" NAME="Cancel" VALUE="Cancel" onclick="closeOptionsWindow(false);">
+&nbsp;
+<INPUT TYPE="BUTTON" NAME="CommentList" VALUE="Show Comment List" onclick="showCommentList();">
+</TD></TR>
+</TABLE>
+</FORM>
+</DIV>
+
+</BODY>
+</HTML>
+]]></CSP>
+</Export>

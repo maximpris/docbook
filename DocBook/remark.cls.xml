@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.remark">
+<Description>
+Represents editorial material usually associated with a document
+while it is in development</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.block</Super>
+<TimeCreated>58696,41768</TimeCreated>
+
+<Property name="InclRemark">
+<Description>
+Indicate whether this remark should render itself</Description>
+<Type>%Integer</Type>
+</Property>
+
+<Property name="remarkContent">
+<Description>
+The text content of this block</Description>
+<Type>cdata</Type>
+<Parameter name="MAXLEN" value="32000"/>
+</Property>
+
+<Method name="HTMLRenderContent">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+    //show anything
+    if (..InclRemark)
+    {
+        Write "<DIV CLASS=""remark"">",!
+        Write "<SPAN CLASS=""remark"">", $$$T("Comments/Questions for Reviewers of This Draft"), "</SPAN>",!
+        Write "<P>"
+        do ##class(DocBook.Renderer).RenderText(..remarkContent)
+        Write "</DIV>",!
+    }
+    quit
+]]></Implementation>
+</Method>
+
+<Method name="XMLRender">
+<Description>
+Render the contents of this block as DocBook XML</Description>
+<Internal>1</Internal>
+<Implementation><![CDATA[
+    //show anything
+    Quit:(..InclRemark=0)
+
+    set attrs = ..tagattrs
+    set class = "normal"
+    for i = 1 : 5 : $LISTLENGTH(attrs)
+    {
+        if ($ZCONVERT($LIST(attrs, (i + 1)), "U") = "CLASS")
+        {
+            set class = $LIST(attrs, (i + 4))
+            quit
+        }
+    }
+    set class = $ZCONVERT(class, "L")
+    
+    Write "<",..%ClassName(),">",!
+    Write ..remarkContent
+    Write "</",..%ClassName(),">",!
+
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DefaultData>remarkDefaultData</DefaultData>
+<Data name="remarkDefaultData">
+<Structure>listnode</Structure>
+<Subscript>"remark"</Subscript>
+<Value name="1">
+<Value>InclRemark</Value>
+</Value>
+<Value name="2">
+<Value>remarkContent</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

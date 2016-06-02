@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.ManagerTables.TOC">
+<Description><![CDATA[
+This class stores one record for each TOC entry in the database.
+For general comments, see <class>DocBook.ManagerTables.Utils</class>. ]]></Description>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeCreated>63102,45234.616102</TimeCreated>
+
+<Property name="Document">
+<Description>
+DocBookId of parent book or article.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="DocumentIdx">
+<Properties>Document</Properties>
+</Index>
+
+<Property name="DocBookId">
+<Description>
+DocBookId of the TOC entry</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="DocBookIdIdx">
+<Properties>DocBookId</Properties>
+</Index>
+
+<Property name="Title">
+<Description>
+TOC entry</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="TitleIdx">
+<Properties>Title</Properties>
+</Index>
+
+<Property name="UnitType">
+<Description>
+Type of child unit (chapter, sect1, etc.</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Index name="UnitTypeIdx">
+<Properties>UnitType</Properties>
+</Index>
+
+<Property name="UnitLevel">
+<Description>
+Numeric level of child unit (0, 1, 2, etc.)</Description>
+<Type>%Integer</Type>
+</Property>
+
+<Index name="UnitLevelIdx">
+<Properties>UnitLevel</Properties>
+</Index>
+
+<Property name="UnitNumbering">
+<Description>
+Hierarchical numbering of child unit</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="IdIsGenerated">
+<Description>
+true if this id appears to be a generated one</Description>
+<Type>%Boolean</Type>
+</Property>
+
+<Index name="IdIsGeneratedIdx">
+<Properties>IdIsGenerated</Properties>
+</Index>
+
+<Property name="IdIsOK">
+<Type>%Boolean</Type>
+</Property>
+
+<Method name="Rebuild">
+<Description>
+verbose can be 0, 1, 2, or 3</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    lock ^DocBook.CacheBuild.TOC:0
+    if '$TEST {
+        set msg="DUPLICATE SCAN REQUEST: TOC scan already underway... quitting"
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",msg,verbose)
+        quit
+    }
+    //clear existing cached data, if any
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Rebuilding cache of TOC entries in this DOCBOOK database...",verbose)
+    do ..%KillExtent()
+    do ..BooksAndArticles("articles",verbose)
+    do ..BooksAndArticles("books",verbose)
+    do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","DONE rebuilding TOC table",verbose)
+    set ^DocBookManager("LastTOCScan")=$zdt($h,3)
+    lock
+]]></Implementation>
+</Method>
+
+<Method name="BooksAndArticles">
+<Description>
+verbose can be 0, 1, 2, or 3</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>which:%String="books",verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    if (which="books") {
+        set sql = "SELECT ID, blockpos, blockid, title, subtitle FROM DocBook.book ORDER BY remap"
+    } elseif (which="articles") {
+        set sql = "SELECT ID, blockpos, blockid, title, subtitle FROM DocBook.article ORDER BY remap"
+    }
+
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set rset=stmt.%Execute()
+    while rset.%Next() {
+        set ID=rset.%Get("ID")
+        set document=rset.%Get("blockid")
+        set title=$ZCVT(rset.%Get("title"),"I","HTML")
+        set subtitle=$ZCVT(rset.%Get("subtitle"),"I","HTML")
+        if (verbose>=2) { 
+            if (which="books") {
+                write !, "Book: ", document
+            } elseif (which="articles") {
+                write !, "Article: ", document
+            }
+        }
+        if (verbose>=3) {
+            write " (", ID,")"
+            write !, "    ", title
+            write !, "    ", subtitle
+        }
+        set entry=..%New()
+        set entry.DocBookId=document 
+        set entry.IdIsGenerated=..GetIdIsGenerated(document) 
+        if entry.IdIsGenerated {
+            set entry.IdIsOK=0
+        } else {
+            set entry.IdIsOK=1
+        }
+        set entry.Document=document
+
+        if (which="books") {
+            set entry.UnitType="book"
+        } elseif (which="articles") {
+            set entry.UnitType="article"
+        }
+
+        set entry.Title=title
+        do entry.%Save()
+        do ..ShowDocument(document,0)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ShowDocument">
+<Description>
+Given an book or article ID, process it, and optionally show its full table of contents.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>DocBookId:%String,verbose:%Integer=1</FormalSpec>
+<Implementation><![CDATA[
+    set containerID=##class(DocBook.Manager.Utils).GetContainerIdFromId(DocBookId)
+    set title=##class(DocBook.Manager.Utils).GetTitleFromId(DocBookId)
+    if (verbose>=2) {
+        write !, "Title: ", title
+    }
+    set type=##class(DocBook.Manager.Utils).GetTypeFromId(DocBookId)
+    if (type="article") {
+        do ..Level1(containerID,"",DocBookId,verbose)
+    } else {
+        do ..Level0(containerID,DocBookId,verbose)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="Level0">
+<Description>
+Given an book or article ID, go through its child chapters, etc.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>containerID,bookOrArticle:%String,verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    set sql = "select ID, book, title, component, container, content,"
+              _" blockid from DocBook.block WHERE container="_containerID
+              _" ORDER BY blockpos"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set rset=stmt.%Execute()
+    set counter=-1 ; start at -1 so that the preface is 0
+    while rset.%Next() {
+        set ID=rset.%Get("ID")
+        set blockid=rset.%Get("blockid")
+        set title=$ZCVT(rset.%Get("title"),"I","HTML")
+        set content=rset.%Get("content")
+        set test=##class(DocBook.block).%OpenId(ID,0)
+        set type=test.%ClassName()
+        if ((type="chapter") || (type="appendix") || (type="preface") || (type="reference") || (type="glossary")) 
+        {
+            set counter=counter+1
+            set entry=..%New()
+            set entry.UnitLevel=0
+            set entry.UnitType=type
+            set entry.UnitNumbering=counter
+            set entry.DocBookId=blockid
+            set entry.IdIsGenerated=..GetIdIsGenerated(blockid) 
+            if entry.IdIsGenerated {
+                set entry.IdIsOK=0
+            } else {
+                set entry.IdIsOK=1
+            }
+            set entry.Document=bookOrArticle
+            set entry.Title=title
+            do entry.%Save()
+            if (verbose=3) { 
+                write !, "   ", counter, " ",title
+            }
+            do ..Level1(ID,counter,bookOrArticle,verbose)
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="Level1">
+<Description>
+Given an ID, go through its child sect1 and refentry elements</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>parentID,parentCounter:%String,bookOrArticle:%String,verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    set sql = "select ID, book, title, component, container, content,"
+              _" blockid from DocBook.block WHERE container="_parentID
+              _" ORDER BY blockpos"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set rset=stmt.%Execute()
+    set counter=0
+    
+    //this logic is needed in Level1() but not in other methods
+    if parentCounter="" {
+        set counterstart=""
+    } else {
+        set counterstart=parentCounter_"."
+    }
+    
+    while rset.%Next() {
+        set ID=rset.%Get("ID")
+        set blockid=rset.%Get("blockid")
+        set title=$ZCVT(rset.%Get("title"),"I","HTML")
+        set content=rset.%Get("content")
+        set test=##class(DocBook.block).%OpenId(ID,0)
+        set type=test.%ClassName()
+        if ((type="sect1") || (type="refentry")) {
+            set counter=counter+1
+            //the next line is different in the other methods
+            set newCounter=counterstart_counter
+            set entry=..%New()
+            set entry.UnitLevel=1
+            set entry.UnitType=type
+            set entry.UnitNumbering=newCounter
+            set entry.DocBookId=blockid
+            set entry.IdIsGenerated=..GetIdIsGenerated(blockid)
+            if entry.IdIsGenerated {
+                set entry.IdIsOK=0
+            } else {
+                set entry.IdIsOK=1
+            }
+            set entry.Document=bookOrArticle
+            set entry.Title="   "_title
+            do entry.%Save()
+            if (verbose=3) { 
+                write !, "      ", newCounter, " ",title
+            }
+            do ..Level2(ID,newCounter,bookOrArticle,verbose)
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="Level2">
+<Description><![CDATA[
+Given an ID, go through its child sect2 and refsect1 elements
+<p>It's OK if the IDs for refsect1 are generated.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>parentID,parentCounter:%String,bookOrArticle:%String,verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    set sql = "select ID, book, title, component, container, content,"
+              _" blockid from DocBook.block WHERE container="_parentID
+              _" ORDER BY blockpos"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Prepare error: "_$SYSTEM.Status.GetErrorText(status),verbose)
+        quit
+    }
+
+    set rset=stmt.%Execute()
+    set counter=0
+    while rset.%Next() {
+        set ID=rset.%Get("ID")
+        set blockid=rset.%Get("blockid")
+        set title=$ZCVT(rset.%Get("title"),"I","HTML")
+        set content=rset.%Get("content")
+        set test=##class(DocBook.block).%OpenId(ID,0)
+        set type=test.%ClassName()
+        if ((type="sect2") || (type="refsect1")) {
+            set counter=counter+1
+            set newCounter=parentCounter_"."_counter
+            set entry=..%New()
+            set entry.UnitLevel=2
+            set entry.UnitType=type
+            set entry.UnitNumbering=newCounter
+            set entry.DocBookId=blockid
+            set entry.IdIsGenerated=..GetIdIsGenerated(blockid)
+
+            if (type="refsect1") {
+                set entry.IdIsOK=1 //we don't care if refsect1 IDs are generated
+            } elseif entry.IdIsGenerated {
+                set entry.IdIsOK=0
+            } else {
+                set entry.IdIsOK=1
+            }
+
+            set entry.Document=bookOrArticle
+            set entry.Title="      "_title
+            do entry.%Save()
+            if (verbose=3) { 
+                write !, "         ", newCounter, " ",title
+            }
+            do ..Level3(ID,newCounter,bookOrArticle,verbose)
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="Level3">
+<Description><![CDATA[
+Given an ID, go through its child sect3 and refsect2 elements
+<p>It's OK if these IDs are generated.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>parentID,parentCounter:%String,bookOrArticle:%String,verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    set sql = "select ID, book, title, component, container, content,"
+              _" blockid from DocBook.block WHERE container="_parentID
+              _" ORDER BY blockpos"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+    set rset=stmt.%Execute()
+
+    set counter=0
+    while rset.%Next() {
+        set ID=rset.%Get("ID")
+        set blockid=rset.%Get("blockid")
+        set title=$ZCVT(rset.%Get("title"),"I","HTML")
+        set content=rset.%Get("content")
+        set test=##class(DocBook.block).%OpenId(ID,0)
+        set type=test.%ClassName()
+        if ((type="sect3") || (type="refsect2")) {
+            set counter=counter+1
+            set newCounter=parentCounter_"."_counter
+            set entry=..%New()
+            set entry.UnitLevel=3
+            set entry.UnitType=type
+            set entry.UnitNumbering=newCounter
+            set entry.DocBookId=blockid
+            set entry.IdIsGenerated=..GetIdIsGenerated(blockid)
+            set entry.IdIsOK=1
+            set entry.Document=bookOrArticle
+            set entry.Title="         "_title
+            do entry.%Save()
+            if (verbose=3) { 
+                write !, "            ", newCounter, " ",title
+            }
+            do ..Level4(ID,newCounter,bookOrArticle,verbose)
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="Level4">
+<Description><![CDATA[
+Given an ID, go through its child sect4 and refsect3 elements
+<p>It's OK if these IDs are generated.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>parentID,parentCounter:%String,bookOrArticle:%String,verbose:%Integer=0</FormalSpec>
+<Implementation><![CDATA[
+    set sql = "select ID, book, title, component, container, content,"
+              _" blockid from DocBook.block WHERE container="_parentID
+              _" ORDER BY blockpos"
+    set stmt=##class(%SQL.Statement).%New()
+    set status=stmt.%Prepare(sql)
+    if $$$ISERR(status) {
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans","Error preparing SQL statement: "_sql,verbose)
+        do ##class(DocBook.ManagerTables.Log).AddLogItem("Scans",$system.Status.GetErrorText(status),verbose)
+        quit
+    }
+    set rset=stmt.%Execute()
+
+    set counter=0
+    while rset.%Next() {
+        set ID=rset.%Get("ID")
+        set blockid=rset.%Get("blockid")
+        set title=$ZCVT(rset.%Get("title"),"I","HTML")
+        set content=rset.%Get("content")
+        set test=##class(DocBook.block).%OpenId(ID,0)
+        set type=test.%ClassName()
+        if ((type="sect4") || (type="refsect3")) {
+            set counter=counter+1
+            set newCounter=parentCounter_"."_counter
+            set entry=..%New()
+            set entry.UnitLevel=4
+            set entry.UnitType=type
+            set entry.UnitNumbering=newCounter
+            set entry.DocBookId=blockid
+            set entry.IdIsGenerated=..GetIdIsGenerated(blockid)
+            set entry.IdIsOK=1
+            set entry.Document=bookOrArticle
+            set entry.Title="            "_title
+            do entry.%Save()
+            if (verbose=3) { 
+                write !, "               ", newCounter, " ",title
+            }
+        }
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetTimeStamp">
+<Description>
+Returns time stamp of last time we scanned the files on the search path</Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%TimeStamp</ReturnType>
+<Implementation><![CDATA[    quit $G(^DocBookManager("LastTOCScan"),"1900-01-01 12:00:00")
+]]></Implementation>
+</Method>
+
+<Method name="GetIdIsGenerated">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>id:%String</FormalSpec>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    set bookid=$PIECE(id,"_",1)
+    set secondpart=$ZSTRIP(id,"<",bookid)
+    set secondpart=$ZSTRIP(secondpart,"<","_")
+    //does this part consist of "C" followed by purely numeric characters?
+    set match=secondpart ?1"C".N
+    quit match
+]]></Implementation>
+</Method>
+
+<Method name="ExportToCSV">
+<Description>
+Exports records from this table to a CSV file. Returns the name of the exported file.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>verbose:%Boolean=0</FormalSpec>
+<Implementation><![CDATA[
+    set exportfilename=$system.Util.InstallDirectory()_"DocBookMgr.TOC.csv"
+    set exportfile=##class(%Stream.FileCharacter).%New()
+    if verbose {
+        w !, "Writing data to "_exportfilename
+    }
+    set sql = "SELECT Document,UnitNumbering,Title,UnitLevel,UnitType,DocBookId,IdIsGenerated FROM DocBook_ManagerTables.TOC"
+    set status=##class(DocBook.Manager.ExportUtils).ExportTable(sql,exportfilename)
+    if $$$ISERR(status) {
+        quit "No file written"
+    } else {
+        quit exportfilename
+    }
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^DocBook.ManagerTables.TOCD</DataLocation>
+<DefaultData>TOCDefaultData</DefaultData>
+<IdLocation>^DocBook.ManagerTables.TOCD</IdLocation>
+<IndexLocation>^DocBook.ManagerTables.TOCI</IndexLocation>
+<StreamLocation>^DocBook.ManagerTables.TOCS</StreamLocation>
+<Data name="TOCDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>Document</Value>
+</Value>
+<Value name="3">
+<Value>DocBookId</Value>
+</Value>
+<Value name="4">
+<Value>Title</Value>
+</Value>
+<Value name="5">
+<Value>UnitType</Value>
+</Value>
+<Value name="6">
+<Value>UnitLevel</Value>
+</Value>
+<Value name="7">
+<Value>UnitNumbering</Value>
+</Value>
+<Value name="8">
+<Value>IdIsGenerated</Value>
+</Value>
+<Value name="9">
+<Value>IdIsOK</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

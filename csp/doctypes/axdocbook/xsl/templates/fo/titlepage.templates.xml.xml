@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/xsl/templates/fo/titlepage.templates.xml" application="/csp/docbook/" default="1"><![CDATA[
+<!DOCTYPE t:templates [
+<!ENTITY hsize0 "10pt">
+<!ENTITY hsize1 "12pt">
+<!ENTITY hsize2 "14.4pt">
+<!ENTITY hsize3 "17.28pt">
+<!ENTITY hsize4 "20.736pt">
+<!ENTITY hsize5 "24.8832pt">
+<!ENTITY hsize0space "7.5pt"> <!-- 0.75 * hsize0 -->
+<!ENTITY hsize1space "9pt"> <!-- 0.75 * hsize1 -->
+<!ENTITY hsize2space "10.8pt"> <!-- 0.75 * hsize2 -->
+<!ENTITY hsize3space "12.96pt"> <!-- 0.75 * hsize3 -->
+<!ENTITY hsize4space "15.552pt"> <!-- 0.75 * hsize4 -->
+<!ENTITY hsize5space "18.6624pt"> <!-- 0.75 * hsize5 -->
+]>
+<t:templates xmlns:t="http://nwalsh.com/docbook/xsl/template/1.0"
+	     xmlns:param="http://nwalsh.com/docbook/xsl/template/1.0/param"
+             xmlns:fo="http://www.w3.org/1999/XSL/Format"
+             xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+<!-- ==================================================================== -->
+
+  <t:titlepage element="book" wrapper="fo:block">
+    <t:titlepage-content side="recto">
+      <title
+	     named-template="division.title"
+	     param:node="ancestor-or-self::book[1]"
+	     fo:text-align="center"
+	     fo:font-size="&hsize5;"
+	     fo:space-before="&hsize5space;"
+	     fo:font-weight="bold"
+	     fo:font-family="{$title.font.family}"/>
+      <subtitle
+		fo:text-align="center"
+		fo:font-size="&hsize4;"
+		fo:space-before="&hsize4space;"
+		fo:font-family="{$title.font.family}"/>
+      <!-- Add any titlepage graphics to the titlepage
+           (ATI customization of 2001 June 28) -->
+      <graphic fo:space-before="1in"/>
+      <corpauthor fo:font-size="&hsize3;"
+		  fo:keep-with-next="always"
+		  fo:space-before="2in"/>
+      <authorgroup fo:space-before="2in"/>
+      <author fo:font-size="&hsize3;"
+	      fo:space-before="&hsize2space;"
+	      fo:keep-with-next="always"/>
+    </t:titlepage-content>
+
+  <t:titlepage-content side="verso">
+      <title
+	     fo:font-size="&hsize2;"
+	     fo:font-weight="bold"
+	     fo:font-family="{$title.font.family}"/>
+      <corpauthor/>
+      <authorgroup/>
+      <author/>
+      <pubdate fo:space-before="1em"/>
+      <copyright/>
+      <abstract/>
+      <legalnotice fo:font-size="8pt"/>
+  </t:titlepage-content>
+
+  <t:titlepage-separator>
+      <fo:block break-after="page"/>
+  </t:titlepage-separator>
+
+  <t:titlepage-before side="recto">
+  </t:titlepage-before>
+
+  <t:titlepage-before side="verso">
+      <fo:block break-after="page"/>
+  </t:titlepage-before>
+</t:titlepage>
+
+<!-- ==================================================================== -->
+
+</t:templates>
+]]></CSP>
+</Export>

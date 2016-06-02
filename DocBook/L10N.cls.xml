@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.L10N">
+<Description>
+Utility class for localization</Description>
+<ClassType/>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%Library.RegisteredObject</Super>
+<TimeCreated>58822,45005</TimeCreated>
+
+<Method name="DBMsg">
+<Description>
+Localizer for message fragments</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>cls:%String,num:%String,args...:%List</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    // begin temp code used for testing
+    Set msg = $GET(^DocBook.L10N(cls, num), "")
+    If (msg = "")
+    {
+        // this avoids getting the test text tangled in the 
+        // localization automation
+        // Cannot{space}
+        Set msg = $CHAR(67, 97, 110, 110, 111, 116, 32)
+        // find{space}
+        Set msg = msg _ $CHAR(102, 106, 110, 100, 32)
+        // message:{space}
+        Set msg = msg _ $CHAR(109, 101, 115, 115, 97, 103, 101, 58, 32)
+        Set msg = msg _ cls _ %CHAR(95) _ num
+    }
+    Quit msg
+    // end temp code used for testing
+    
+	// get the message
+
+	Set id = cls _ "_" _ num
+	Set msg = %response.GetText("","DocBookApp",id,id,args...)
+	Quit msg
+
+]]></Implementation>
+</Method>
+</Class>
+</Export>

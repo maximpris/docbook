@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.LinkChecker">
+<Description>
+Checks the entire doc set for bad links.</Description>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.UI.StdPage</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Method name="OnPage">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+	Set info = ##class(BannerInfo).%New()
+	Set info.title = $$$T("Link Checker")
+	Set info.booktitle = $$$T("InterSystems Online Documentation")
+
+	Do ..Header($$$T("Link Checker"))
+
+	&html<<BODY>>
+
+	Do ..RenderBanner(info)
+	&html<<BR>>
+
+	Set total = 0
+	Set bad = 0
+	Set static = 0
+	&html<<PRE>>
+	Do ##class(DocBook.Utils).CheckLinks(.total,.bad,.list,.static,.staticlist)
+	&html<</PRE>>
+	
+	&html<<TABLE CELLPADDING="5">>
+	&html<<TR><TD>#($$$T("Total Links:"))#</TD><TD><B>#(total)#</B></TD></TR>>
+	&html<<TR><TD>#($$$T("Bad Links:"))#</TD><TD><B>#(bad)#</B></TD></TR>>
+	&html<<TR><TD>#($$$T("Static Links:"))#</TD><TD><B>#(static)#</B></TD></TR>>
+	&html<<TR><TD>#($$$T("Date:"))#</TD><TD><B>#($ZDT($H,3))#</B></TD></TR>>
+	&html<<TR><TD>#($$$T("Version:"))#</TD><TD><B>#($ZV)#</B></TD></TR>>
+	&html<</TABLE>>
+	&html<<HR>>	
+
+	If (bad > 0) {
+		&html<<H1>#($$$T("Broken Links"))#</H1>>
+		
+		&html<<TABLE CLASS="CALSTable" CELLPADDING="5" CELLSPACING="0" COLS="3" BORDER="0" WIDTH="100%">>
+		&html<<TR><TH>#</TH><TH>#($$$T("File"))#</TH><TH>#($$$T("Broken Link"))#</TH></TR>>
+		For i=1:1:bad {
+			&html<<TR CLASS=#($S(i#2:"LightRow",1:"DarkRow"))#>
+				<TD CLASS="SMALL">#(i)#</TD>
+				<TD>#($LG(list(i),1))#</TD>
+				<TD>#($LG(list(i),2))#</TD></TR>>
+		}
+
+		&html<</TABLE>>
+	}
+	
+	If (static > 0) {
+		If (bad > 0) {
+			&html<<HR>>
+		}
+		&html<<H1>External Links</H1>>
+		
+		&html<<TABLE CLASS="CALSTable" CELLPADDING="5" CELLSPACING="0" COLS="3" BORDER="0" WIDTH="100%">>
+		&html<<TR><TH>#</TH><TH>#($$$T("File"))#</TH><TH>#($$$T("Static Link"))#</TH></TR>>
+		For i=1:1:static {
+			&html<<TR CLASS=#($S(i#2:"LightRow",1:"DarkRow"))#>
+				<TD CLASS="SMALL">#(i)#</TD>
+				<TD>#($LG(staticlist(i),1))#</TD>
+				<TD><A HREF="#($LG(staticlist(i),2))#">#($LG(staticlist(i),2))#</A></TD></TR>>
+		}
+
+		&html<</TABLE>>
+	}
+
+	Do ..Footer()
+
+	Quit $$$OK
+
+]]></Implementation>
+</Method>
+</Class>
+</Export>

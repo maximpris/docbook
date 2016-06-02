@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="AboutConcurrency.html" application="/csp/docbook/" default="1"><![CDATA[
+<HTML>
+
+<HEAD>
+<TITLE>About Concurrency</TITLE>
+
+<STYLE type="text/css">
+	BODY 			{ color: black; background: white; font-family: Helvetica,Arial,sans-serif; }
+	TABLE.TitleBanner 	{ color: white; background: #287780; font-size: 24pt;
+				  font-family="Verdana,Arial,Helvetica,sans-serif"; }
+
+	Div.Section		{ color: black; background: #CBE6EB; font-size: 12pt;
+				  font-family="Verdana,Arial,Helvetica,sans-serif"; font-weight: bold;
+				  padding-top: 5; padding-bottom: 5;
+				  margin-top: 10; margin-bottom: 5; }
+
+	DIV.Text		{ margin-left: 5; padding-left: 5; padding-top: 5; padding-bottom: 5; margin-bottom: 10; }
+
+	DIV.Code		{ color: black; background: #E5E5E5; font-family: courier,monospace;
+				  text-align: left; margin-left: 10; margin-right: 10;
+				  padding-left: 5; padding-top: 5; padding-bottom: 5; }
+
+
+	TD.Term			{ font-weight: bold; }
+	TD.Text			{  }
+
+
+</STYLE>
+
+</HEAD>
+
+<BODY>
+
+<TABLE CLASS=TitleBanner bgcolor=#287780 CELLPADDING=0 CELLSPACING=0 COLS=2 WIDTH=100% BORDER=0>
+    <TR>
+        <TD width="120"><img src=/apps/documatic/%25CSP.StreamServer.cls?FILE=/apps/documatic/images/ClassLogo.jpg width=100 height=77></TD>
+        <TD width="100%"><FONT face="Arial, Helvetica, sans-serif" color="#FFFFFF" size="+3">
+	About Concurrency</FONT></TD>
+    </TR>
+</TABLE>
+
+<DIV CLASS=Text>Many of the methods of the <A HREF="/apps/documatic?PAGE=CLASS&LIBRARY=_CACHELIB&CLASSNAME=%25Persistent">%Persistent</A> class allow you to specify an
+optional concurrency setting in order to determine how locks are used
+for concurrency control.</DIV>
+
+<DIV CLASS=Text>The possible <var>concurrency</var> settings are:</DIV>
+
+<TABLE cols=2>
+<TR>
+	<TD valign="top">0:</TD><TD CLASS=Term valign="top">No Locking</TD>
+		<TD valign="top">
+		No locks are used.
+		</TD>
+	</TR>
+	<TR>
+		<TD valign="top">1:</TD><TD CLASS=Term valign="top">Atomic</TD>
+		<TD valign="top">
+		When an object is loaded, the <b>%LoadData</B> method will create a shared lock for
+		the object provided the object occupies more than one storage node in the database.
+		No locks are held for objects stored in a single node. The lock is released by <b>%LoadData</B>
+		when it is done loading the object. When an object is initially saved to the database
+		(inserted), <b>%SaveData</B> will hold an exclusive lock during the course of the save
+		provided the object occupies more than one storage node in the database. <b>%SaveData</B>
+		holds no locks for objects stored in a single node.<br>
+		When a previously saved object is saved to the database (updated),
+		<b>%SaveData</B> will hold an exclusive lock during the course of the save.
+		</TD>
+	</TR>
+	<TR>
+		<TD valign="top">2:</TD><TD CLASS=Term valign="top">Shared</TD>
+		<TD valign="top">
+		When an object is loaded, <b>%LoadData</B> will create a shared lock for the object.
+		The lock is released by <b>%LoadData</B> when it is done loading the object.<br>
+		When an object is initially saved to the database (inserted), <b>%SaveData</B> will
+		hold an exclusive lock during the course of the save provided the object occupies
+		more than one storage node in the database. <b>%SaveData</B> holds no locks for objects
+		stored in a single node.<br>
+		When a previously saved object is saved to the database (updated), <b>%SaveData</B>
+		will hold an exclusive lock during the course of the save.
+		</TD>
+	</TR>
+	<TR>
+		<TD valign="top">3:</TD><TD CLASS=Term valign="top">Shared/Retained</TD>
+		<TD valign="top">
+		When an object is loaded, <b>%LoadData</B> will create a shared lock for the object.
+		The lock is released by %Close() when the object is removed from memory.<br>
+		When an object is initially saved to the database (inserted), <b>%SaveData</B> will hold
+		an exclusive lock during the course of the save provided the object occupies more
+		than one storage node in the database. <b>%SaveData</B> holds no locks for objects
+		stored in a single node.<br>
+		When a previously saved object is saved to the database (updated), <b>%SaveData</B> will
+		hold an exclusive lock during the course of the save.
+		</TD>
+	</TR>
+	<TR>
+		<TD valign="top">4:</TD><TD CLASS=Term valign="top">Exclusive</TD>
+		<TD valign="top">
+		When an object is loaded, <b>%LoadData</B> will create an exclusive lock for the object.
+		The lock is released by %Close() when the object is removed from memory.<br>
+		When an object is initially saved to the database (inserted), <b>%SaveData</B> will hold an
+		exclusive lock during the course of the save provided the object occupies more than
+		one storage node in the database. <b>%SaveData</B> holds no locks for objects stored in a single node.<br>
+		When a previously saved object is saved to the database (updated), <b>%SaveData</B> will hold
+		an exclusive lock during the course of the save.
+	</TD>
+	</TR>
+</TABLE>
+
+</BODY>
+</HTML>
+]]></CSP>
+</Export>

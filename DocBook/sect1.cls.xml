@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.sect1">
+<Description>
+A top-level section.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.container</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Method name="GetBannerInfo">
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+	Set info.title = ..title
+	If (..book '= "") {
+		Set info.booktitle = ..book.title
+	}
+	Else {
+		Set info.booktitle = ""
+	}
+	
+	// find prev/next section
+	Do ..GetNextPrevInfo(info)
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRenderPreChildren">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	If ($G(%tutorial) '= 1) {
+		Write "<DIV CLASS=""sect1"">"
+		Write "<A name=""",..id,"""></A>",!
+		Write ##class(DocBook.Renderer).XFormEntity(..title),"</DIV>",!
+	}
+]]></Implementation>
+</Method>
+
+<Method name="GetNextPrevInfo">
+<Description>
+ Find the next and prev component to this one</Description>
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+	If (..component = "") {
+		Quit
+	}
+
+	// find prev/next section
+
+	Set cid = ..component.%Id()
+	Set pos = ..blockpos
+
+	// inefficient	
+	//SELECT blockid INTO :prev
+	//	FROM sect1
+	//	WHERE (component = :cid) AND (blockpos < :pos)
+	//	ORDER BY blockpos DESC
+		
+	// assume all components have sequential blockpos
+	Set ppos = pos - 1
+	&sql(SELECT blockid INTO :prev
+		FROM sect1
+		WHERE (component = :cid) AND (blockpos = :ppos)
+	)
+	
+	If (SQLCODE = 0) {
+		Set info.prev = prev
+	}
+		
+	&sql(SELECT blockid INTO :next
+		FROM sect1
+		WHERE (component = :cid) AND (blockpos > :pos)
+		ORDER BY blockpos)
+		
+	If (SQLCODE = 0) {
+		Set info.next = next
+	}
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

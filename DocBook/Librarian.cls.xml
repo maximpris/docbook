@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Librarian">
+<Description><![CDATA[
+The librarian finds matches for requested information.<BR>
+NAMESPACE:  current namespace<BR>
+CONTEXT: where you are calling this from: EDITOR | INSPECTOR<BR>
+LANGUAGE: language of of help item (COS, BASIC, etc.)<BR>
+ELEMENT: For editor, the syntax element #; for Inspector what type of keyword: Class, Property, etc.<BR>
+TOKEN: Either the current token (editor) or the current keyword (inspector)<BR>]]></Description>
+<Abstract>1</Abstract>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Method name="FindURL">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>context:%String="",language:%String="",element:%String="",token:%String="",namespace:%String="",selected:%String="",document:%String=""</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    Set url = "DocBook.UI.Page.cls"
+    Set searchBook = ""
+    Set anchor = ""
+
+    // COS  element: 31 = objname
+    // CLS  element: 5 = class
+    // BAS  element: 5 = class
+    // SQL  element: 8 = class
+    
+    Set language = ..GetLangName(language)
+    Set context = $ZCVT(context,"L")
+    
+    If ((context = "editor") && 
+            (((language = "COS") && (element = 31)) ||
+            ((language = "CLS") && (element = 5)) ||
+            ((language = "BAS") && (element = 5)) ||
+            ((language = "SQL") && (element = 8)) )
+            ) {
+                
+        // we are looking for a class name
+        // (or an SQL table name...)
+        // We *should* test if the class/table exists....
+        
+        // get IP address of this machine
+        Set url = "/csp/documatic/%25CSP.Documatic.cls?APP=1" 
+        
+        // get normalized classname
+        If ($E(token,1,1) = "%") {
+            // % class should be ok
+            Set classname = token
+        }
+        ElseIf (token [ ".") {
+            // if there is a dot, assume this is a full class name
+            Set classname = token
+        }
+        Else {
+            // normalize using the Document name
+            Set classname = token
+            
+            // get classname part of document (after final /)
+            Set docpkg = $P(document,"/",$L(document,"/"))
+            
+            // take off .cls & classname
+            Set docpkg = $P(docpkg,".",1,$L(docpkg,".")-2)
+            Set:docpkg'="" classname = docpkg _ "." _ classname 
+        }
+        
+        Set url = url _ "&CLASSNAME=" _ $zcvt(classname,"O","URL")
+        
+        // make sure we are pointing to right namespace
+        Set:(namespace'="") url = url _ "&LIBRARY=" _ $zcvt(namespace,"O","URL")
+    }
+    ElseIf (context = "wizard") {
+        Set id = "GSTD_" _ element _ "_wizard"
+        If (##class(DocBook.block).FindId(id) '= "") {
+            
+            &sql(SELECT component->blockid INTO :chapter FROM block WHERE blockid = :id)
+            If (chapter '= "") {
+                Set url = "DocBook.UI.Page.cls?KEY=" _ chapter _ "#" _ id
+            }
+            Else {
+                Set url = "DocBook.UI.Page.cls?KEY=" _ id
+            }
+        }
+        Else {
+            Set url = "DocBook.UI.SearchPageZen.cls?KEY=&KeyWord=" _ $S(selected'="":selected,1:token)
+        }
+    }
+    ElseIf (context = "options") {
+        // options dialog
+        Set url = "DocBook.UI.Page.cls?KEY=GSTD_Options"
+    }
+    ElseIf (context = "template") {
+        // template dialog
+        Set url = "DocBook.UI.Page.cls?KEY=GSTD_Templates"
+    }
+    ElseIf (context = "browser") {
+        // class browser
+        Set url = "DocBook.UI.Page.cls?KEY=GSTD_classes#GSTD_classes_browser"
+    }
+    ElseIf (context = "attach") {
+        // attach to process dlg
+        Set url = "DocBook.UI.Page.cls?KEY=GSTD_debugger#GSTD_debugger_attach"
+    }
+    ElseIf (context = "projectsettings") {
+        // project settings dialog
+        Set url = "DocBook.UI.Page.cls?KEY=GSTD_Commands#GSTD_Commands_Project"
+    }
+    ElseIf (context = "debugsettings") {
+    // debug settings dialog
+        Set url = "DocBook.UI.Page.cls?KEY=GSTD_Debugger"
+    }
+    ElseIf (context = "package") {
+        // package settings dialog
+        Set url = "DocBook.UI.Page.cls?KEY=GSTD_classes#GSTD_classes_package"
+    }
+    ElseIf (context = "inherit") {
+        // inherited/derived classes dialog
+        Set url = "DocBook.UI.Page.cls?KEY=GSTD_classes#GSTD_classes_super"
+    }
+    ElseIf (context = "override") {
+        // override wizard
+        Set url = "DocBook.UI.Page.cls?KEY=GSTD_methods#GSTD_methods_override"
+    }
+    Else {
+        // look it up
+        Set id = ..Lookup(context,language,element,token,selected,.searchBook,.anchor)
+        If (id '= "") {
+            Set url = "DocBook.UI.Page.cls?KEY=" _ id
+            Set:anchor'="" url = url _ "#" _ anchor
+        }
+        Else {
+            Set txt = $ZSTRIP($S(selected'="":selected,1:token),"<>W")
+            If (txt = "") {
+                // nothing to do: show Studio TOC
+                Set url = "DocBook.UI.Page.cls?KEY=GSTD"
+            }
+            Else {
+                Set txt = $ZCVT(txt,"O","URL")
+                Set url = "DocBook.UI.SearchPageZen.cls?KEY=&KeyWord=" _ $S(selected'="":selected,1:txt)
+                If (searchBook '= "") {
+                    // find ID of searchBlock
+                    &sql(SELECT ID INTO :sid FROM DocBook.BOOK WHERE blockid = :searchBook)
+                    Set url = url _ "&BkFilter=" _ sid
+                    
+                    If (searchBook = "ROBJ") {
+                        // !!!
+                        Set url = url _ "&Include=Title"
+                    }
+                }
+            }
+        }
+    }
+    
+    Quit url
+]]></Implementation>
+</Method>
+
+<Method name="GetLangName">
+<Description>
+Convert a Studio language id values to a string</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>id:%Integer</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    If (id = 1) {
+        Quit "COS"
+    }
+    ElseIf (id = 2) {
+        Quit "SQL"
+    }
+    ElseIf (id = 3) {
+        Quit "CLS"
+    }
+    ElseIf (id = 4) {
+        Quit "BAS"
+    }
+    ElseIf (id = 5) {
+        Quit "CSP"
+    }
+    ElseIf (id = 11) {
+        Quit "JS"
+    }
+    ElseIf (id = 13) {
+        Quit "JAVA"
+    }
+    
+    Quit "UNKNOWN"
+]]></Implementation>
+</Method>
+
+<Method name="Lookup">
+<Description><![CDATA[
+Finds the closest docid for the requested information.<br>
+<var>context</var> is the Studio context: EDITOR | INSPECTOR<br>
+<var>language</var> is the current language.<br>
+<var>element</var> syntax element # or keyword type.<br>
+<var>token</var> current token or keyword.<br>
+<var>selected</var> selected text.<br>]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[context:%String,language:%String,element:%String,token:%String,selected:%String,&searchBook:%String,&anchor:%String]]></FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    Set id = ""
+    
+    // first branch on context
+    If (context = "inspector") {
+        Set id = ..LookupClassKeyword(element,token)
+    }
+    ElseIf (context = "editor") {
+        If (language = "COS") {
+            Set id =  ..LookupCOS(element,token,selected,.anchor)
+        }
+        ElseIf (language = "BAS") {
+            Set id =  ..LookupBASIC(element,token)
+        }
+        ElseIf (language = "CSP") {
+            Set id =  ..LookupCSP(element,token,.searchBook)
+        }
+        ElseIf (language = "SQL") {
+            Set id =  ..LookupSQL(element,token)
+        }
+        ElseIf (language = "CLS") {
+            Set id =  ..LookupCLS(element,token,.searchBook,.anchor)
+        }
+    }
+    
+    Quit id
+]]></Implementation>
+</Method>
+
+<Method name="LookupClassKeyword">
+<Description>
+Search for a class definition keyword</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>element:%String,token:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    Set id = "ROBJ_" _ $ZCVT(element,"L") _ "_" _ $ZCVT(token,"L")
+    If (##class(DocBook.block).FindId(id) '= "") {
+        Quit id
+    }
+
+    Quit ""
+]]></Implementation>
+</Method>
+
+<Method name="LookupCOS">
+<Description>
+Search for a Cache ObjectScript item.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[element:%String,token:%String,selected:%String="",&anchor:%String]]></FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    // convert Studio element id # to letter
+    Set token = $ZCVT(token,"L")
+    // strip out leading $
+    Set token = $TR(token,"$","")
+
+    Set selected = $ZCVT(selected,"L")
+        
+    Set el = ""
+    Set id = ""
+    Set anchor = ""
+    If (element = 32) {
+        // command
+        Set el = "c"
+        
+        // expand commands
+        Set token = $CASE(token,"b":"break","c":"close","d":"do","e":"else","f":"for",
+                                "g":"goto","h":"hang","i":"if","j":"job",
+                                "k":"kill","l":"lock","m":"merge","n":"new","o":"open",
+                                "p":"print","q":"quit","r":"read",
+                                "s":"set","tc":"tcommit","tro":"trollback","ts":"tstart",
+                                "u":"use","v":"view","w":"write","x":"xecute",
+                                "zb":"zbreak","zi":"zinsert","zk":"zkill","zl":"zload",
+                                "zn":"znamespace","zp":"zprint","zq":"zquit","zr":"zremove",
+                                "zs":"zsave","zw":"zwrite","zq":"zquit","zr":"zremove",
+                                :token)
+        
+    }
+    ElseIf (element = 17) {
+        // function
+        Set el = "f"
+
+        // expand functions
+        Set token = $CASE(token,"a":"ascii","c":"char","d":"data","e":"extract","f":"find","fn":"fnumber",
+                                "g":"get","i":"increment","in":"inumber","j":"justify","l":"length",
+                                "li":"list","lb":"listbuild","ld":"listdata","lf":"listfind","lg":"listget","ll":"listlength",
+                                "na":"name","n":"next","num":"number","o":"order",
+                                "p":"piece","ql":"qlength","qs":"qsubscript","q":"query","r":"random",
+                                "re":"reverse",
+                                "s":"select","st":"stack","t":"text","tr":"translate",
+                                "vi":"view",
+                                "zd":"zdate","zdh":"zdateh","zdt":"zdatetime","zdth":"zdatetimeh",
+                                "zh":"zhex","zt":"ztime","zth":"ztimeh",
+                                "zu":"zutil",
+                                "zcvt":"zconvert","zc":"zcyc","zis":"ziswide","zla":"zlascii","zlc":"zlchar",
+                                "zpos":"zposition","zp":"zprevious","zse":"zsearch",
+                                :token)
+        If ((selected [ "zu") && (token = "zutil")) {
+            // special zu logic
+            // strip out leading $ and (, peel off trailing ), convert ',' to -,
+            Set token = $P($TR(selected,",$(","-"),")")
+            
+            If (token '[ "zutil") {
+                Set token = "zutil" _ $P(token,"zu",2)
+            }
+            
+        }
+    }
+    ElseIf (element = 28) {
+        // system variable
+        Set el = "v"
+
+        // expand variables
+        Set token = $CASE(token,"ec":"ecode","es":"estack","et":"etrap","h":"horolog","i":"io","j":"job",
+                                "k":"key","p":"principal","q":"quit","st":"stack",
+                                "s":"storage","t":"test","tl":"tlevel",
+                                "zc":"zchild","zh":"zhorolog","zi":"zio","zn":"zname",
+                                "zo":"zorder","zp":"zparent","zr":"zreference","zs":"zstorage",
+                                "zts":"ztimestamp","ztz":"ztimezone","zt":"ztrap","zv":"zversion",
+                                :token)
+        
+    }
+    ElseIf (element = 24) {
+        // operator
+        Set el = "o"
+        Set id = "GCOS_operators"
+    }
+    ElseIf (element = 41) {
+        // pattern
+        Set id = "GCOS_operators"
+
+        Set anchor = "GCOS_operators_pattern"
+    }
+    
+    If ((id = "") && (el = "")) {
+        Quit ""
+    }
+
+    Set:id="" id = "RCOS_" _ el _ token
+    If (##class(DocBook.block).FindId(id) '= "") {
+        Quit id
+    }
+
+    Quit ""
+]]></Implementation>
+</Method>
+
+<Method name="LookupBASIC">
+<Description>
+Search for a Cache Basic item.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>element:%String,token:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    Set token = $ZCVT(token,"L")
+    
+    // convert Studio element id # to letter
+    Set el = ""
+    If (element = 13) {
+        // command
+        Set el = "c"
+        
+        // find command aliases!
+        If ((token = "for") || (token = "next")) {
+            Set token = "fornext"
+        }
+        ElseIf ((token = "if")  || (token = "then") || (token = "else")){
+            Set token = "ifthen"
+        }
+        ElseIf (token = "println"){
+            Set token = "print"
+        }
+        ElseIf ((token = "do")  || (token = "loop")) {
+            Set token = "doloop"
+        }
+        ElseIf ((token = "on") || (token = "goto") || (token = "error")){
+            Set token = "onerrorgoto"
+        }
+        ElseIf ((token = "while")  || (token = "wend")){
+            Set token = "whilewend"
+        }
+    }
+    ElseIf (element = 11) {
+        // identifier (treat as a function)
+        Set el = "f"
+    }
+    ElseIf (element = 24) {
+        // function
+        Set el = "f"
+    }
+    ElseIf (element = 15) {
+        // system object
+        Set el = "b"
+    }
+    ElseIf (element = 4) {
+        // operator
+        Set el = "o"
+        
+        // find operator name
+        If (token = "+") {
+            Set token = "addition"
+        }
+        ElseIf (token = "=") {
+            Set token = "assign"
+        }
+        ElseIf (token = "&") {
+            Set token = "concat"
+        }
+        ElseIf (token = "/") {
+            Set token = "division"
+        }
+        ElseIf (token = "^") {
+            Set token = "exponent"
+        }
+        ElseIf (token = "\") {
+            Set token = "intdiv"
+        }
+        ElseIf (token = "mod") {
+            Set token = "modulo"
+        }
+        ElseIf (token = "*") {
+            Set token = "multiply"
+        }
+        ElseIf (token = "-") {
+            Set token = "subtraction"
+        }
+    }
+    ElseIf (element = 13) {
+        // keyword !!!
+    }
+    ElseIf (element = 20) {
+        // relational operator
+        Set el = "o"
+        Set token = "comparison"
+    }
+    
+    If (el = "") {
+        Quit ""
+    }
+
+    Set id = "RBAS_" _ el _ token
+    If (##class(DocBook.block).FindId(id) '= "") {
+        Quit id
+    }
+
+    Quit ""
+]]></Implementation>
+</Method>
+
+<Method name="LookupSQL">
+<Description>
+Search for a Cache SQL item.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>element:%String,token:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    // strip out leading %
+    Set token = $ZCVT(token,"L")
+    Set token = $TR(token,"%","")
+    
+    If (element = 9) {
+        // host variable  !!!
+        Quit "GSQL_esql"
+    }
+
+    Set id = "RSQL_" _ token
+    If (##class(DocBook.block).FindId(id) '= "") {
+        Quit id
+    }
+
+    Quit ""
+]]></Implementation>
+</Method>
+
+<Method name="LookupCLS">
+<Description>
+Search for a Class Definition item.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[element:%String,token:%String,&searchBook:%String,&anchor:%String]]></FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    Set token = $ZCVT(token,"L")
+    
+    If (element = 6) {
+        // comment
+        Set anchor = "GSTD_Syntax_Comments"
+        Quit "GSTD_syntax"
+    }
+    ElseIf (element = 7) {
+        // description
+        Set anchor = "GSTD_Syntax_Description"
+        Quit "GSTD_syntax"
+    }
+    ElseIf (element = 4) {
+        // class keyword
+        If ("/class/property/method/trigger/query/classmethod/relationship/index/projection/parameter/foreignkey/" [ ("/"_token_"/")) {
+            // class member keyword
+            If (token = "classmethod") {
+                Set token = "method"
+            }
+            
+            Set anchor = "GSTD_Syntax_" _ token _ "Statement"
+            Quit "GSTD_syntax"
+        }
+        ElseIf (token = "as") {
+            Quit "GSTD_syntax"
+        }
+        ElseIf (token = "extends") {
+            Set anchor = "GSTD_Syntax_ClassStatement"
+            Quit "GSTD_syntax"
+        }
+        Else {
+            // goto search page, but limit search to CLS Reference
+            Set searchBook = "ROBJ"
+        }
+    }
+
+    Quit ""
+]]></Implementation>
+</Method>
+
+<Method name="LookupCSP">
+<Description>
+Search for a CSP item.</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[element:%String,token:%String,&searchBook:%String]]></FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    Set token = $ZCVT(token,"L")
+    
+    // test element #
+    Set istag = 0
+    If (element = 11) {
+        // tag
+        Set istag = 1
+    }
+    ElseIf (element = 7) {
+        // attribute
+        // goto search page, but limit search to CSP Reference
+        Set searchBook = "RCSP"
+    }
+    
+    If ('istag) {
+        Quit ""
+    }
+
+    If (token [ "csp:") {
+        Set id = "RCSP_CSP_" _ $P(token,":",2)
+    }
+    Else {
+        Set id = "RCSP_" _ token
+    }
+
+    If (##class(DocBook.block).FindId(id) '= "") {
+        Quit id
+    }
+
+    Quit ""
+]]></Implementation>
+</Method>
+</Class>
+</Export>

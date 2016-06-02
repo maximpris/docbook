@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.part">
+<Description>
+This class represents a Part of a book.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.component</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Property name="intro">
+<Description>
+Intro for this part</Description>
+<Type>partintro</Type>
+</Property>
+
+<Method name="GetBannerInfo">
+<Internal>1</Internal>
+<FormalSpec>info:DocBook.UI.BannerInfo</FormalSpec>
+<Implementation><![CDATA[
+	Set info.title = ..title
+	If (..book '= "") {
+		Set info.booktitle = ..book.title
+	}
+	Else {
+		Set info.booktitle = ""
+	}
+	
+	Set info.chap = ""
+	Set info.prev = ""
+	Set info.next = ""
+]]></Implementation>
+</Method>
+
+<Method name="HTMLRender">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	Set id = ..%Id()
+	
+	If (..intro '= "") {
+		Do ..intro.HTMLRender()
+	}
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DefaultData>partDefaultData</DefaultData>
+<Data name="partDefaultData">
+<Subscript>"part"</Subscript>
+<Value name="1">
+<Value>intro</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>

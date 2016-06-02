@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="doctypes/axdocbook/axdocbook-no-activex.ent" application="/csp/docbook/" default="1"><![CDATA[
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fragment document type declaration subset:
+ArborText, Inc., 1988-2002, v.4002
+<!DOCTYPE DocumentTypeConfiguration PUBLIC "-//Arbortext//DTD Document Type Configuration 1.0//EN"
+ "dcfdtd.dtd">
+-->
+<!-- This file entity is a placeholder for <ActiveXControl> elements.  See online help for configuration information of ActiveX controls on Windows systems.-->
+]]></CSP>
+</Export>

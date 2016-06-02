@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.qandaset">
+<Description>
+A question and answer set.</Description>
+<ClassType>persistent</ClassType>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.container</Super>
+<TimeCreated>59241,40475</TimeCreated>
+
+<Method name="HTMLRenderPreChildren">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+	// show list of divisions
+	Write "<DIV CLASS=""para"">", $$$T("This Question and Answer Set includes the following topics:"), "<MENU>", !
+	
+	Do ..ShowTopics()
+	
+	Write "</MENU></DIV><HR>"
+
+	Write "<DIV CLASS=""qandaset"">"
+	Write "<A name=""",..id,"""></A>",!
+	Write ..title,"</DIV>",!
+]]></Implementation>
+</Method>
+
+<Method name="ShowTopics">
+<Internal>1</Internal>
+<Implementation><![CDATA[
+
+	Set id = ..%Id()
+	
+	&sql(DECLARE sql1 CURSOR FOR
+		SELECT ID,blockID,title 
+		INTO :did,:bid, :title
+		FROM qandadiv 
+		WHERE container = :id
+		ORDER BY title
+	)
+
+	&sql(OPEN sql1)
+
+	&sql(FETCH sql1)
+	While (SQLCODE = 0) {
+		Write "<LI><A CLASS=""TOCSect1"" HREF=""#",bid,""">",title,"</A></LI>",!
+		&sql(FETCH sql1)
+	}
+	&sql(CLOSE sql1)
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+</Storage>
+</Class>
+</Export>

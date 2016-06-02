@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.BannerInfo">
+<Description>
+Information used to draw the banner on the various DocBook HTML pages.</Description>
+<Import>DocBook</Import>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>%Library.RegisteredObject</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Property name="booktitle">
+<Description>
+Book title displayed for this page</Description>
+<Type>cdata</Type>
+</Property>
+
+<Property name="title">
+<Description>
+Title displayed for this page</Description>
+<Type>cdata</Type>
+</Property>
+
+<Property name="chap">
+<Description>
+Chapter name for this page</Description>
+<Type>cdata</Type>
+</Property>
+
+<Property name="next">
+<Description>
+id of next page (or "" if none)</Description>
+<Type>id</Type>
+</Property>
+
+<Property name="prev">
+<Description>
+id of previous page (or "" if none)</Description>
+<Type>id</Type>
+</Property>
+
+<Property name="container">
+<Description>
+Container object being displayed</Description>
+<Type>container</Type>
+</Property>
+
+<Property name="isArticle">
+<Description>
+This page is in the KnBase</Description>
+<Type>dbint</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+</Class>
+</Export>

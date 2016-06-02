@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.UI.Comments">
+<Description>
+This page displays a list of user comments.</Description>
+<IncludeCode>DocBookMac</IncludeCode>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>DocBook.UI.StdPage</Super>
+<TimeCreated>59241,40474</TimeCreated>
+
+<Method name="OnPage">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+	Set info = ##class(BannerInfo).%New()
+	Set info.title = $$$T("User Comments")
+	Set info.booktitle = $$$T("InterSystems Online Documentation")
+
+	Do ..Header($$$T("User Comments"),,1)
+	&html<<BODY>>
+
+	Do ..RenderBanner(info,1)
+	&html<<BR>>
+		
+	// display list of comments
+	Do ..ShowComments()		
+		
+	Do ..Footer(1,,1)
+	
+	QUIT $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ShowComments">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+
+	Set row = 0
+	
+	// loop over sets
+	&sql(DECLARE CmtCursor CURSOR FOR
+		SELECT ID,Comment,UserName,CreateTime,Reason,BlockId
+		INTO :id,:comment,:name,:time,:reason,:blockid
+		FROM DocBook.UserComment
+		ORDER BY User,CreateTime
+	)
+	
+	&sql(OPEN CmtCursor)
+	&sql(FETCH CmtCursor)
+
+	&html<<TABLE CLASS="CALSTable" WIDTH="100%" BORDER="0" CELLPADDING="3" CELLSPACING="0" COLS="4">>
+
+	&html<<TR><TH>User</TH><TH>#($$$T("Comment"))#</TH><TH>#($$$T("Time"))#</TH><TH>&nbsp;</TH></TR>>
+
+	While (SQLCODE = 0) {
+		Set row = row + 1
+		
+		Set compid = ""
+		&sql(SELECT component->blockid INTO :compid FROM DocBook.block WHERE blockid = :blockid)
+		
+		Set href = "DocBook.UI.Page.cls?KEY=" _ compid _ "#" _ blockid
+		
+		&html<<TR CLASS=#($S(row#2:"LightRow",1:"DarkRow"))#>
+			  <TD ALIGN="LEFT">#(name)#</TD>
+			  <TD ALIGN="LEFT"><B>#(reason)#:</B>&nbsp;#(comment)#</TD>
+			  <TD CLASS="SMALL" ALIGN="LEFT">#(time)#</TD>
+			  <TD CLASS="SMALL" ALIGN="LEFT"><A HREF="#(href)#">View</A></TD>
+			  </TR>>
+
+		&sql(FETCH CmtCursor)	
+	}
+	&sql(CLOSE CmtCursor)
+
+	&html<</TABLE>>
+]]></Implementation>
+</Method>
+</Class>
+</Export>

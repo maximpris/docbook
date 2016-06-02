@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="featuremapTrakCare.csp" application="/csp/docbook/" default="1"><![CDATA[
+<HTML>
+<HEAD>
+<TITLE>TrakCare Feature Map</TITLE>
+
+<LINK REL="stylesheet" TYPE="text/css" HREF="docbookhtml.css" TITLE="Standard Style" >
+
+<STYLE>
+
+BODY {  font-family: Lucida sans unicode, Verdana,sans-serif;
+            font-size: 14pt; background: #FFFAE7;
+            }
+
+.para {
+	font-family: Lucida sans unicode, Verdana,sans-serif;
+	font-size: 0.8em;
+}
+
+A { text-decoration: none; color: yellow; }
+
+TD.MapOuter {}
+
+TD.MapItem {
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 8pt;
+            padding-right: 8pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+			background: #000040;
+			background-image: url(/csp/broker/images/grad-blue-10x100.png);
+			background-repeat: repeat-x;
+            }
+
+
+TD.MapItemHi {
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 8pt;
+            padding-right: 8pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+            background: #62A0FC;
+            }
+
+
+TD.MapItemSmall { 
+            padding: 2pt;
+            padding-right: 6px;
+            padding-left: 6px;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+			background: #000040;
+			background-image: url(/csp/broker/images/grad-blue-10x30.png);
+			background-repeat: repeat-x;
+            }
+
+TD.MapItemSmallHi { 
+            padding: 2pt;
+            padding-right: 6px;
+            padding-left: 6px;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            border-top: #72B0FC solid 2px;
+            border-left: #72B0FC solid 2px;
+            border-bottom: #22409C solid 2px;
+            border-right: #22409C solid 2px;
+            background: #62A0FC;
+            }
+
+TD.MapGap { padding: 0pt; background: #FFFF80; }
+
+H1 { 
+    padding: 0pt; background: #FFFF80; 
+    font-weight: normal;
+    text-align: center; }
+
+CAPTION {
+    padding: 2pt;
+    font-weight: bold;
+    padding-right: 6px;
+    padding-left: 6px;
+	font-family: Lucida sans unicode, Verdana,sans-serif;
+    font-size: 12pt;
+    color: yellow;
+    text-align: center;
+    }
+
+TABLE.Container {
+			font-family: Lucida sans unicode, Verdana,sans-serif;
+            font-size: 14pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            padding-left: 2pt;
+            padding-right: 2pt;
+            text-align: center;
+            border: darkblue solid 1px;
+			background: #C0C0C0;
+			background-image: url(/csp/broker/images/grad-halfgray-10x100.png);
+			background-repeat: repeat-x;
+            }
+
+    
+
+</STYLE>
+</HEAD>
+
+<SCRIPT LANGUAGE="CACHE" RUNAT="SERVER">
+
+    // define text arrays for the map
+    
+    // default and other link targets
+    Set dbook = ..Link("/csp/docbook/" _ "DocBook.UI.Page.cls") // !!!
+    Set dbook = dbook  _ "?KEY="
+    
+    Set default = ..Link("/csp/docbook/" _ "DocBook.UI.HomePageZen.cls")
+
+    // get IP address of this machine
+    Set liblink = ..Link("/csp/documatic/%25CSP.Documatic.cls")
+
+    
+    // labels
+    
+    Set %label("MPI") = "Master Patient Index (MPI)"
+    Set %label("EPR") = "Electronic Patient Record (EPR)"
+    
+    Set %label("PAS_Foundation") = "Patient Administration System (PAS) Foundation"
+    Set %label("PASF_IP") = "Inpatient Management"
+    Set %label("PASF_OP") = "Outpatient Management"
+    Set %label("PASF_WL") = "Referral and Waiting List Management"
+    Set %label("PASF_MRM") = "Medical Records Management"
+    Set %label("PASF_COD") = "Coding and Grouping"
+
+    Set %label("CIS_Foundation") = "Clinical Information System (CIS) Foundation"
+    Set %label("CISF_WB") = "Care Provider WorkBenches and Worklists"
+    Set %label("CISF_OREC") = "Order and Result Entry, and Communications"
+    Set %label("CISF_CARE") = "Care Documentation"
+    Set %label("CISF_Observations") = "Observations and Graphing"
+    Set %label("CISF_Summary") = "Clinical Summary"
+
+    Set %label("ADDONS") = "TrakCare Additional Features"
+    Set %label("ADDONS_maternity") = "Maternity"
+    Set %label("ADDONS_er") = "Emergency Management"
+    Set %label("ADDONS_surg") = "Operating Theater Management"
+    Set %label("ADDONS_lab") = "Laboratory"
+    Set %label("ADDONS_rad") = "Radiology and Departmental Workbench"
+    Set %label("ADDONS_prescribe") = "Prescribing"
+    Set %label("ADDONS_med_mgmt") = "Medication Management"
+    Set %label("ADDONS_pharm") = "Pharmacy"
+    Set %label("ADDONS_mental") = "Mental Health"
+    Set %label("ADDONS_poly") = "Polyclinic"
+    Set %label("ADDONS_commhealth") = "Community Health Management"
+    Set %label("ADDONS_bi") = "Business Analytics"
+    Set %label("ADDONS_dss") = "Active Decision Support"
+    Set %label("ADDONS_bill") = "Patient Billing"
+    Set %label("ADDONS_conn") = "Connectivity"
+
+    Set %label("ENSEMBLE") = "Ensemble Integration Platform"
+
+
+    // descriptions
+    
+    Set %text("MPI") = "Master Patient Index"
+    Set %text("EPR") = "Electronic Patient Record"
+    
+    Set %text("PAS_Foundation") = "Patient Administration System Foundation"
+    Set %text("PASF_IP") = "Inpatient Management"
+    Set %text("PASF_OP") = "Outpatient Management"
+    Set %text("PASF_WL") = "Referral and Waiting List Management"
+    Set %text("PASF_MRM") = "Medical Records Management"
+    Set %text("PASF_COD") = "Coding and Grouping"
+
+    Set %text("CIS_Foundation") = "Clinical Information System Foundation"
+    Set %text("CISF_WB") = "Care Provider WorkBenches and Worklists"
+    Set %text("CISF_OREC") = "Order and Result Entry, and Communications"
+    Set %text("CISF_CARE") = "Care Documentation"
+    Set %text("CISF_Observations") = "Observations and Graphing"
+    Set %text("CISF_Summary") = "Clinical Summary"
+
+    Set %text("ADDONS") = "TrakCare Add-On and/or Stand-Alone Modules"
+    Set %text("ADDONS_maternity") = "Maternity"
+    Set %text("ADDONS_er") = "Emergency Management"
+    Set %text("ADDONS_surg") = "Operating Theater Management"
+    Set %text("ADDONS_lab") = "Laboratory"
+    Set %text("ADDONS_rad") = "Radiology and Departmental Workbench"
+    Set %text("ADDONS_prescribe") = "Prescribing"
+    Set %text("ADDONS_med_mgmt") = "Medication Management"
+    Set %text("ADDONS_pharm") = "Pharmacy"
+    Set %text("ADDONS_mental") = "Mental Health Management"
+    Set %text("ADDONS_commhealth") = "Community Health Management"
+    Set %text("ADDONS_commhealth") = "Community Health Management"
+    Set %text("ADDONS_poly") = "Polyclinic"
+    Set %text("ADDONS_bi") = "Business Analytics"
+    Set %text("ADDONS_dss") = "Active Decision Support"
+    Set %text("ADDONS_bill") = "Patient Billing"
+    Set %text("ADDONS_conn") = "Connectivity"
+    
+    Set %text("ENSEMBLE") = "Ensemble Integration Platform"
+    
+
+    // links
+    
+    Set %link("MPI")               = dbook _ "KOVERVIEW_preface"
+    Set %link("EPR")               = dbook _ "KGEPR_preface"
+    
+    Set %link("PAS_Foundation")    = dbook _ "KGADMIN_preface"
+    Set %link("PASF_IP")           = dbook _ "KMINPATIENTS_preface"
+    Set %link("PASF_OP")           = dbook _ "KMOUTPATIENTS_preface"
+    Set %link("PASF_WL")           = dbook _ "KMWAITLISTS_preface"
+    Set %link("PASF_MRM")          = ""
+    Set %link("PASF_COD")          = ""
+    
+    Set %link("CIS_Foundation")    = dbook _ "KMCIS_preface"
+    Set %link("CISF_WB")           = ""
+    Set %link("CISF_OREC")         = ""
+    Set %link("CISF_CARE")         = ""
+    Set %link("CISF_Observations") = ""
+    Set %link("CISF_Summary")      = ""
+
+    Set %link("ADDONS")            = default
+    Set %link("ADDONS_maternity")  = ""
+    Set %link("ADDONS_er")         = ""
+    Set %link("ADDONS_surg")       = dbook _ "KUGOPTHEATER_preface"
+    Set %link("ADDONS_lab")        = ""
+    Set %link("ADDONS_rad")        = ""
+    Set %link("ADDONS_prescribe")  = ""
+    Set %link("ADDONS_med_mgmt")  = ""
+    Set %link("ADDONS_pharm")      = ""
+    Set %link("ADDONS_mental")     = dbook _ "KGMENTHEALTH_preface"
+    Set %link("ADDONS_prescribe")  = ""
+    Set %link("ADDONS_poly")       = ""
+    Set %link("ADDONS_commhealth") = ""
+    Set %link("ADDONS_bi")        = ""
+    Set %link("ADDONS_dss")        = ""
+    Set %link("ADDONS_bill")       = dbook _ "KMBILLING_preface"
+    Set %link("ADDONS_conn")       = ""
+    Set %link("ENSEMBLE")          = dbook _ "EGIN_preface"
+    
+    Set border = 1
+    Set:(%request.UserAgent["MSIE") border=0
+    
+</SCRIPT>
+
+<BODY>
+
+<a name="top">
+</a>
+<table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 10pt;">
+<tr>
+<td nowrap bgcolor="#FFFAE7" valign="bottom" align="left" >
+<a href="http://www.intersystems.com">
+<img src="/csp/sys/images/logo-topl-intersystems.gif" alt="InterSystems" align="left" width="205" height="78" border="none">
+</a>
+<br clear="left">
+<nobr>&nbsp;
+</nobr>
+</td>
+<td nowrap bgcolor="#FFFAE7" valign="top" align="left">
+<div class="wizardltlabel" style="margin-top:8px;">
+<span style="font-size:11pt; padding-right:5px;">InterSystems Online Documentation</span>
+</div>
+<div style="color: darkblue; margin-top:4px; font-weight: bold; font-size:15pt;">
+TrakCare Feature Map
+</div>
+</td>
+<td nowrap width="308" height="78" bgcolor="#FFFAE7" valign="bottom" align="left" style='background-repeat: repeat-y; background-image: url("../../csp/sys/images/opposite-pic-intersys.jpg");'>&nbsp;</td>
+<td width="2%" bgcolor="#388CCC">&nbsp;</td>
+<td bgcolor="#388CCC" valign="bottom">
+</td>
+<td bgcolor="#388CCC">&nbsp;</td>
+</tr>
+<tr>
+<td colspan="8" bgcolor="#D36D00">
+<img src="/csp/sys/images/spacer.gif" width="100%" height="2" alt="-" border="0">
+</td>
+</tr>
+<tr>
+<td class="LocatorBar" colspan="10">&nbsp;</td>
+</tr>
+</table>
+   
+<BR>
+
+<!-- Here is the feature map -->
+<DIV CLASS="para">The Feature Map displays a schematic overview of TrakCare. 
+To find out more on an item, select it.
+</DIV>
+
+<HR>
+<BR>
+
+<TABLE BORDER=0>
+<TR>
+<!-- <TD>&nbsp;</TD> -->
+<TD>
+
+<TABLE CLASS="Container" BORDER="#(border)#" CELLSPACING="0" CELLPADDING="2">
+
+<TR>
+<!-- <TD>&nbsp;</TD> -->
+<TD CLASS="MapItem" #(..DrawTD("EPR"))# COLSPAN=3>#(..DrawCell("EPR"))#</TD>
+<!-- <TD>&nbsp;</TD> -->
+</TR>
+
+<TR>
+<!-- <TD>&nbsp;</TD> -->
+<TD CLASS="MapItem" #(..DrawTD("MPI"))# COLSPAN=3>#(..DrawCell("MPI"))#</TD>
+<!-- <TD>&nbsp;</TD> -->
+</TR>
+
+<TR VALIGN="TOP">
+<TD CLASS="MapItem" COLSPAN=1>
+<TABLE BORDER=0>
+<CAPTION>#(%label("PAS_Foundation"))#</CAPTION>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("PASF_IP"))#>#(..DrawCell("PASF_IP"))#
+</TR>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("PASF_OP"))#>#(..DrawCell("PASF_OP"))#
+</TR>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("PASF_WL"))#>#(..DrawCell("PASF_WL"))#
+</TR>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("PASF_MRM"))#>#(..DrawCell("PASF_MRM"))#
+</TR>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("PASF_COD"))#>#(..DrawCell("PASF_COD"))#
+</TR>
+</TABLE>
+</TD>
+
+<TD CLASS="MapItem" COLSPAN=1>
+<TABLE BORDER=0>
+<CAPTION>#(%label("CIS_Foundation"))#</CAPTION>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CISF_WB"))#>#(..DrawCell("CISF_WB"))#
+</TR>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CISF_OREC"))#>#(..DrawCell("CISF_OREC"))#
+</TR>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CISF_CARE"))#>#(..DrawCell("CISF_CARE"))#
+</TR>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CISF_Observations"))#>#(..DrawCell("CISF_Observations"))#
+</TR>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("CISF_Summary"))#>#(..DrawCell("CISF_Summary"))#
+</TR>
+</TABLE>
+</TD>
+
+<TD CLASS="MapItem" COLSPAN=1>
+<TABLE BORDER=0>
+<CAPTION>#(%label("ADDONS"))#</CAPTION>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_maternity"))#>#(..DrawCell("ADDONS_maternity"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_er"))#>#(..DrawCell("ADDONS_er"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_surg"))#>#(..DrawCell("ADDONS_surg"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_lab"))#>#(..DrawCell("ADDONS_lab"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_rad"))#>#(..DrawCell("ADDONS_rad"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_prescribe"))#>#(..DrawCell("ADDONS_prescribe"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_med_mgmt"))#>#(..DrawCell("ADDONS_med_mgmt"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_pharm"))#>#(..DrawCell("ADDONS_pharm"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_mental"))#>#(..DrawCell("ADDONS_mental"))#
+</TR>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_poly"))#>#(..DrawCell("ADDONS_poly"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_commhealth"))#>#(..DrawCell("ADDONS_commhealth"))#
+</TR>
+<TR><TD>&nbsp;</TD></TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_bi"))#>#(..DrawCell("ADDONS_bi"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_dss"))#>#(..DrawCell("ADDONS_dss"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_bill"))#>#(..DrawCell("ADDONS_bill"))#
+</TR>
+<TR>
+<TD CLASS="MapItemSmall" #(..DrawTDSmall("ADDONS_conn"))#>#(..DrawCell("ADDONS_conn"))#
+</TR>
+</TABLE>
+</TD>
+
+</TR>
+
+<TR>
+<!-- <TD>&nbsp;</TD> -->
+<TD CLASS="MapItem" #(..DrawTD("ENSEMBLE"))# COLSPAN=3>#(..DrawCell("ENSEMBLE"))#</TD>
+<!-- <TD>&nbsp;</TD> -->
+</TR>
+
+</TABLE>
+
+<BR>
+<HR>
+
+</BODY>
+</HTML>
+
+<SCRIPT language=Cache method=DrawCell arguments="item:%String">
+    // draw contents of a cell within the map
+    Set txt ="<A"
+    Set:($GET(%link(item),"")'="") txt = txt _ " HREF="""_%link(item) _ """"
+    Set txt = txt _ " TITLE="""_%text(item)_""">"_%label(item)_"</A>"
+    Quit txt
+</SCRIPT>
+
+<SCRIPT language=Cache method=DrawTD arguments="item:%String">
+    // draw attributes for TD tag
+    Set mousein = "MapItem"
+    Set mouseot = "MapItem"
+    Set:($GET(%link(item),"")'="") mousein = "MapItemHi"
+    Set txt ="onmouseover=""this.className='" _ mousein _ "';"" onmouseout=""this.className='" _ mouseot _ "';"" "
+    Set:($GET(%link(item),"")'="") txt = txt _ " onclick=""self.document.location='"_%link(item) _ "';"""
+    Quit txt
+</SCRIPT>
+
+<SCRIPT language=Cache method=DrawTDSmall arguments="item:%String">
+    // draw attributes for TD tag
+    Set mousein = "MapItemSmall"
+    Set mouseot = "MapItemSmall"
+    Set:($GET(%link(item),"")'="") mousein = "MapItemSmallHi"
+    Set txt ="onmouseover=""this.className='" _ mousein _ "';"" onmouseout=""this.className='" _ mouseot _ "';"" "
+    Set:($GET(%link(item),"")'="") txt = txt _ " onclick=""self.document.location='"_%link(item) _ "';"""
+    Quit txt
+</SCRIPT>
+]]></CSP>
+</Export>

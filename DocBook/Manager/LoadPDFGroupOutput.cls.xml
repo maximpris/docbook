@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="DocBook.Manager.LoadPDFGroupOutput">
+<Description><![CDATA[
+This page is launched by <class>DocBook.Manager.Home</class> when you choose the ]]></Description>
+<Super>%CSP.Page</Super>
+<TimeCreated>63103,41170.093265</TimeCreated>
+
+<Method name="OnPage">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<ServerOnly>1</ServerOnly>
+<Implementation><![CDATA[
+    set tSC = $$$OK
+    Try {
+        &html<<DIV class="programlisting"><PRE>>
+        write !, "Loading PDFGroup..."
+        set pdfgroupid = $G(%request.Data("ID",1))
+        if (pdfgroupid="") {
+            write !!, "No PDFGroup specified!"
+        } else {
+            write !, "PDFGroup is: "_pdfgroupid
+    
+            write !, "This page executes the following command in the DOCBOOK namespace: "
+	        write !, "   do ##class(DocBook.Manager.LoadUtils).LoadPDFGroup("""_pdfgroupid_""")"
+
+            write !
+            write !, "****************************************************************************************"
+            write !,"OUTPUT FROM THE COMMAND:",!
+            do ##class(DocBook.Manager.LoadUtils).LoadPDFGroup(pdfgroupid)
+            write !, "****************************************************************************************"
+        }
+        &html<</PRE></DIV>>
+        &html<<br><A HREF="DocBook.Manager.Home.cls">Back to DocBook Manager</A>>
+    }
+    Catch(ex) {
+        set tSC = ex.AsStatus()
+        write $System.Status.GetErrorText(tSC)    
+    }
+
+    Quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+</Export>
